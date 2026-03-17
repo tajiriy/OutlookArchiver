@@ -79,6 +79,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config\AppSettings.vb" />
+    <Compile Include="Controls\EmailPreviewControl.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Controls\EmailPreviewControl.Designer.vb">
+      <DependentUpon>EmailPreviewControl.vb</DependentUpon>
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="Data\DatabaseManager.vb" />
     <Compile Include="Data\EmailRepository.vb" />
     <Compile Include="Services\ImportService.vb" />
@@ -110,6 +117,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="My Project\Resources.resx">
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>

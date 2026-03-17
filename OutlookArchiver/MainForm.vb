@@ -25,6 +25,12 @@ Public Class MainForm
     ' ════════════════════════════════════════════════════════════
 
     Private Sub MainForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' デザイナーが SplitterDistance を上書きするため、ここで正しい比率に設定する
+        ' フォルダツリー幅: 150px、メール一覧高さ: コンテンツ領域の約 40%
+        splitMain.SplitterDistance = 150
+        Dim contentHeight As Integer = Me.ClientSize.Height - menuStrip.Height - toolStrip.Height - statusStrip.Height
+        splitRight.SplitterDistance = CInt(contentHeight * 0.4)
+
         InitializeServices()
         SetupAutoImportTimer()
         LoadFolderTree()
@@ -90,6 +96,22 @@ Public Class MainForm
         listViewEmails.VirtualListSize = _emailCache.Count
         listViewEmails.Invalidate()
         UpdateStatusBar()
+    End Sub
+
+    ''' <summary>メール一覧で行が選択されたときにプレビューを更新する。</summary>
+    Private Sub listViewEmails_SelectedIndexChanged(sender As Object, e As EventArgs) Handles listViewEmails.SelectedIndexChanged
+        If listViewEmails.SelectedIndices.Count = 0 Then
+            emailPreview.ClearPreview()
+            Return
+        End If
+
+        Dim idx As Integer = listViewEmails.SelectedIndices(0)
+        If idx < 0 OrElse idx >= _emailCache.Count Then Return
+
+        Dim email As Models.Email = _repo.GetEmailById(_emailCache(idx).Id)
+        If email IsNot Nothing Then
+            emailPreview.ShowEmail(email)
+        End If
     End Sub
 
     ''' <summary>VirtualMode: 指定インデックスのListViewItemを返す。</summary>
