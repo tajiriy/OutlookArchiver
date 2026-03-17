@@ -84,11 +84,11 @@
     <Compile Include="Services\ImportService.vb" />
     <Compile Include="Services\OutlookService.vb" />
     <Compile Include="Services\ThreadingService.vb" />
-    <Compile Include="Form1.vb">
+    <Compile Include="MainForm.vb">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.vb">
-      <DependentUpon>Form1.vb</DependentUpon>
+    <Compile Include="MainForm.Designer.vb">
+      <DependentUpon>MainForm.vb</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Models\Attachment.vb" />
