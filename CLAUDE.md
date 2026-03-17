@@ -1,0 +1,52 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## プロジェクト概要
+
+OutlookArchiver は .NET Framework 4.6.2 / VB.NET の Windows Forms デスクトップアプリケーション。Outlook のメールアーカイブ操作を提供する。
+
+## ビルド・実行コマンド
+
+```bash
+# ビルド
+msbuild OutlookArchiver/OutlookArchiver.vbproj
+
+# リリースビルド
+msbuild OutlookArchiver/OutlookArchiver.vbproj /p:Configuration=Release
+```
+
+## 技術スタック
+
+- **言語**: VB.NET
+- **フレームワーク**: .NET Framework 4.6.2
+- **UI**: Windows Forms
+- **プロジェクト形式**: 旧形式 (.vbproj / MSBuild ToolsVersion 15.0)
+
+## アーキテクチャ
+
+- ソリューション (`OutlookArchiver.slnx`) に `OutlookArchiver/`（本体）を含む構成
+- エントリポイント: `My.MyApplication` → `Form1`
+- `Form1.Designer.vb` はデザイナー自動生成ファイル。手動編集しないこと
+
+## 開発の進め方
+
+- コーディングを始める前に、必ず実装プランを提示してユーザーの承認を得る
+- プランを提示したら、承認されるまでコーディングに着手しない
+- プランには変更対象のファイル、追加するクラスやメソッド、処理の流れなどを含める
+
+## ブランチ運用ルール
+
+- 基本的に `main` ブランチで直接開発する（1人開発のため）
+- 大規模な実験的変更など、必要に応じて `feature-<機能名>` ブランチを使う
+
+## コミット前の確認事項
+
+- コミット前に必ず `msbuild OutlookArchiver/OutlookArchiver.vbproj` でビルドが通ることを確認する
+- ビルドエラーがある状態ではコミットしない
+
+## 注意事項
+
+- `*.Designer.vb` ファイルは Windows Forms デザイナーが管理するため、直接編集せず `InitializeComponent()` 内のコードはデザイナーに任せる
+- UI コントロールの追加・変更は Designer.vb ではなくコードビハインド側（`Form1.vb`）で対応するか、Designer.vb の `InitializeComponent()` 内に正しい形式で追記する
+- `My Project/` 配下のデザイナー生成ファイル (`*.Designer.vb`) は自動生成のため手動編集しないこと
