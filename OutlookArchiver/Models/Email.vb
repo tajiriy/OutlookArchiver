@@ -28,6 +28,7 @@ Namespace Models
         Public Property SentAt As Nullable(Of DateTime)
         Public Property FolderName As String
         Public Property HasAttachments As Boolean
+        Public Property EmailSize As Long
         Public Property CreatedAt As DateTime
         Public Property UpdatedAt As DateTime
 

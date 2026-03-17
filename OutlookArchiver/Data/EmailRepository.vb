@@ -29,12 +29,12 @@ INSERT INTO emails (
     message_id, in_reply_to, [references], thread_id, entry_id,
     subject, normalized_subject, sender_name, sender_email,
     to_recipients, cc_recipients, bcc_recipients,
-    body_text, body_html, received_at, sent_at, folder_name, has_attachments
+    body_text, body_html, received_at, sent_at, folder_name, has_attachments, email_size
 ) VALUES (
     @message_id, @in_reply_to, @references, @thread_id, @entry_id,
     @subject, @normalized_subject, @sender_name, @sender_email,
     @to_recipients, @cc_recipients, @bcc_recipients,
-    @body_text, @body_html, @received_at, @sent_at, @folder_name, @has_attachments
+    @body_text, @body_html, @received_at, @sent_at, @folder_name, @has_attachments, @email_size
 );
 SELECT last_insert_rowid();"
 
@@ -61,6 +61,7 @@ SELECT last_insert_rowid();"
                            CType(DBNull.Value, Object)))
                     cmd.Parameters.AddWithValue("@folder_name", NullableStr(email.FolderName))
                     cmd.Parameters.AddWithValue("@has_attachments", CType(If(email.HasAttachments, 1, 0), Object))
+                    cmd.Parameters.AddWithValue("@email_size", CType(email.EmailSize, Object))
                     Return Convert.ToInt32(cmd.ExecuteScalar())
                 End Using
             End Using
@@ -419,6 +420,8 @@ SELECT last_insert_rowid();"
             If Not String.IsNullOrEmpty(sentStr) Then email.SentAt = DateTime.Parse(sentStr)
             email.FolderName = GetStr(reader, "folder_name")
             email.HasAttachments = reader.GetInt32(reader.GetOrdinal("has_attachments")) = 1
+            Dim sizeOrd As Integer = reader.GetOrdinal("email_size")
+            If Not reader.IsDBNull(sizeOrd) Then email.EmailSize = reader.GetInt64(sizeOrd)
             Return email
         End Function
 

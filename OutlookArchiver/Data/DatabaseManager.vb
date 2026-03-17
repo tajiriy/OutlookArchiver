@@ -40,6 +40,7 @@ Namespace Data
                 ExecuteNonQuery(conn, "PRAGMA journal_mode=WAL;")
 
                 CreateTables(conn)
+                ApplyMigrations(conn)
                 CreateIndices(conn)
                 CreateFtsTables(conn)
                 CreateFtsTriggers(conn)
@@ -70,6 +71,7 @@ CREATE TABLE IF NOT EXISTS emails (
     sent_at            TEXT,
     folder_name        TEXT,
     has_attachments    INTEGER DEFAULT 0,
+    email_size         INTEGER DEFAULT 0,
     created_at         TEXT DEFAULT (datetime('now', 'localtime')),
     updated_at         TEXT DEFAULT (datetime('now', 'localtime'))
 );
@@ -89,6 +91,21 @@ CREATE TABLE IF NOT EXISTS deleted_message_ids (
     deleted_at TEXT DEFAULT (datetime('now', 'localtime'))
 );"
             ExecuteNonQuery(conn, sql)
+        End Sub
+
+        ' ── マイグレーション ──────────────────────────────────────
+
+        ''' <summary>既存 DB への列追加など、スキーマ変更を安全に適用する。</summary>
+        Private Sub ApplyMigrations(conn As SQLiteConnection)
+            ' email_size 列が存在しない旧 DB に追加する
+            Try
+                ExecuteNonQuery(conn, "ALTER TABLE emails ADD COLUMN email_size INTEGER DEFAULT 0;")
+            Catch ex As SQLiteException
+                ' 既に存在する場合は無視（SQLite は "duplicate column name" エラーを返す）
+                If Not ex.Message.Contains("duplicate column name") Then
+                    Throw
+                End If
+            End Try
         End Sub
 
         ' ── インデックス ──────────────────────────────────────────

@@ -174,6 +174,9 @@ Namespace Services
             ' ── 添付ファイル ────────────────────────────────────
             email.HasAttachments = mailItem.Attachments.Count > 0
 
+            ' ── サイズ ──────────────────────────────────────────
+            email.EmailSize = mailItem.Size
+
             Return email
         End Function
 

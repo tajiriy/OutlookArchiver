@@ -34,6 +34,7 @@ Public Class MainForm
 
         InitializeServices()
         SetupAutoImportTimer()
+        SetupEmailListColumns()
         SetupListViewContextMenu()
         LoadFolderTree()
         UpdateStatusBar()
@@ -50,6 +51,60 @@ Public Class MainForm
         _repo = New Data.EmailRepository(_dbManager)
         _emailCache = New List(Of Models.Email)()
     End Sub
+
+    ''' <summary>メール一覧のアイコン用 ImageList とサイズ列をコードで設定する。</summary>
+    Private Sub SetupEmailListColumns()
+        ' ── ImageList（添付アイコン）──────────────────────────────
+        Dim imgList As New ImageList()
+        imgList.ImageSize = New Drawing.Size(16, 16)
+        imgList.ColorDepth = ColorDepth.Depth32Bit
+
+        ' Index 0: 空白（添付なし）
+        Dim blankBmp As New Drawing.Bitmap(16, 16)
+        imgList.Images.Add(blankBmp)
+
+        ' Index 1: ペーパークリップ（添付あり）
+        imgList.Images.Add(CreatePaperclipIcon())
+
+        listViewEmails.SmallImageList = imgList
+
+        ' ── サイズ列 ──────────────────────────────────────────────
+        Dim colSize As New ColumnHeader()
+        colSize.Text = "サイズ"
+        colSize.Width = 80
+        colSize.TextAlign = HorizontalAlignment.Right
+        listViewEmails.Columns.Add(colSize)
+    End Sub
+
+    ''' <summary>16×16 のペーパークリップアイコンを GDI+ で描画して返す。</summary>
+    Private Function CreatePaperclipIcon() As Drawing.Bitmap
+        Dim bmp As New Drawing.Bitmap(16, 16)
+        Using g As Drawing.Graphics = Drawing.Graphics.FromImage(bmp)
+            g.Clear(Drawing.Color.Transparent)
+            g.SmoothingMode = Drawing.Drawing2D.SmoothingMode.AntiAlias
+            Using pen As New Drawing.Pen(Drawing.Color.FromArgb(80, 120, 190), 1.5F)
+                pen.StartCap = Drawing.Drawing2D.LineCap.Round
+                pen.EndCap = Drawing.Drawing2D.LineCap.Round
+                ' 外側ループ（大きな弧）
+                g.DrawArc(pen, 2, 1, 10, 13, 40, 280)
+                ' 内側折り返し（小さな弧）
+                g.DrawArc(pen, 4, 4, 6, 7, 40, 180)
+                ' 下端の接続線
+                g.DrawLine(pen, 12, 9, 12, 14)
+            End Using
+        End Using
+        Return bmp
+    End Function
+
+    ''' <summary>メールサイズをKB/MB単位の表示文字列に変換する。</summary>
+    Private Shared Function FormatEmailSize(sizeBytes As Long) As String
+        If sizeBytes <= 0 Then Return String.Empty
+        If sizeBytes >= 1024L * 1024L Then
+            Return String.Format("{0:F1} MB", sizeBytes / (1024.0 * 1024.0))
+        End If
+        Dim kb As Long = (sizeBytes + 1023L) \ 1024L
+        Return String.Format("{0} KB", Math.Max(1L, kb))
+    End Function
 
     Private Sub SetupAutoImportTimer()
         _autoImportTimer = New System.Windows.Forms.Timer()
@@ -157,8 +212,10 @@ Public Class MainForm
         Dim displaySender As String = If(Not String.IsNullOrEmpty(email.SenderName), email.SenderName, email.SenderEmail)
 
         Dim item As New ListViewItem(subject)
+        item.ImageIndex = If(email.HasAttachments, 1, 0)
         item.SubItems.Add(If(displaySender, String.Empty))
         item.SubItems.Add(email.ReceivedAt.ToString("yyyy/MM/dd HH:mm"))
+        item.SubItems.Add(FormatEmailSize(email.EmailSize))
         item.Tag = email.Id
         e.Item = item
     End Sub
