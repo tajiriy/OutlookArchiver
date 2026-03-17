@@ -1,3 +1,7 @@
+Option Explicit On
+Option Strict On
+Option Infer Off
+
 Imports Outlook = Microsoft.Office.Interop.Outlook
 Imports System.IO
 Imports System.Runtime.InteropServices

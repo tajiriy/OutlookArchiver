@@ -1,3 +1,7 @@
+Option Explicit On
+Option Strict On
+Option Infer Off
+
 Imports System.Configuration
 
 Namespace Config
