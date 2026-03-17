@@ -1,0 +1,144 @@
+Imports System.Configuration
+
+Namespace Config
+
+    ''' <summary>
+    ''' アプリケーション設定の読み書きを担当するシングルトンクラス。
+    ''' 値は App.config の appSettings セクションに永続化される。
+    ''' </summary>
+    Public Class AppSettings
+
+        Private Shared ReadOnly _instance As New AppSettings()
+
+        Public Shared ReadOnly Property Instance As AppSettings
+            Get
+                Return _instance
+            End Get
+        End Property
+
+        Private Sub New()
+        End Sub
+
+        ' ── DB / ファイルパス ──────────────────────────────────────
+
+        ''' <summary>SQLite データベースファイルのパス</summary>
+        Public Property DbFilePath As String
+            Get
+                Dim val As String = ConfigurationManager.AppSettings("DbFilePath")
+                Return If(String.IsNullOrEmpty(val), ".\data\archive.db", val)
+            End Get
+            Set(value As String)
+                SaveSetting("DbFilePath", value)
+            End Set
+        End Property
+
+        ''' <summary>添付ファイルの保存ディレクトリ</summary>
+        Public Property AttachmentDirectory As String
+            Get
+                Dim val As String = ConfigurationManager.AppSettings("AttachmentDirectory")
+                Return If(String.IsNullOrEmpty(val), ".\data\attachments\", val)
+            End Get
+            Set(value As String)
+                SaveSetting("AttachmentDirectory", value)
+            End Set
+        End Property
+
+        ' ── 自動取り込み ──────────────────────────────────────────
+
+        ''' <summary>起動時に自動取り込みを開始するか</summary>
+        Public Property AutoImportEnabled As Boolean
+            Get
+                Return GetBool("AutoImportEnabled", defaultValue:=True)
+            End Get
+            Set(value As Boolean)
+                SaveSetting("AutoImportEnabled", value.ToString())
+            End Set
+        End Property
+
+        ''' <summary>自動取り込みのポーリング間隔（分）</summary>
+        Public Property AutoImportIntervalMinutes As Integer
+            Get
+                Return GetInt("AutoImportIntervalMinutes", defaultValue:=10)
+            End Get
+            Set(value As Integer)
+                SaveSetting("AutoImportIntervalMinutes", value.ToString())
+            End Set
+        End Property
+
+        ''' <summary>1回の取り込みで処理する最大件数</summary>
+        Public Property MaxImportCount As Integer
+            Get
+                Return GetInt("MaxImportCount", defaultValue:=100)
+            End Get
+            Set(value As Integer)
+                SaveSetting("MaxImportCount", value.ToString())
+            End Set
+        End Property
+
+        ' ── 対象フォルダ ──────────────────────────────────────────
+
+        ''' <summary>アーカイブ対象の Outlook フォルダ名一覧</summary>
+        Public Property TargetFolders As List(Of String)
+            Get
+                Dim val As String = ConfigurationManager.AppSettings("TargetFolders")
+                If String.IsNullOrEmpty(val) Then Return New List(Of String)({"受信トレイ"})
+                Return New List(Of String)(val.Split(";"c))
+            End Get
+            Set(value As List(Of String))
+                SaveSetting("TargetFolders", String.Join(";", value))
+            End Set
+        End Property
+
+        ' ── 表示設定 ──────────────────────────────────────────────
+
+        ''' <summary>会話ビューで古い順（昇順）に表示するか</summary>
+        Public Property ConversationSortAscending As Boolean
+            Get
+                Return GetBool("ConversationSortAscending", defaultValue:=True)
+            End Get
+            Set(value As Boolean)
+                SaveSetting("ConversationSortAscending", value.ToString())
+            End Set
+        End Property
+
+        ''' <summary>デフォルトで HTML 表示するか（False の場合はプレーンテキスト）</summary>
+        Public Property DefaultHtmlView As Boolean
+            Get
+                Return GetBool("DefaultHtmlView", defaultValue:=True)
+            End Get
+            Set(value As Boolean)
+                SaveSetting("DefaultHtmlView", value.ToString())
+            End Set
+        End Property
+
+        ' ── ヘルパー ──────────────────────────────────────────────
+
+        Private Function GetBool(key As String, defaultValue As Boolean) As Boolean
+            Dim val As String = ConfigurationManager.AppSettings(key)
+            If String.IsNullOrEmpty(val) Then Return defaultValue
+            Dim result As Boolean
+            If Boolean.TryParse(val, result) Then Return result
+            Return defaultValue
+        End Function
+
+        Private Function GetInt(key As String, defaultValue As Integer) As Integer
+            Dim val As String = ConfigurationManager.AppSettings(key)
+            Dim result As Integer
+            If Integer.TryParse(val, result) Then Return result
+            Return defaultValue
+        End Function
+
+        Private Sub SaveSetting(key As String, value As String)
+            Dim config As Configuration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None)
+            If config.AppSettings.Settings(key) Is Nothing Then
+                config.AppSettings.Settings.Add(key, value)
+            Else
+                config.AppSettings.Settings(key).Value = value
+            End If
+            config.Save(ConfigurationSaveMode.Modified)
+            ConfigurationManager.RefreshSection("appSettings")
+        End Sub
+
+    End Class
+
+End Namespace
