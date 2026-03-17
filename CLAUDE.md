@@ -26,8 +26,8 @@ msbuild OutlookArchiver/OutlookArchiver.vbproj /p:Configuration=Release
 ## アーキテクチャ
 
 - ソリューション (`OutlookArchiver.slnx`) に `OutlookArchiver/`（本体）を含む構成
-- エントリポイント: `My.MyApplication` → `Form1`
-- `Form1.Designer.vb` はデザイナー自動生成ファイル。手動編集しないこと
+- エントリポイント: `My.MyApplication` → `MainForm`
+- `MainForm.Designer.vb` はデザイナー自動生成ファイル。手動編集しないこと
 
 ## 開発の進め方
 
@@ -48,5 +48,16 @@ msbuild OutlookArchiver/OutlookArchiver.vbproj /p:Configuration=Release
 ## 注意事項
 
 - `*.Designer.vb` ファイルは Windows Forms デザイナーが管理するため、直接編集せず `InitializeComponent()` 内のコードはデザイナーに任せる
-- UI コントロールの追加・変更は Designer.vb ではなくコードビハインド側（`Form1.vb`）で対応するか、Designer.vb の `InitializeComponent()` 内に正しい形式で追記する
+- UI コントロールの追加・変更は Designer.vb ではなくコードビハインド側（`MainForm.vb`）で対応するか、Designer.vb の `InitializeComponent()` 内に正しい形式で追記する
 - `My Project/` 配下のデザイナー生成ファイル (`*.Designer.vb`) は自動生成のため手動編集しないこと
+
+## VB.NET コーディング規約
+
+- すべての `.vb` ソースファイル（自動生成ファイルを除く）の先頭に以下を明示すること:
+  ```vb
+  Option Explicit On
+  Option Strict On
+  Option Infer Off
+  ```
+- これらはプロジェクト設定（`.vbproj`）でも有効だが、ファイル単体で意図が伝わるよう各ファイルにも記述する
+- 自動生成ファイル（`My Project/*.Designer.vb` 等）は対象外
