@@ -1,0 +1,322 @@
+Option Explicit On
+Option Strict On
+Option Infer Off
+
+<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+Partial Class SettingsForm
+    Inherits System.Windows.Forms.Form
+
+    Protected Overrides Sub Dispose(ByVal disposing As Boolean)
+        Try
+            If disposing AndAlso components IsNot Nothing Then
+                components.Dispose()
+            End If
+        Finally
+            MyBase.Dispose(disposing)
+        End Try
+    End Sub
+
+    Private components As System.ComponentModel.IContainer
+
+    <System.Diagnostics.DebuggerStepThrough()> _
+    Private Sub InitializeComponent()
+        Me.grpPaths = New System.Windows.Forms.GroupBox()
+        Me.lblDbPath = New System.Windows.Forms.Label()
+        Me.txtDbPath = New System.Windows.Forms.TextBox()
+        Me.btnBrowseDb = New System.Windows.Forms.Button()
+        Me.lblAttachDir = New System.Windows.Forms.Label()
+        Me.txtAttachDir = New System.Windows.Forms.TextBox()
+        Me.btnBrowseAttach = New System.Windows.Forms.Button()
+        Me.grpAutoImport = New System.Windows.Forms.GroupBox()
+        Me.chkAutoImportEnabled = New System.Windows.Forms.CheckBox()
+        Me.lblInterval = New System.Windows.Forms.Label()
+        Me.numInterval = New System.Windows.Forms.NumericUpDown()
+        Me.lblMaxCount = New System.Windows.Forms.Label()
+        Me.numMaxCount = New System.Windows.Forms.NumericUpDown()
+        Me.grpFolders = New System.Windows.Forms.GroupBox()
+        Me.lstFolders = New System.Windows.Forms.ListBox()
+        Me.btnAddFolder = New System.Windows.Forms.Button()
+        Me.btnRemoveFolder = New System.Windows.Forms.Button()
+        Me.grpDisplay = New System.Windows.Forms.GroupBox()
+        Me.chkDefaultHtml = New System.Windows.Forms.CheckBox()
+        Me.chkSortAscending = New System.Windows.Forms.CheckBox()
+        Me.pnlButtons = New System.Windows.Forms.Panel()
+        Me.btnOk = New System.Windows.Forms.Button()
+        Me.btnCancel = New System.Windows.Forms.Button()
+        Me.grpPaths.SuspendLayout()
+        Me.grpAutoImport.SuspendLayout()
+        CType(Me.numInterval, System.ComponentModel.ISupportInitialize).BeginInit()
+        CType(Me.numMaxCount, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.grpFolders.SuspendLayout()
+        Me.grpDisplay.SuspendLayout()
+        Me.pnlButtons.SuspendLayout()
+        Me.SuspendLayout()
+        '
+        'grpPaths
+        '
+        Me.grpPaths.Controls.Add(Me.lblDbPath)
+        Me.grpPaths.Controls.Add(Me.txtDbPath)
+        Me.grpPaths.Controls.Add(Me.btnBrowseDb)
+        Me.grpPaths.Controls.Add(Me.lblAttachDir)
+        Me.grpPaths.Controls.Add(Me.txtAttachDir)
+        Me.grpPaths.Controls.Add(Me.btnBrowseAttach)
+        Me.grpPaths.Location = New System.Drawing.Point(8, 8)
+        Me.grpPaths.Name = "grpPaths"
+        Me.grpPaths.Size = New System.Drawing.Size(488, 94)
+        Me.grpPaths.TabIndex = 0
+        Me.grpPaths.TabStop = False
+        Me.grpPaths.Text = "保存先"
+        '
+        'lblDbPath
+        '
+        Me.lblDbPath.AutoSize = True
+        Me.lblDbPath.Location = New System.Drawing.Point(8, 26)
+        Me.lblDbPath.Name = "lblDbPath"
+        Me.lblDbPath.Size = New System.Drawing.Size(75, 13)
+        Me.lblDbPath.Text = "DB ファイル:"
+        '
+        'txtDbPath
+        '
+        Me.txtDbPath.Location = New System.Drawing.Point(132, 23)
+        Me.txtDbPath.Name = "txtDbPath"
+        Me.txtDbPath.Size = New System.Drawing.Size(256, 22)
+        Me.txtDbPath.TabIndex = 1
+        '
+        'btnBrowseDb
+        '
+        Me.btnBrowseDb.Location = New System.Drawing.Point(396, 22)
+        Me.btnBrowseDb.Name = "btnBrowseDb"
+        Me.btnBrowseDb.Size = New System.Drawing.Size(80, 24)
+        Me.btnBrowseDb.TabIndex = 2
+        Me.btnBrowseDb.Text = "参照..."
+        '
+        'lblAttachDir
+        '
+        Me.lblAttachDir.AutoSize = True
+        Me.lblAttachDir.Location = New System.Drawing.Point(8, 56)
+        Me.lblAttachDir.Name = "lblAttachDir"
+        Me.lblAttachDir.Size = New System.Drawing.Size(117, 13)
+        Me.lblAttachDir.Text = "添付ファイル保存先:"
+        '
+        'txtAttachDir
+        '
+        Me.txtAttachDir.Location = New System.Drawing.Point(132, 53)
+        Me.txtAttachDir.Name = "txtAttachDir"
+        Me.txtAttachDir.Size = New System.Drawing.Size(256, 22)
+        Me.txtAttachDir.TabIndex = 4
+        '
+        'btnBrowseAttach
+        '
+        Me.btnBrowseAttach.Location = New System.Drawing.Point(396, 52)
+        Me.btnBrowseAttach.Name = "btnBrowseAttach"
+        Me.btnBrowseAttach.Size = New System.Drawing.Size(80, 24)
+        Me.btnBrowseAttach.TabIndex = 5
+        Me.btnBrowseAttach.Text = "参照..."
+        '
+        'grpAutoImport
+        '
+        Me.grpAutoImport.Controls.Add(Me.chkAutoImportEnabled)
+        Me.grpAutoImport.Controls.Add(Me.lblInterval)
+        Me.grpAutoImport.Controls.Add(Me.numInterval)
+        Me.grpAutoImport.Controls.Add(Me.lblMaxCount)
+        Me.grpAutoImport.Controls.Add(Me.numMaxCount)
+        Me.grpAutoImport.Location = New System.Drawing.Point(8, 110)
+        Me.grpAutoImport.Name = "grpAutoImport"
+        Me.grpAutoImport.Size = New System.Drawing.Size(488, 106)
+        Me.grpAutoImport.TabIndex = 1
+        Me.grpAutoImport.TabStop = False
+        Me.grpAutoImport.Text = "自動取り込み"
+        '
+        'chkAutoImportEnabled
+        '
+        Me.chkAutoImportEnabled.AutoSize = True
+        Me.chkAutoImportEnabled.Location = New System.Drawing.Point(8, 22)
+        Me.chkAutoImportEnabled.Name = "chkAutoImportEnabled"
+        Me.chkAutoImportEnabled.Size = New System.Drawing.Size(216, 17)
+        Me.chkAutoImportEnabled.TabIndex = 0
+        Me.chkAutoImportEnabled.Text = "起動時に自動取り込みを開始する"
+        '
+        'lblInterval
+        '
+        Me.lblInterval.AutoSize = True
+        Me.lblInterval.Location = New System.Drawing.Point(8, 50)
+        Me.lblInterval.Name = "lblInterval"
+        Me.lblInterval.Size = New System.Drawing.Size(130, 13)
+        Me.lblInterval.Text = "取り込み間隔（分）:"
+        '
+        'numInterval
+        '
+        Me.numInterval.Location = New System.Drawing.Point(160, 47)
+        Me.numInterval.Maximum = New Decimal(New Integer() {1440, 0, 0, 0})
+        Me.numInterval.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
+        Me.numInterval.Name = "numInterval"
+        Me.numInterval.Size = New System.Drawing.Size(60, 22)
+        Me.numInterval.TabIndex = 1
+        Me.numInterval.Value = New Decimal(New Integer() {10, 0, 0, 0})
+        '
+        'lblMaxCount
+        '
+        Me.lblMaxCount.AutoSize = True
+        Me.lblMaxCount.Location = New System.Drawing.Point(8, 76)
+        Me.lblMaxCount.Name = "lblMaxCount"
+        Me.lblMaxCount.Size = New System.Drawing.Size(144, 13)
+        Me.lblMaxCount.Text = "1 回の最大取り込み件数:"
+        '
+        'numMaxCount
+        '
+        Me.numMaxCount.Location = New System.Drawing.Point(160, 73)
+        Me.numMaxCount.Maximum = New Decimal(New Integer() {10000, 0, 0, 0})
+        Me.numMaxCount.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
+        Me.numMaxCount.Name = "numMaxCount"
+        Me.numMaxCount.Size = New System.Drawing.Size(60, 22)
+        Me.numMaxCount.TabIndex = 3
+        Me.numMaxCount.Value = New Decimal(New Integer() {100, 0, 0, 0})
+        '
+        'grpFolders
+        '
+        Me.grpFolders.Controls.Add(Me.lstFolders)
+        Me.grpFolders.Controls.Add(Me.btnAddFolder)
+        Me.grpFolders.Controls.Add(Me.btnRemoveFolder)
+        Me.grpFolders.Location = New System.Drawing.Point(8, 224)
+        Me.grpFolders.Name = "grpFolders"
+        Me.grpFolders.Size = New System.Drawing.Size(488, 130)
+        Me.grpFolders.TabIndex = 2
+        Me.grpFolders.TabStop = False
+        Me.grpFolders.Text = "対象フォルダ"
+        '
+        'lstFolders
+        '
+        Me.lstFolders.FormattingEnabled = True
+        Me.lstFolders.Location = New System.Drawing.Point(8, 22)
+        Me.lstFolders.Name = "lstFolders"
+        Me.lstFolders.Size = New System.Drawing.Size(376, 98)
+        Me.lstFolders.TabIndex = 0
+        '
+        'btnAddFolder
+        '
+        Me.btnAddFolder.Location = New System.Drawing.Point(392, 22)
+        Me.btnAddFolder.Name = "btnAddFolder"
+        Me.btnAddFolder.Size = New System.Drawing.Size(88, 26)
+        Me.btnAddFolder.TabIndex = 1
+        Me.btnAddFolder.Text = "追加..."
+        '
+        'btnRemoveFolder
+        '
+        Me.btnRemoveFolder.Location = New System.Drawing.Point(392, 54)
+        Me.btnRemoveFolder.Name = "btnRemoveFolder"
+        Me.btnRemoveFolder.Size = New System.Drawing.Size(88, 26)
+        Me.btnRemoveFolder.TabIndex = 2
+        Me.btnRemoveFolder.Text = "削除"
+        '
+        'grpDisplay
+        '
+        Me.grpDisplay.Controls.Add(Me.chkDefaultHtml)
+        Me.grpDisplay.Controls.Add(Me.chkSortAscending)
+        Me.grpDisplay.Location = New System.Drawing.Point(8, 362)
+        Me.grpDisplay.Name = "grpDisplay"
+        Me.grpDisplay.Size = New System.Drawing.Size(488, 70)
+        Me.grpDisplay.TabIndex = 3
+        Me.grpDisplay.TabStop = False
+        Me.grpDisplay.Text = "表示設定"
+        '
+        'chkDefaultHtml
+        '
+        Me.chkDefaultHtml.AutoSize = True
+        Me.chkDefaultHtml.Location = New System.Drawing.Point(8, 22)
+        Me.chkDefaultHtml.Name = "chkDefaultHtml"
+        Me.chkDefaultHtml.Size = New System.Drawing.Size(208, 17)
+        Me.chkDefaultHtml.TabIndex = 0
+        Me.chkDefaultHtml.Text = "デフォルトで HTML 表示する"
+        '
+        'chkSortAscending
+        '
+        Me.chkSortAscending.AutoSize = True
+        Me.chkSortAscending.Location = New System.Drawing.Point(8, 46)
+        Me.chkSortAscending.Name = "chkSortAscending"
+        Me.chkSortAscending.Size = New System.Drawing.Size(264, 17)
+        Me.chkSortAscending.TabIndex = 1
+        Me.chkSortAscending.Text = "会話ビューを古い順（昇順）で表示する"
+        '
+        'pnlButtons
+        '
+        Me.pnlButtons.Controls.Add(Me.btnOk)
+        Me.pnlButtons.Controls.Add(Me.btnCancel)
+        Me.pnlButtons.Location = New System.Drawing.Point(8, 440)
+        Me.pnlButtons.Name = "pnlButtons"
+        Me.pnlButtons.Size = New System.Drawing.Size(488, 34)
+        Me.pnlButtons.TabIndex = 4
+        '
+        'btnOk
+        '
+        Me.btnOk.Location = New System.Drawing.Point(324, 4)
+        Me.btnOk.Name = "btnOk"
+        Me.btnOk.Size = New System.Drawing.Size(72, 26)
+        Me.btnOk.TabIndex = 0
+        Me.btnOk.Text = "OK"
+        '
+        'btnCancel
+        '
+        Me.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel
+        Me.btnCancel.Location = New System.Drawing.Point(404, 4)
+        Me.btnCancel.Name = "btnCancel"
+        Me.btnCancel.Size = New System.Drawing.Size(80, 26)
+        Me.btnCancel.TabIndex = 1
+        Me.btnCancel.Text = "キャンセル"
+        '
+        'SettingsForm
+        '
+        Me.AcceptButton = Me.btnOk
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
+        Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
+        Me.CancelButton = Me.btnCancel
+        Me.ClientSize = New System.Drawing.Size(512, 484)
+        Me.Controls.Add(Me.grpPaths)
+        Me.Controls.Add(Me.grpAutoImport)
+        Me.Controls.Add(Me.grpFolders)
+        Me.Controls.Add(Me.grpDisplay)
+        Me.Controls.Add(Me.pnlButtons)
+        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
+        Me.MaximizeBox = False
+        Me.MinimizeBox = False
+        Me.Name = "SettingsForm"
+        Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
+        Me.Text = "設定"
+        Me.grpPaths.ResumeLayout(False)
+        Me.grpPaths.PerformLayout()
+        Me.grpAutoImport.ResumeLayout(False)
+        Me.grpAutoImport.PerformLayout()
+        CType(Me.numInterval, System.ComponentModel.ISupportInitialize).EndInit()
+        CType(Me.numMaxCount, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.grpFolders.ResumeLayout(False)
+        Me.grpDisplay.ResumeLayout(False)
+        Me.grpDisplay.PerformLayout()
+        Me.pnlButtons.ResumeLayout(False)
+        Me.ResumeLayout(False)
+    End Sub
+
+    ' ── コントロール宣言 ──────────────────────────────────────────
+    Friend WithEvents grpPaths As System.Windows.Forms.GroupBox
+    Friend WithEvents lblDbPath As System.Windows.Forms.Label
+    Friend WithEvents txtDbPath As System.Windows.Forms.TextBox
+    Friend WithEvents btnBrowseDb As System.Windows.Forms.Button
+    Friend WithEvents lblAttachDir As System.Windows.Forms.Label
+    Friend WithEvents txtAttachDir As System.Windows.Forms.TextBox
+    Friend WithEvents btnBrowseAttach As System.Windows.Forms.Button
+    Friend WithEvents grpAutoImport As System.Windows.Forms.GroupBox
+    Friend WithEvents chkAutoImportEnabled As System.Windows.Forms.CheckBox
+    Friend WithEvents lblInterval As System.Windows.Forms.Label
+    Friend WithEvents numInterval As System.Windows.Forms.NumericUpDown
+    Friend WithEvents lblMaxCount As System.Windows.Forms.Label
+    Friend WithEvents numMaxCount As System.Windows.Forms.NumericUpDown
+    Friend WithEvents grpFolders As System.Windows.Forms.GroupBox
+    Friend WithEvents lstFolders As System.Windows.Forms.ListBox
+    Friend WithEvents btnAddFolder As System.Windows.Forms.Button
+    Friend WithEvents btnRemoveFolder As System.Windows.Forms.Button
+    Friend WithEvents grpDisplay As System.Windows.Forms.GroupBox
+    Friend WithEvents chkDefaultHtml As System.Windows.Forms.CheckBox
+    Friend WithEvents chkSortAscending As System.Windows.Forms.CheckBox
+    Friend WithEvents pnlButtons As System.Windows.Forms.Panel
+    Friend WithEvents btnOk As System.Windows.Forms.Button
+    Friend WithEvents btnCancel As System.Windows.Forms.Button
+
+End Class

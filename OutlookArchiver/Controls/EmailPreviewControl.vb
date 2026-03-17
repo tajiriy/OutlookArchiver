@@ -16,6 +16,7 @@ Namespace Controls
 
         Private _currentEmail As Models.Email
         Private _showHtml As Boolean
+        Private _highlightQuery As String
 
         ' ════════════════════════════════════════════════════════════
         '  初期化
@@ -36,8 +37,10 @@ Namespace Controls
         ' ════════════════════════════════════════════════════════════
 
         ''' <summary>指定メールの内容をプレビューに表示する。添付ファイル一覧も含む。</summary>
-        Public Sub ShowEmail(email As Models.Email)
+        ''' <param name="highlightQuery">HTML 表示時にハイライトする検索クエリ。Nothing の場合はハイライトなし。</param>
+        Public Sub ShowEmail(email As Models.Email, Optional highlightQuery As String = Nothing)
             _currentEmail = email
+            _highlightQuery = highlightQuery
             UpdateHeader(email)
             UpdateBody(email)
             LoadAttachments(email.Attachments)
@@ -87,7 +90,11 @@ Namespace Controls
             _showHtml = hasHtml
 
             If _showHtml Then
-                webBrowser.DocumentText = email.BodyHtml
+                Dim html As String = If(email.BodyHtml, String.Empty)
+                If Not String.IsNullOrEmpty(_highlightQuery) Then
+                    html = InjectHighlightScript(html, _highlightQuery)
+                End If
+                webBrowser.DocumentText = html
                 webBrowser.Visible = True
                 txtBodyText.Visible = False
                 btnToggleView.Text = "テキスト表示"
@@ -98,6 +105,71 @@ Namespace Controls
                 btnToggleView.Text = "HTML 表示"
             End If
         End Sub
+
+        ''' <summary>FTS クエリから最初の検索語を抽出する（"column:term" → "term"、引用符除去）。</summary>
+        Private Function ExtractFirstTerm(query As String) As String
+            Dim q As String = query.Trim()
+            ' 列修飾子 "column:term" の列部分を除去
+            Dim colonIdx As Integer = q.IndexOf(":"c)
+            If colonIdx >= 0 AndAlso colonIdx < q.Length - 1 Then
+                q = q.Substring(colonIdx + 1).Trim()
+            End If
+            ' 引用符を除去
+            q = q.Replace("""", String.Empty).Trim()
+            ' 最初のトークンのみ使用
+            Dim spaceIdx As Integer = q.IndexOf(" "c)
+            If spaceIdx > 0 Then q = q.Substring(0, spaceIdx)
+            Return q.Trim()
+        End Function
+
+        ''' <summary>JavaScript 文字列リテラル用のエスケープ処理。</summary>
+        Private Function JsEscape(s As String) As String
+            Return s.Replace("\", "\\").Replace("'", "\'").Replace(vbCrLf, " ").Replace(vbCr, " ").Replace(vbLf, " ")
+        End Function
+
+        ''' <summary>
+        ''' HTML 本文の &lt;/body&gt; 直前に検索語ハイライト用 JS を挿入して返す。
+        ''' テキストノードを走査し、一致箇所を &lt;mark style="background:yellow"&gt; で囲む。
+        ''' </summary>
+        Private Function InjectHighlightScript(html As String, query As String) As String
+            Dim term As String = ExtractFirstTerm(query)
+            If String.IsNullOrEmpty(term) Then Return html
+
+            Dim escaped As String = JsEscape(term)
+            Dim script As String =
+                "<script>" & vbCrLf &
+                "(function() {" & vbCrLf &
+                "  var q = '" & escaped & "'.toLowerCase();" & vbCrLf &
+                "  if (!q) return;" & vbCrLf &
+                "  function walk(node) {" & vbCrLf &
+                "    if (node.nodeType === 3) {" & vbCrLf &
+                "      var idx = node.data.toLowerCase().indexOf(q);" & vbCrLf &
+                "      if (idx >= 0) {" & vbCrLf &
+                "        var after = node.splitText(idx);" & vbCrLf &
+                "        after.splitText(q.length);" & vbCrLf &
+                "        var span = document.createElement('mark');" & vbCrLf &
+                "        span.style.background = 'yellow';" & vbCrLf &
+                "        span.style.color = 'black';" & vbCrLf &
+                "        span.appendChild(after.cloneNode(true));" & vbCrLf &
+                "        after.parentNode.replaceChild(span, after);" & vbCrLf &
+                "      }" & vbCrLf &
+                "    } else if (node.nodeType === 1 && node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE') {" & vbCrLf &
+                "      var kids = [];" & vbCrLf &
+                "      for (var i = 0; i < node.childNodes.length; i++) { kids.push(node.childNodes[i]); }" & vbCrLf &
+                "      for (var i = 0; i < kids.length; i++) { walk(kids[i]); }" & vbCrLf &
+                "    }" & vbCrLf &
+                "  }" & vbCrLf &
+                "  if (document.body) walk(document.body);" & vbCrLf &
+                "})();" & vbCrLf &
+                "</script>"
+
+            Dim bodyCloseIdx As Integer = html.LastIndexOf("</body>", StringComparison.OrdinalIgnoreCase)
+            If bodyCloseIdx >= 0 Then
+                Return html.Substring(0, bodyCloseIdx) & script & html.Substring(bodyCloseIdx)
+            Else
+                Return html & script
+            End If
+        End Function
 
         ''' <summary>JSON 配列文字列（["a@b.com","c@d.com"]）をカンマ区切りテキストに変換する。</summary>
         Private Function FormatRecipientsJson(json As String) As String
@@ -137,7 +209,11 @@ Namespace Controls
             If _currentEmail Is Nothing Then Return
             _showHtml = Not _showHtml
             If _showHtml Then
-                webBrowser.DocumentText = If(_currentEmail.BodyHtml, String.Empty)
+                Dim html As String = If(_currentEmail.BodyHtml, String.Empty)
+                If Not String.IsNullOrEmpty(_highlightQuery) Then
+                    html = InjectHighlightScript(html, _highlightQuery)
+                End If
+                webBrowser.DocumentText = html
                 webBrowser.Visible = True
                 txtBodyText.Visible = False
                 btnToggleView.Text = "テキスト表示"

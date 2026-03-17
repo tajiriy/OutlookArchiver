@@ -19,6 +19,7 @@ Public Class MainForm
     Private _currentFolder As String      ' Nothing = すべて
     Private _isImporting As Boolean
     Private _autoImportEnabled As Boolean
+    Private _searchQuery As String        ' 現在の検索クエリ（Nothing = 検索なし）
 
     ' ════════════════════════════════════════════════════════════
     '  フォーム初期化
@@ -33,6 +34,7 @@ Public Class MainForm
 
         InitializeServices()
         SetupAutoImportTimer()
+        SetupListViewContextMenu()
         LoadFolderTree()
         UpdateStatusBar()
 
@@ -53,6 +55,17 @@ Public Class MainForm
         _autoImportTimer = New System.Windows.Forms.Timer()
         _autoImportTimer.Interval = _settings.AutoImportIntervalMinutes * 60 * 1000
         AddHandler _autoImportTimer.Tick, AddressOf AutoImportTimer_Tick
+    End Sub
+
+    ''' <summary>メール一覧の複数選択・コンテキストメニューをコードで設定する。</summary>
+    Private Sub SetupListViewContextMenu()
+        listViewEmails.MultiSelect = True
+
+        Dim ctxMenu As New System.Windows.Forms.ContextMenuStrip()
+        Dim deleteItem As New System.Windows.Forms.ToolStripMenuItem("削除(&D)")
+        AddHandler deleteItem.Click, AddressOf OnDeleteEmailMenuClick
+        ctxMenu.Items.Add(CType(deleteItem, System.Windows.Forms.ToolStripItem))
+        listViewEmails.ContextMenuStrip = ctxMenu
     End Sub
 
     ' ════════════════════════════════════════════════════════════
@@ -81,8 +94,9 @@ Public Class MainForm
     Private Sub treeViewFolders_AfterSelect(sender As Object, e As TreeViewEventArgs) Handles treeViewFolders.AfterSelect
         If e.Node Is Nothing Then Return
         _currentFolder = TryCast(e.Node.Tag, String)
-        ' 検索ボックスをクリアしてフォルダ切り替え
+        ' 検索ボックスと検索クエリをクリアしてフォルダ切り替え
         txtSearch.Text = String.Empty
+        _searchQuery = Nothing
         LoadEmails(_currentFolder)
     End Sub
 
@@ -111,7 +125,7 @@ Public Class MainForm
 
         Dim email As Models.Email = _repo.GetEmailById(_emailCache(idx).Id)
         If email IsNot Nothing Then
-            emailPreview.ShowEmail(email)
+            emailPreview.ShowEmail(email, _searchQuery)
             LoadConversationView(email)
         End If
     End Sub
@@ -255,8 +269,14 @@ Public Class MainForm
     '  検索
     ' ════════════════════════════════════════════════════════════
 
-    Private Sub btnSearch_Click(sender As Object, e As EventArgs) Handles btnSearch.Click, menuItemSearch.Click
+    Private Sub btnSearch_Click(sender As Object, e As EventArgs) Handles btnSearch.Click
         RunSearch()
+    End Sub
+
+    Private Sub menuItemSearch_Click(sender As Object, e As EventArgs) Handles menuItemSearch.Click
+        ' 検索ボックスにフォーカスを移してユーザーが入力できる状態にする
+        txtSearch.Focus()
+        txtSearch.SelectAll()
     End Sub
 
     Private Sub txtSearch_KeyDown(sender As Object, e As KeyEventArgs) Handles txtSearch.KeyDown
@@ -267,6 +287,8 @@ Public Class MainForm
 
     Private Sub RunSearch()
         Dim query As String = txtSearch.Text.Trim()
+        _searchQuery = If(String.IsNullOrEmpty(query), Nothing, query)
+
         If String.IsNullOrEmpty(query) Then
             ' クエリ空 → 現在のフォルダを再表示
             LoadEmails(_currentFolder)
@@ -277,11 +299,83 @@ Public Class MainForm
             _emailCache = _repo.SearchEmails(query)
             listViewEmails.VirtualListSize = _emailCache.Count
             listViewEmails.Invalidate()
+            ' プレビューをクリア（新しい検索結果を選択するまで）
+            emailPreview.ClearPreview()
+            conversationView.ClearView()
             lblStatusCount.Text = String.Format("検索結果: {0}件", _emailCache.Count)
         Catch ex As Exception
             MessageBox.Show("検索エラー:" & vbCrLf & ex.Message, "エラー",
                 MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
+    End Sub
+
+    ' ════════════════════════════════════════════════════════════
+    '  削除
+    ' ════════════════════════════════════════════════════════════
+
+    ''' <summary>メール一覧で選択中のメールを削除する（添付ファイル実体も削除）。</summary>
+    Private Sub DeleteSelectedEmails()
+        If listViewEmails.SelectedIndices.Count = 0 Then Return
+
+        Dim selectedIds As New List(Of Integer)()
+        For Each idx As Integer In listViewEmails.SelectedIndices
+            If idx >= 0 AndAlso idx < _emailCache.Count Then
+                selectedIds.Add(_emailCache(idx).Id)
+            End If
+        Next
+        If selectedIds.Count = 0 Then Return
+
+        Dim msg As String
+        If selectedIds.Count = 1 Then
+            msg = "選択したメールを削除しますか？" & vbCrLf &
+                  "添付ファイルも削除されます。この操作は元に戻せません。"
+        Else
+            msg = String.Format("選択した {0} 件のメールを削除しますか？" & vbCrLf &
+                  "添付ファイルも削除されます。この操作は元に戻せません。", selectedIds.Count)
+        End If
+
+        If MessageBox.Show(msg, "削除の確認",
+                           MessageBoxButtons.YesNo,
+                           MessageBoxIcon.Warning,
+                           MessageBoxDefaultButton.Button2) <> DialogResult.Yes Then
+            Return
+        End If
+
+        ' プレビューをクリア
+        emailPreview.ClearPreview()
+        conversationView.ClearView()
+
+        For Each emailId As Integer In selectedIds
+            ' 添付ファイルの物理削除
+            Dim attachments As List(Of Models.Attachment) = _repo.GetAttachmentsByEmailId(emailId)
+            For Each att As Models.Attachment In attachments
+                If IO.File.Exists(att.FilePath) Then
+                    Try
+                        IO.File.Delete(att.FilePath)
+                    Catch
+                        ' 物理削除失敗は無視して DB 削除を継続
+                    End Try
+                End If
+            Next
+            ' DB から削除（トゥームストーン記録を含む）
+            _repo.DeleteEmail(emailId)
+        Next
+
+        LoadEmails(_currentFolder)
+        UpdateStatusBar()
+    End Sub
+
+    ''' <summary>コンテキストメニュー「削除」クリック。</summary>
+    Private Sub OnDeleteEmailMenuClick(sender As Object, e As EventArgs)
+        DeleteSelectedEmails()
+    End Sub
+
+    ''' <summary>メール一覧で Delete キーが押されたときに選択メールを削除する。</summary>
+    Private Sub listViewEmails_KeyDown(sender As Object, e As KeyEventArgs) Handles listViewEmails.KeyDown
+        If e.KeyCode = Keys.Delete Then
+            DeleteSelectedEmails()
+            e.Handled = True
+        End If
     End Sub
 
     ' ════════════════════════════════════════════════════════════
@@ -307,9 +401,21 @@ Public Class MainForm
     End Sub
 
     Private Sub menuItemSettings_Click(sender As Object, e As EventArgs) Handles menuItemSettings.Click
-        ' Phase 6 で実装
-        MessageBox.Show("設定フォームは Phase 6 で実装予定です。", "設定",
-            MessageBoxButtons.OK, MessageBoxIcon.Information)
+        Using frm As New SettingsForm()
+            frm.ShowDialog(Me)
+        End Using
+        ' OK/キャンセルどちらでも設定を再適用（設定が変わった場合のみ影響あり）
+        ApplySettings()
+    End Sub
+
+    ''' <summary>設定変更をランタイムに反映する（タイマー間隔・自動取り込み開始/停止）。</summary>
+    Private Sub ApplySettings()
+        _autoImportTimer.Interval = _settings.AutoImportIntervalMinutes * 60 * 1000
+        If _settings.AutoImportEnabled AndAlso Not _autoImportEnabled Then
+            StartAutoImport()
+        ElseIf Not _settings.AutoImportEnabled AndAlso _autoImportEnabled Then
+            StopAutoImport()
+        End If
     End Sub
 
     Private Sub menuItemHelpAbout_Click(sender As Object, e As EventArgs) Handles menuItemHelpAbout.Click

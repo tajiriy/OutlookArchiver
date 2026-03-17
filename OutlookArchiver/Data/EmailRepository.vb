@@ -247,11 +247,26 @@ SELECT last_insert_rowid();"
         '  全文検索（FTS4）
         ' ════════════════════════════════════════════════════════════
 
-        ''' <summary>FTS4 でメールを全文検索する。結果は受信日時降順。</summary>
+        ''' <summary>
+        ''' メールを全文検索する（件名・本文・差出人・添付ファイル名）。結果は受信日時降順。
+        ''' ASCII のみのクエリは FTS4 インデックスを使用し、日本語等の非 ASCII 文字を含む場合は
+        ''' LIKE による部分一致検索にフォールバックする（FTS4 の simple トークナイザーは
+        ''' 日本語の単語境界を認識しないため）。
+        ''' </summary>
         Public Function SearchEmails(query As String,
                                      Optional folderName As String = Nothing) As List(Of Models.Email)
+            If ContainsNonAscii(query) Then
+                Return SearchEmailsLike(query, folderName)
+            End If
+
+            ' ASCII のみ: FTS4 全文検索（添付ファイル名も含む）
             Dim sb As New StringBuilder(
-                "SELECT e.* FROM emails e INNER JOIN emails_fts f ON e.id = f.rowid WHERE emails_fts MATCH @query")
+                "SELECT DISTINCT e.* FROM emails e WHERE e.id IN (" &
+                "SELECT rowid FROM emails_fts WHERE emails_fts MATCH @query1" &
+                " UNION" &
+                " SELECT a.email_id FROM attachments a" &
+                " INNER JOIN attachments_fts af ON a.id = af.rowid" &
+                " WHERE attachments_fts MATCH @query2)")
             If Not String.IsNullOrEmpty(folderName) Then
                 sb.Append(" AND e.folder_name = @folder_name")
             End If
@@ -260,7 +275,8 @@ SELECT last_insert_rowid();"
             Dim result As New List(Of Models.Email)
             Using conn As SQLiteConnection = _dbManager.GetConnection()
                 Using cmd As New SQLiteCommand(sb.ToString(), conn)
-                    cmd.Parameters.AddWithValue("@query", query)
+                    cmd.Parameters.AddWithValue("@query1", query)
+                    cmd.Parameters.AddWithValue("@query2", query)
                     If Not String.IsNullOrEmpty(folderName) Then
                         cmd.Parameters.AddWithValue("@folder_name", folderName)
                     End If
@@ -272,6 +288,52 @@ SELECT last_insert_rowid();"
                 End Using
             End Using
             Return result
+        End Function
+
+        ''' <summary>
+        ''' LIKE による部分一致検索（日本語等の非 ASCII クエリ用）。
+        ''' FTS4 の simple トークナイザーは日本語の単語境界を扱えないため、
+        ''' 非 ASCII 文字を含むクエリはこちらで処理する。
+        ''' </summary>
+        Private Function SearchEmailsLike(query As String,
+                                          folderName As String) As List(Of Models.Email)
+            Dim likeParam As String = "%" & query & "%"
+            Dim sb As New StringBuilder(
+                "SELECT e.* FROM emails e WHERE " &
+                "(e.subject LIKE @q1 OR e.body_text LIKE @q2 OR e.sender_name LIKE @q3 OR e.sender_email LIKE @q4" &
+                " OR e.id IN (SELECT a.email_id FROM attachments a WHERE a.file_name LIKE @q5))")
+            If Not String.IsNullOrEmpty(folderName) Then
+                sb.Append(" AND e.folder_name = @folder_name")
+            End If
+            sb.Append(" ORDER BY e.received_at DESC")
+
+            Dim result As New List(Of Models.Email)
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As New SQLiteCommand(sb.ToString(), conn)
+                    cmd.Parameters.AddWithValue("@q1", likeParam)
+                    cmd.Parameters.AddWithValue("@q2", likeParam)
+                    cmd.Parameters.AddWithValue("@q3", likeParam)
+                    cmd.Parameters.AddWithValue("@q4", likeParam)
+                    cmd.Parameters.AddWithValue("@q5", likeParam)
+                    If Not String.IsNullOrEmpty(folderName) Then
+                        cmd.Parameters.AddWithValue("@folder_name", folderName)
+                    End If
+                    Using reader As SQLiteDataReader = cmd.ExecuteReader()
+                        While reader.Read()
+                            result.Add(MapEmail(reader))
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return result
+        End Function
+
+        ''' <summary>文字列に非 ASCII 文字（日本語等）が含まれるか確認する。</summary>
+        Private Function ContainsNonAscii(s As String) As Boolean
+            For Each c As Char In s
+                If AscW(c) > 127 Then Return True
+            Next
+            Return False
         End Function
 
         ' ════════════════════════════════════════════════════════════
