@@ -190,6 +190,17 @@ ImportService.ImportFolder(folderName)
 
 ---
 
+## Phase 6 以降の追加機能
+
+### メール一覧: 添付アイコン・サイズ列
+
+- **添付アイコン**: `ImageList` + GDI+ 描画のペーパークリップアイコンを件名列左に表示（`HasAttachments` で切り替え）
+- **サイズ列**: `MailItem.Size`（バイト）を DB の `email_size` 列に保存し、一覧に KB/MB 単位で表示
+  - 1 MB 以上: `x.x MB`、未満: `x KB`
+- **DBマイグレーション**: `DatabaseManager.ApplyMigrations()` で既存 DB に `ALTER TABLE emails ADD COLUMN email_size` を適用
+
+---
+
 ## 技術的注意点
 
 | 項目 | 内容 |
