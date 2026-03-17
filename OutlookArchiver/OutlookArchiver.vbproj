@@ -81,6 +81,9 @@
     <Compile Include="Config\AppSettings.vb" />
     <Compile Include="Data\DatabaseManager.vb" />
     <Compile Include="Data\EmailRepository.vb" />
+    <Compile Include="Services\ImportService.vb" />
+    <Compile Include="Services\OutlookService.vb" />
+    <Compile Include="Services\ThreadingService.vb" />
     <Compile Include="Form1.vb">
       <SubType>Form</SubType>
     </Compile>

@@ -206,6 +206,39 @@ SELECT last_insert_rowid();"
             Return result
         End Function
 
+        ''' <summary>MessageID でメールを1件取得する。スレッド判定に使用。</summary>
+        Public Function GetEmailByMessageId(messageId As String) As Models.Email
+            Const sql As String = "SELECT * FROM emails WHERE message_id = @message_id LIMIT 1"
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As New SQLiteCommand(sql, conn)
+                    cmd.Parameters.AddWithValue("@message_id", messageId)
+                    Using reader As SQLiteDataReader = cmd.ExecuteReader()
+                        If reader.Read() Then Return MapEmail(reader)
+                    End Using
+                End Using
+            End Using
+            Return Nothing
+        End Function
+
+        ''' <summary>正規化済み件名が一致するメールを受信日時昇順で最大 limit 件取得する。</summary>
+        Public Function GetEmailsByNormalizedSubject(normalizedSubject As String,
+                                                     limit As Integer) As List(Of Models.Email)
+            Const sql As String = "SELECT * FROM emails WHERE normalized_subject = @normalized_subject ORDER BY received_at ASC LIMIT @limit"
+            Dim result As New List(Of Models.Email)
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As New SQLiteCommand(sql, conn)
+                    cmd.Parameters.AddWithValue("@normalized_subject", normalizedSubject)
+                    cmd.Parameters.AddWithValue("@limit", CType(limit, Object))
+                    Using reader As SQLiteDataReader = cmd.ExecuteReader()
+                        While reader.Read()
+                            result.Add(MapEmail(reader))
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return result
+        End Function
+
         ' ════════════════════════════════════════════════════════════
         '  全文検索（FTS5）
         ' ════════════════════════════════════════════════════════════
