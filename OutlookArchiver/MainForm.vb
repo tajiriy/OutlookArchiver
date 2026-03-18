@@ -39,9 +39,7 @@ Public Class MainForm
     ' ════════════════════════════════════════════════════════════
 
     Private Async Sub MainForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        ' デザイナーが SplitterDistance を上書きするため、ここで正しい比率に設定する
-        ' フォルダツリー幅: 150px、メール一覧高さ: コンテンツ領域の約 40%
-        splitMain.SplitterDistance = 150
+        ' メール一覧高さ: コンテンツ領域の約 40%（splitMain はデザイナー値をそのまま使用）
         Dim contentHeight As Integer = Me.ClientSize.Height - menuStrip.Height - toolStrip.Height - statusStrip.Height
         splitRight.SplitterDistance = CInt(contentHeight * 0.4)
 
