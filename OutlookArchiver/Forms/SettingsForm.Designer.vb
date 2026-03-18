@@ -33,6 +33,8 @@ Partial Class SettingsForm
         Me.numInterval = New System.Windows.Forms.NumericUpDown()
         Me.lblMaxCount = New System.Windows.Forms.Label()
         Me.numMaxCount = New System.Windows.Forms.NumericUpDown()
+        Me.lblImportOrder = New System.Windows.Forms.Label()
+        Me.cboImportOrder = New System.Windows.Forms.ComboBox()
         Me.grpFolders = New System.Windows.Forms.GroupBox()
         Me.lstFolders = New System.Windows.Forms.ListBox()
         Me.btnAddFolder = New System.Windows.Forms.Button()
@@ -40,6 +42,9 @@ Partial Class SettingsForm
         Me.grpDisplay = New System.Windows.Forms.GroupBox()
         Me.chkDefaultHtml = New System.Windows.Forms.CheckBox()
         Me.chkSortAscending = New System.Windows.Forms.CheckBox()
+        Me.chkShowImportResult = New System.Windows.Forms.CheckBox()
+        Me.grpData = New System.Windows.Forms.GroupBox()
+        Me.btnResetData = New System.Windows.Forms.Button()
         Me.pnlButtons = New System.Windows.Forms.Panel()
         Me.btnOk = New System.Windows.Forms.Button()
         Me.btnCancel = New System.Windows.Forms.Button()
@@ -49,6 +54,7 @@ Partial Class SettingsForm
         CType(Me.numMaxCount, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.grpFolders.SuspendLayout()
         Me.grpDisplay.SuspendLayout()
+        Me.grpData.SuspendLayout()
         Me.pnlButtons.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -232,9 +238,10 @@ Partial Class SettingsForm
         '
         Me.grpDisplay.Controls.Add(Me.chkDefaultHtml)
         Me.grpDisplay.Controls.Add(Me.chkSortAscending)
+        Me.grpDisplay.Controls.Add(Me.chkShowImportResult)
         Me.grpDisplay.Location = New System.Drawing.Point(8, 388)
         Me.grpDisplay.Name = "grpDisplay"
-        Me.grpDisplay.Size = New System.Drawing.Size(488, 70)
+        Me.grpDisplay.Size = New System.Drawing.Size(488, 94)
         Me.grpDisplay.TabIndex = 3
         Me.grpDisplay.TabStop = False
         Me.grpDisplay.Text = "表示設定"
@@ -257,11 +264,38 @@ Partial Class SettingsForm
         Me.chkSortAscending.TabIndex = 1
         Me.chkSortAscending.Text = "会話ビューを古い順（昇順）で表示する"
         '
+        'chkShowImportResult
+        '
+        Me.chkShowImportResult.AutoSize = True
+        Me.chkShowImportResult.Location = New System.Drawing.Point(8, 70)
+        Me.chkShowImportResult.Name = "chkShowImportResult"
+        Me.chkShowImportResult.Size = New System.Drawing.Size(296, 17)
+        Me.chkShowImportResult.TabIndex = 2
+        Me.chkShowImportResult.Text = "取り込み完了時に結果ダイアログを表示する"
+        '
+        'grpData
+        '
+        Me.grpData.Controls.Add(Me.btnResetData)
+        Me.grpData.Location = New System.Drawing.Point(8, 490)
+        Me.grpData.Name = "grpData"
+        Me.grpData.Size = New System.Drawing.Size(488, 56)
+        Me.grpData.TabIndex = 5
+        Me.grpData.TabStop = False
+        Me.grpData.Text = "データ管理"
+        '
+        'btnResetData
+        '
+        Me.btnResetData.Location = New System.Drawing.Point(8, 22)
+        Me.btnResetData.Name = "btnResetData"
+        Me.btnResetData.Size = New System.Drawing.Size(120, 26)
+        Me.btnResetData.TabIndex = 0
+        Me.btnResetData.Text = "データ初期化..."
+        '
         'pnlButtons
         '
         Me.pnlButtons.Controls.Add(Me.btnOk)
         Me.pnlButtons.Controls.Add(Me.btnCancel)
-        Me.pnlButtons.Location = New System.Drawing.Point(8, 466)
+        Me.pnlButtons.Location = New System.Drawing.Point(8, 554)
         Me.pnlButtons.Name = "pnlButtons"
         Me.pnlButtons.Size = New System.Drawing.Size(488, 34)
         Me.pnlButtons.TabIndex = 4
@@ -289,11 +323,12 @@ Partial Class SettingsForm
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.btnCancel
-        Me.ClientSize = New System.Drawing.Size(512, 510)
+        Me.ClientSize = New System.Drawing.Size(512, 598)
         Me.Controls.Add(Me.grpPaths)
         Me.Controls.Add(Me.grpAutoImport)
         Me.Controls.Add(Me.grpFolders)
         Me.Controls.Add(Me.grpDisplay)
+        Me.Controls.Add(Me.grpData)
         Me.Controls.Add(Me.pnlButtons)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
         Me.MaximizeBox = False
@@ -310,6 +345,7 @@ Partial Class SettingsForm
         Me.grpFolders.ResumeLayout(False)
         Me.grpDisplay.ResumeLayout(False)
         Me.grpDisplay.PerformLayout()
+        Me.grpData.ResumeLayout(False)
         Me.pnlButtons.ResumeLayout(False)
         Me.ResumeLayout(False)
     End Sub
@@ -337,6 +373,9 @@ Partial Class SettingsForm
     Friend WithEvents grpDisplay As System.Windows.Forms.GroupBox
     Friend WithEvents chkDefaultHtml As System.Windows.Forms.CheckBox
     Friend WithEvents chkSortAscending As System.Windows.Forms.CheckBox
+    Friend WithEvents chkShowImportResult As System.Windows.Forms.CheckBox
+    Friend WithEvents grpData As System.Windows.Forms.GroupBox
+    Friend WithEvents btnResetData As System.Windows.Forms.Button
     Friend WithEvents pnlButtons As System.Windows.Forms.Panel
     Friend WithEvents btnOk As System.Windows.Forms.Button
     Friend WithEvents btnCancel As System.Windows.Forms.Button

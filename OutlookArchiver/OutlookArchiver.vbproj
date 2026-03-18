@@ -99,7 +99,9 @@
       <DependentUpon>ConversationViewControl.vb</DependentUpon>
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Forms\SettingsForm.vb" />
+    <Compile Include="Forms\SettingsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\SettingsForm.Designer.vb">
       <DependentUpon>SettingsForm.vb</DependentUpon>
       <SubType>Form</SubType>

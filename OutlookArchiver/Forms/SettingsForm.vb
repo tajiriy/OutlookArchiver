@@ -43,6 +43,7 @@ Public Class SettingsForm
 
         chkDefaultHtml.Checked = _settings.DefaultHtmlView
         chkSortAscending.Checked = _settings.ConversationSortAscending
+        chkShowImportResult.Checked = _settings.ShowImportResult
     End Sub
 
     ''' <summary>各コントロールの値を設定に保存する。</summary>
@@ -64,6 +65,7 @@ Public Class SettingsForm
 
         _settings.DefaultHtmlView = chkDefaultHtml.Checked
         _settings.ConversationSortAscending = chkSortAscending.Checked
+        _settings.ShowImportResult = chkShowImportResult.Checked
     End Sub
 
     ' ════════════════════════════════════════════════════════════
@@ -110,6 +112,48 @@ Public Class SettingsForm
         If lstFolders.SelectedIndex >= 0 Then
             lstFolders.Items.RemoveAt(lstFolders.SelectedIndex)
         End If
+    End Sub
+
+    ' ════════════════════════════════════════════════════════════
+    '  イベントハンドラ ─ データ初期化
+    ' ════════════════════════════════════════════════════════════
+
+    Private Sub btnResetData_Click(sender As Object, e As System.EventArgs) Handles btnResetData.Click
+        Dim answer As System.Windows.Forms.DialogResult = System.Windows.Forms.MessageBox.Show(
+            "すべての取り込み済みメールデータと添付ファイルを削除します。" & vbCrLf &
+            "この操作は元に戻せません。" & vbCrLf & vbCrLf &
+            "本当に初期化しますか？",
+            "データ初期化の確認",
+            System.Windows.Forms.MessageBoxButtons.YesNo,
+            System.Windows.Forms.MessageBoxIcon.Warning,
+            System.Windows.Forms.MessageBoxDefaultButton.Button2)
+        If answer <> System.Windows.Forms.DialogResult.Yes Then Return
+
+        Try
+            ' DB ファイルを削除
+            Dim dbPath As String = System.IO.Path.GetFullPath(_settings.DbFilePath)
+            If System.IO.File.Exists(dbPath) Then
+                System.IO.File.Delete(dbPath)
+            End If
+
+            ' 添付ファイルディレクトリを削除
+            Dim attachDir As String = System.IO.Path.GetFullPath(_settings.AttachmentDirectory)
+            If System.IO.Directory.Exists(attachDir) Then
+                System.IO.Directory.Delete(attachDir, recursive:=True)
+            End If
+
+            System.Windows.Forms.MessageBox.Show(
+                "データを初期化しました。" & vbCrLf & "アプリケーションを再起動してください。",
+                "初期化完了",
+                System.Windows.Forms.MessageBoxButtons.OK,
+                System.Windows.Forms.MessageBoxIcon.Information)
+        Catch ex As Exception
+            System.Windows.Forms.MessageBox.Show(
+                "初期化中にエラーが発生しました:" & vbCrLf & ex.Message,
+                "エラー",
+                System.Windows.Forms.MessageBoxButtons.OK,
+                System.Windows.Forms.MessageBoxIcon.Error)
+        End Try
     End Sub
 
     ' ════════════════════════════════════════════════════════════

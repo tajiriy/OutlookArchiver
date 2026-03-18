@@ -105,6 +105,18 @@ Namespace Config
             End Set
         End Property
 
+        ' ── 結果ダイアログ ────────────────────────────────────────
+
+        ''' <summary>取り込み完了時に結果ダイアログを表示するか</summary>
+        Public Property ShowImportResult As Boolean
+            Get
+                Return GetBool("ShowImportResult", defaultValue:=True)
+            End Get
+            Set(value As Boolean)
+                SaveSetting("ShowImportResult", value.ToString())
+            End Set
+        End Property
+
         ' ── 表示設定 ──────────────────────────────────────────────
 
         ''' <summary>会話ビューで古い順（昇順）に表示するか</summary>
