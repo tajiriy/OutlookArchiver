@@ -40,7 +40,6 @@ Namespace Data
                 ExecuteNonQuery(conn, "PRAGMA journal_mode=WAL;")
 
                 CreateTables(conn)
-                ApplyMigrations(conn)
                 CreateIndices(conn)
             End Using
         End Sub
@@ -81,6 +80,8 @@ CREATE TABLE IF NOT EXISTS attachments (
     file_path  TEXT NOT NULL,
     file_size  INTEGER,
     mime_type  TEXT,
+    content_id TEXT,
+    is_inline  INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
 
@@ -97,27 +98,6 @@ CREATE TABLE IF NOT EXISTS exchange_address_cache (
             ExecuteNonQuery(conn, sql)
         End Sub
 
-        ' ── マイグレーション ──────────────────────────────────────
-
-        ''' <summary>既存 DB への列追加など、スキーマ変更を安全に適用する。</summary>
-        Private Sub ApplyMigrations(conn As SQLiteConnection)
-            ' email_size 列が存在しない旧 DB に追加する
-            TryAddColumn(conn, "ALTER TABLE emails ADD COLUMN email_size INTEGER DEFAULT 0;")
-            ' インライン画像対応: attachments テーブルに content_id / is_inline を追加する
-            TryAddColumn(conn, "ALTER TABLE attachments ADD COLUMN content_id TEXT;")
-            TryAddColumn(conn, "ALTER TABLE attachments ADD COLUMN is_inline INTEGER DEFAULT 0;")
-        End Sub
-
-        ''' <summary>ALTER TABLE ADD COLUMN を試みる。重複列エラーは無視する。</summary>
-        Private Sub TryAddColumn(conn As SQLiteConnection, sql As String)
-            Try
-                ExecuteNonQuery(conn, sql)
-            Catch ex As SQLiteException
-                If Not ex.Message.Contains("duplicate column name") Then
-                    Throw
-                End If
-            End Try
-        End Sub
 
         ' ── インデックス ──────────────────────────────────────────
 
