@@ -224,7 +224,7 @@ Namespace Controls
                 End Function)
         End Function
 
-        ''' <summary>FTS クエリから最初の検索語を抽出する（"column:term" → "term"、引用符除去）。</summary>
+        ''' <summary>検索クエリから最初の検索語を抽出する（"column:term" → "term"、引用符除去）。</summary>
         Private Function ExtractFirstTerm(query As String) As String
             Dim q As String = query.Trim()
             ' 列修飾子 "column:term" の列部分を除去

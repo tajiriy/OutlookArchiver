@@ -26,7 +26,7 @@ Namespace Data
         End Function
 
         ''' <summary>
-        ''' DB ファイルを作成し、テーブル・インデックス・FTS5仮想テーブル・トリガーを初期化する。
+        ''' DB ファイルを作成し、テーブル・インデックスを初期化する。
         ''' 既に存在する場合はスキップ（べき等）。
         ''' </summary>
         Public Sub Initialize()
@@ -42,8 +42,6 @@ Namespace Data
                 CreateTables(conn)
                 ApplyMigrations(conn)
                 CreateIndices(conn)
-                CreateFtsTables(conn)
-                CreateFtsTriggers(conn)
             End Using
         End Sub
 
@@ -133,63 +131,6 @@ CREATE INDEX IF NOT EXISTS idx_emails_in_reply_to        ON emails(in_reply_to);
 CREATE INDEX IF NOT EXISTS idx_emails_folder             ON emails(folder_name);
 CREATE INDEX IF NOT EXISTS idx_attachments_email_id      ON attachments(email_id);"
             ExecuteNonQuery(conn, sql)
-        End Sub
-
-        ' ── FTS4 仮想テーブル ─────────────────────────────────────
-        ' FTS5 は SQLite.Interop.dll のビルドによっては無効な場合があるため FTS4 を使用する。
-        ' FTS4 は content= でコンテンツテーブルを指定でき、rowid で紐付けられる。
-
-        Private Sub CreateFtsTables(conn As SQLiteConnection)
-            Dim sql As String = "
-CREATE VIRTUAL TABLE IF NOT EXISTS emails_fts USING fts4(
-    content=""emails"",
-    subject,
-    body_text,
-    sender_name,
-    sender_email
-);
-
-CREATE VIRTUAL TABLE IF NOT EXISTS attachments_fts USING fts4(
-    content=""attachments"",
-    file_name
-);"
-            ExecuteNonQuery(conn, sql)
-        End Sub
-
-        ' ── FTS4 同期トリガー ─────────────────────────────────────
-        ' FTS4 の削除は DELETE FROM ... WHERE rowid = を使う（FTS5 の 'delete' 特殊構文は不要）。
-
-        Private Sub CreateFtsTriggers(conn As SQLiteConnection)
-            ' emails_fts を emails テーブルと同期するトリガー
-            Dim sqlInsert As String = "
-CREATE TRIGGER IF NOT EXISTS emails_ai AFTER INSERT ON emails BEGIN
-    INSERT INTO emails_fts(rowid, subject, body_text, sender_name, sender_email)
-    VALUES (new.id, new.subject, new.body_text, new.sender_name, new.sender_email);
-END;"
-            Dim sqlDelete As String = "
-CREATE TRIGGER IF NOT EXISTS emails_ad AFTER DELETE ON emails BEGIN
-    DELETE FROM emails_fts WHERE rowid = old.id;
-END;"
-            Dim sqlUpdate As String = "
-CREATE TRIGGER IF NOT EXISTS emails_au AFTER UPDATE ON emails BEGIN
-    DELETE FROM emails_fts WHERE rowid = old.id;
-    INSERT INTO emails_fts(rowid, subject, body_text, sender_name, sender_email)
-    VALUES (new.id, new.subject, new.body_text, new.sender_name, new.sender_email);
-END;"
-            Dim sqlAttachInsert As String = "
-CREATE TRIGGER IF NOT EXISTS attachments_ai AFTER INSERT ON attachments BEGIN
-    INSERT INTO attachments_fts(rowid, file_name)
-    VALUES (new.id, new.file_name);
-END;"
-            Dim sqlAttachDelete As String = "
-CREATE TRIGGER IF NOT EXISTS attachments_ad AFTER DELETE ON attachments BEGIN
-    DELETE FROM attachments_fts WHERE rowid = old.id;
-END;"
-            ExecuteNonQuery(conn, sqlInsert)
-            ExecuteNonQuery(conn, sqlDelete)
-            ExecuteNonQuery(conn, sqlUpdate)
-            ExecuteNonQuery(conn, sqlAttachInsert)
-            ExecuteNonQuery(conn, sqlAttachDelete)
         End Sub
 
         ' ── パフォーマンスチューニング ─────────────────────────────

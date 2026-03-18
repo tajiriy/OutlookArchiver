@@ -115,11 +115,10 @@ Namespace Services
             _repo.GetThreadIdCaches(messageIdMap, subjectMap)
             _threadingSvc.LoadCaches(messageIdMap, subjectMap)
 
-            ' ── 高速インポート: synchronous OFF + FTS トリガー無効化 ──
+            ' ── 高速インポート: synchronous OFF ──
             Dim perfConn As System.Data.SQLite.SQLiteConnection = _dbManager.GetConnection()
             Try
                 _dbManager.SetSynchronousMode(perfConn, "OFF")
-                _repo.DisableFtsTriggers(perfConn)
             Catch
                 perfConn.Dispose()
                 Throw
@@ -185,10 +184,8 @@ Namespace Services
                 Throw
             Finally
                 _threadingSvc.ClearCaches()
-                ' ── 高速インポート後処理: FTS 再構築 + synchronous 復元 ──
+                ' ── 高速インポート後処理: synchronous 復元 ──
                 Try
-                    _repo.RebuildFtsIndex(perfConn)
-                    _repo.EnableFtsTriggers(perfConn)
                     _dbManager.SetSynchronousMode(perfConn, "NORMAL")
                 Finally
                     perfConn.Dispose()

@@ -236,78 +236,6 @@ SELECT last_insert_rowid();"
         End Sub
 
         ' ════════════════════════════════════════════════════════════
-        '  FTS トリガー制御（取り込み高速化）
-        ' ════════════════════════════════════════════════════════════
-
-        ''' <summary>FTS 同期トリガーを一時的に無効化する（取り込み中の INSERT を高速化）。</summary>
-        Public Sub DisableFtsTriggers(conn As SQLiteConnection)
-            Dim sql As String = "
-DROP TRIGGER IF EXISTS emails_ai;
-DROP TRIGGER IF EXISTS emails_ad;
-DROP TRIGGER IF EXISTS emails_au;
-DROP TRIGGER IF EXISTS attachments_ai;
-DROP TRIGGER IF EXISTS attachments_ad;"
-            Using cmd As New SQLiteCommand(sql, conn)
-                cmd.ExecuteNonQuery()
-            End Using
-        End Sub
-
-        ''' <summary>FTS 同期トリガーを再作成する。RebuildFtsIndex の後に呼ぶこと。</summary>
-        Public Sub EnableFtsTriggers(conn As SQLiteConnection)
-            Dim sqlEmailsAi As String = "
-CREATE TRIGGER IF NOT EXISTS emails_ai AFTER INSERT ON emails BEGIN
-    INSERT INTO emails_fts(rowid, subject, body_text, sender_name, sender_email)
-    VALUES (new.id, new.subject, new.body_text, new.sender_name, new.sender_email);
-END;"
-            Dim sqlEmailsAd As String = "
-CREATE TRIGGER IF NOT EXISTS emails_ad AFTER DELETE ON emails BEGIN
-    DELETE FROM emails_fts WHERE rowid = old.id;
-END;"
-            Dim sqlEmailsAu As String = "
-CREATE TRIGGER IF NOT EXISTS emails_au AFTER UPDATE ON emails BEGIN
-    DELETE FROM emails_fts WHERE rowid = old.id;
-    INSERT INTO emails_fts(rowid, subject, body_text, sender_name, sender_email)
-    VALUES (new.id, new.subject, new.body_text, new.sender_name, new.sender_email);
-END;"
-            Dim sqlAttachAi As String = "
-CREATE TRIGGER IF NOT EXISTS attachments_ai AFTER INSERT ON attachments BEGIN
-    INSERT INTO attachments_fts(rowid, file_name)
-    VALUES (new.id, new.file_name);
-END;"
-            Dim sqlAttachAd As String = "
-CREATE TRIGGER IF NOT EXISTS attachments_ad AFTER DELETE ON attachments BEGIN
-    DELETE FROM attachments_fts WHERE rowid = old.id;
-END;"
-            Using cmd As New SQLiteCommand(sqlEmailsAi, conn)
-                cmd.ExecuteNonQuery()
-            End Using
-            Using cmd As New SQLiteCommand(sqlEmailsAd, conn)
-                cmd.ExecuteNonQuery()
-            End Using
-            Using cmd As New SQLiteCommand(sqlEmailsAu, conn)
-                cmd.ExecuteNonQuery()
-            End Using
-            Using cmd As New SQLiteCommand(sqlAttachAi, conn)
-                cmd.ExecuteNonQuery()
-            End Using
-            Using cmd As New SQLiteCommand(sqlAttachAd, conn)
-                cmd.ExecuteNonQuery()
-            End Using
-        End Sub
-
-        ''' <summary>FTS インデックスをメインテーブルから一括再構築する。</summary>
-        Public Sub RebuildFtsIndex(conn As SQLiteConnection)
-            ' emails_fts を再構築
-            Using cmd As New SQLiteCommand("INSERT INTO emails_fts(emails_fts) VALUES('rebuild');", conn)
-                cmd.ExecuteNonQuery()
-            End Using
-            ' attachments_fts を再構築
-            Using cmd As New SQLiteCommand("INSERT INTO attachments_fts(attachments_fts) VALUES('rebuild');", conn)
-                cmd.ExecuteNonQuery()
-            End Using
-        End Sub
-
-        ' ════════════════════════════════════════════════════════════
         '  Email 取得
         ' ════════════════════════════════════════════════════════════
 
@@ -485,91 +413,6 @@ END;"
             Return result
         End Function
 
-        ' ════════════════════════════════════════════════════════════
-        '  全文検索（FTS4）
-        ' ════════════════════════════════════════════════════════════
-
-        ''' <summary>
-        ''' メールを全文検索する（件名・本文・差出人・添付ファイル名）。結果は受信日時降順。
-        ''' ASCII のみのクエリは FTS4 インデックスを使用し、日本語等の非 ASCII 文字を含む場合は
-        ''' LIKE による部分一致検索にフォールバックする（FTS4 の simple トークナイザーは
-        ''' 日本語の単語境界を認識しないため）。
-        ''' </summary>
-        Public Function SearchEmails(query As String,
-                                     Optional folderName As String = Nothing) As List(Of Models.Email)
-            If ContainsNonAscii(query) Then
-                Return SearchEmailsLike(query, folderName)
-            End If
-
-            ' ASCII のみ: FTS4 全文検索（添付ファイル名も含む）
-            Dim sb As New StringBuilder(
-                "SELECT DISTINCT e.* FROM emails e WHERE e.id IN (" &
-                "SELECT rowid FROM emails_fts WHERE emails_fts MATCH @query1" &
-                " UNION" &
-                " SELECT a.email_id FROM attachments a" &
-                " INNER JOIN attachments_fts af ON a.id = af.rowid" &
-                " WHERE attachments_fts MATCH @query2)")
-            If Not String.IsNullOrEmpty(folderName) Then
-                sb.Append(" AND e.folder_name = @folder_name")
-            End If
-            sb.Append(" ORDER BY e.received_at DESC")
-
-            Dim result As New List(Of Models.Email)
-            Using conn As SQLiteConnection = _dbManager.GetConnection()
-                Using cmd As New SQLiteCommand(sb.ToString(), conn)
-                    cmd.Parameters.AddWithValue("@query1", query)
-                    cmd.Parameters.AddWithValue("@query2", query)
-                    If Not String.IsNullOrEmpty(folderName) Then
-                        cmd.Parameters.AddWithValue("@folder_name", folderName)
-                    End If
-                    Using reader As SQLiteDataReader = cmd.ExecuteReader()
-                        While reader.Read()
-                            result.Add(MapEmail(reader))
-                        End While
-                    End Using
-                End Using
-            End Using
-            Return result
-        End Function
-
-        ''' <summary>
-        ''' LIKE による部分一致検索（日本語等の非 ASCII クエリ用）。
-        ''' FTS4 の simple トークナイザーは日本語の単語境界を扱えないため、
-        ''' 非 ASCII 文字を含むクエリはこちらで処理する。
-        ''' </summary>
-        Private Function SearchEmailsLike(query As String,
-                                          folderName As String) As List(Of Models.Email)
-            Dim likeParam As String = "%" & query & "%"
-            Dim sb As New StringBuilder(
-                "SELECT e.* FROM emails e WHERE " &
-                "(e.subject LIKE @q1 OR e.body_text LIKE @q2 OR e.sender_name LIKE @q3 OR e.sender_email LIKE @q4" &
-                " OR e.id IN (SELECT a.email_id FROM attachments a WHERE a.file_name LIKE @q5))")
-            If Not String.IsNullOrEmpty(folderName) Then
-                sb.Append(" AND e.folder_name = @folder_name")
-            End If
-            sb.Append(" ORDER BY e.received_at DESC")
-
-            Dim result As New List(Of Models.Email)
-            Using conn As SQLiteConnection = _dbManager.GetConnection()
-                Using cmd As New SQLiteCommand(sb.ToString(), conn)
-                    cmd.Parameters.AddWithValue("@q1", likeParam)
-                    cmd.Parameters.AddWithValue("@q2", likeParam)
-                    cmd.Parameters.AddWithValue("@q3", likeParam)
-                    cmd.Parameters.AddWithValue("@q4", likeParam)
-                    cmd.Parameters.AddWithValue("@q5", likeParam)
-                    If Not String.IsNullOrEmpty(folderName) Then
-                        cmd.Parameters.AddWithValue("@folder_name", folderName)
-                    End If
-                    Using reader As SQLiteDataReader = cmd.ExecuteReader()
-                        While reader.Read()
-                            result.Add(MapEmail(reader))
-                        End While
-                    End Using
-                End Using
-            End Using
-            Return result
-        End Function
-
         ''' <summary>
         ''' EmailSearchFilter を使用してメールを検索する。
         ''' 列指定・AND/OR・添付有無などの高度なフィルタ構文に対応。
@@ -600,14 +443,6 @@ END;"
                 End Using
             End Using
             Return result
-        End Function
-
-        ''' <summary>文字列に非 ASCII 文字（日本語等）が含まれるか確認する。</summary>
-        Private Function ContainsNonAscii(s As String) As Boolean
-            For Each c As Char In s
-                If AscW(c) > 127 Then Return True
-            Next
-            Return False
         End Function
 
         ' ════════════════════════════════════════════════════════════

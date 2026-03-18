@@ -65,26 +65,6 @@ Namespace Tests
             End Using
         End Sub
 
-        ' ── FTS テーブル ──────────────────────────────────────────────
-
-        <Test>
-        Public Sub Initialize_CreatesEmailsFtsTable()
-            _dbManager.Initialize()
-
-            Using conn As SQLiteConnection = _dbManager.GetConnection()
-                Assert.IsTrue(TableExists(conn, "emails_fts"))
-            End Using
-        End Sub
-
-        <Test>
-        Public Sub Initialize_CreatesAttachmentsFtsTable()
-            _dbManager.Initialize()
-
-            Using conn As SQLiteConnection = _dbManager.GetConnection()
-                Assert.IsTrue(TableExists(conn, "attachments_fts"))
-            End Using
-        End Sub
-
         ' ── インデックス ──────────────────────────────────────────────
 
         <Test>
@@ -99,21 +79,6 @@ Namespace Tests
                 Assert.IsTrue(IndexExists(conn, "idx_emails_in_reply_to"))
                 Assert.IsTrue(IndexExists(conn, "idx_emails_folder"))
                 Assert.IsTrue(IndexExists(conn, "idx_attachments_email_id"))
-            End Using
-        End Sub
-
-        ' ── トリガー ──────────────────────────────────────────────────
-
-        <Test>
-        Public Sub Initialize_CreatesFtsTriggers()
-            _dbManager.Initialize()
-
-            Using conn As SQLiteConnection = _dbManager.GetConnection()
-                Assert.IsTrue(TriggerExists(conn, "emails_ai"))
-                Assert.IsTrue(TriggerExists(conn, "emails_ad"))
-                Assert.IsTrue(TriggerExists(conn, "emails_au"))
-                Assert.IsTrue(TriggerExists(conn, "attachments_ai"))
-                Assert.IsTrue(TriggerExists(conn, "attachments_ad"))
             End Using
         End Sub
 

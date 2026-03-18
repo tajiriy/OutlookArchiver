@@ -381,85 +381,6 @@ Namespace Tests
         End Sub
 
         ' ════════════════════════════════════════════════════════════
-        '  全文検索（FTS4）
-        ' ════════════════════════════════════════════════════════════
-
-        <Test>
-        Public Sub SearchEmails_AsciiQuery_FindsBySubject()
-            Dim email As Email = CreateTestEmail("search1@example.com")
-            email.Subject = "Important Meeting"
-            email.BodyText = "Please attend the meeting."
-            _repo.InsertEmail(email)
-
-            Dim results As List(Of Email) = _repo.SearchEmails("Meeting")
-
-            Assert.AreEqual(1, results.Count)
-            Assert.AreEqual("search1@example.com", results(0).MessageId)
-        End Sub
-
-        <Test>
-        Public Sub SearchEmails_AsciiQuery_FindsBySenderName()
-            Dim email As Email = CreateTestEmail("search2@example.com")
-            email.SenderName = "John Smith"
-            _repo.InsertEmail(email)
-
-            Dim results As List(Of Email) = _repo.SearchEmails("Smith")
-
-            Assert.AreEqual(1, results.Count)
-        End Sub
-
-        <Test>
-        Public Sub SearchEmails_JapaneseQuery_FallsBackToLike()
-            Dim email As Email = CreateTestEmail("search3@example.com")
-            email.Subject = "週次ミーティング"
-            email.BodyText = "来週の予定を確認してください。"
-            _repo.InsertEmail(email)
-
-            Dim results As List(Of Email) = _repo.SearchEmails("ミーティング")
-
-            Assert.AreEqual(1, results.Count)
-        End Sub
-
-        <Test>
-        Public Sub SearchEmails_JapaneseQuery_FindsByBodyText()
-            Dim email As Email = CreateTestEmail("search4@example.com")
-            email.Subject = "件名"
-            email.BodyText = "この報告書を確認してください。"
-            _repo.InsertEmail(email)
-
-            Dim results As List(Of Email) = _repo.SearchEmails("報告書")
-
-            Assert.AreEqual(1, results.Count)
-        End Sub
-
-        <Test>
-        Public Sub SearchEmails_WithFolder_FiltersResults()
-            Dim email1 As Email = CreateTestEmail("search5@example.com")
-            email1.Subject = "Report"
-            email1.FolderName = "受信トレイ"
-            Dim email2 As Email = CreateTestEmail("search6@example.com")
-            email2.Subject = "Report"
-            email2.FolderName = "送信済み"
-
-            _repo.InsertEmail(email1)
-            _repo.InsertEmail(email2)
-
-            Dim results As List(Of Email) = _repo.SearchEmails("Report", folderName:="受信トレイ")
-
-            Assert.AreEqual(1, results.Count)
-            Assert.AreEqual("search5@example.com", results(0).MessageId)
-        End Sub
-
-        <Test>
-        Public Sub SearchEmails_NoMatch_ReturnsEmptyList()
-            _repo.InsertEmail(CreateTestEmail("msg@example.com"))
-
-            Dim results As List(Of Email) = _repo.SearchEmails("NONEXISTENT")
-
-            Assert.AreEqual(0, results.Count)
-        End Sub
-
-        ' ════════════════════════════════════════════════════════════
         '  バルクモード
         ' ════════════════════════════════════════════════════════════
 
@@ -558,27 +479,6 @@ Namespace Tests
         End Sub
 
         ' ════════════════════════════════════════════════════════════
-        '  FTS トリガーの動作確認
-        ' ════════════════════════════════════════════════════════════
-
-        <Test>
-        Public Sub FtsTrigger_DeleteEmail_RemovesFromFts()
-            Dim email As Email = CreateTestEmail("fts-del@example.com")
-            email.Subject = "UniqueSearchTerm"
-            Dim id As Integer = _repo.InsertEmail(email)
-
-            ' 削除前: 検索でヒットする
-            Dim before As List(Of Email) = _repo.SearchEmails("UniqueSearchTerm")
-            Assert.AreEqual(1, before.Count)
-
-            _repo.DeleteEmail(id)
-
-            ' 削除後: 検索でヒットしない
-            Dim after As List(Of Email) = _repo.SearchEmails("UniqueSearchTerm")
-            Assert.AreEqual(0, after.Count)
-        End Sub
-
-        ' ════════════════════════════════════════════════════════════
         '  HasAttachments フラグ
         ' ════════════════════════════════════════════════════════════
 
@@ -664,54 +564,6 @@ Namespace Tests
                     Assert.AreEqual("test.pdf", CStr(cmd.ExecuteScalar()))
                 End Using
             End Using
-        End Sub
-
-        ' ════════════════════════════════════════════════════════════
-        '  FTS トリガー無効化 / 再構築
-        ' ════════════════════════════════════════════════════════════
-
-        <Test>
-        Public Sub DisableFtsTriggers_InsertDoesNotUpdateFts()
-            Using conn As System.Data.SQLite.SQLiteConnection = _dbManager.GetConnection()
-                _repo.DisableFtsTriggers(conn)
-            End Using
-
-            ' トリガー無効中に挿入
-            Dim email As Email = CreateTestEmail("fts-off@example.com")
-            email.Subject = "FtsDisabledSubject"
-            _repo.InsertEmail(email)
-
-            ' FTS には反映されない（ASCII なので FTS MATCH が走る）
-            Dim results As List(Of Email) = _repo.SearchEmails("FtsDisabledSubject")
-            Assert.AreEqual(0, results.Count)
-
-            ' 再構築 + トリガー再有効化
-            Using conn As System.Data.SQLite.SQLiteConnection = _dbManager.GetConnection()
-                _repo.RebuildFtsIndex(conn)
-                _repo.EnableFtsTriggers(conn)
-            End Using
-
-            ' 再構築後は検索でヒットする
-            Dim afterRebuild As List(Of Email) = _repo.SearchEmails("FtsDisabledSubject")
-            Assert.AreEqual(1, afterRebuild.Count)
-        End Sub
-
-        <Test>
-        Public Sub EnableFtsTriggers_AfterRebuild_NewInsertUpdatedFts()
-            ' トリガー無効化→再構築→再有効化
-            Using conn As System.Data.SQLite.SQLiteConnection = _dbManager.GetConnection()
-                _repo.DisableFtsTriggers(conn)
-                _repo.RebuildFtsIndex(conn)
-                _repo.EnableFtsTriggers(conn)
-            End Using
-
-            ' 再有効化後に挿入したデータは FTS に反映されるはず
-            Dim email As Email = CreateTestEmail("fts-on@example.com")
-            email.Subject = "FtsReenabledSubject"
-            _repo.InsertEmail(email)
-
-            Dim results As List(Of Email) = _repo.SearchEmails("FtsReenabledSubject")
-            Assert.AreEqual(1, results.Count)
         End Sub
 
         ' ════════════════════════════════════════════════════════════
