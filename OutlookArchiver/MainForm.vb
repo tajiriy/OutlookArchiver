@@ -23,6 +23,8 @@ Public Class MainForm
     Private _autoImportEnabled As Boolean
     Private _searchQuery As String        ' 現在の検索クエリ（Nothing = 検索なし）
     Private _updatingFolderCounts As Boolean ' フォルダ件数更新中のイベント抑制フラグ
+    Private _currentFolderTotalCount As Integer ' 現在選択中フォルダの総件数
+    Private _loadVersion As Integer             ' LoadEmailsAsync の競合検出用バージョン番号
 
     ' 列インデックス: 0=添付 1=件名 2=差出人 3=受信日時 4=サイズ
     Private _sortColumn As Integer = 3          ' デフォルト: 受信日時
@@ -185,18 +187,28 @@ Public Class MainForm
     ' ════════════════════════════════════════════════════════════
 
     ''' <summary>DBからメールを読み込んでListViewのVirtualListSizeを更新する（非同期）。</summary>
+    ''' <remarks>
+    ''' フォルダを素早く切り替えた場合に古い結果が新しい結果を上書きしないよう、
+    ''' バージョン番号で最新のリクエストのみ UI に反映する。
+    ''' </remarks>
     Private Async Function LoadEmailsAsync(Optional folderName As String = Nothing) As Task
+        _loadVersion += 1
+        Dim myVersion As Integer = _loadVersion
         Dim repo As Data.EmailRepository = _repo
-        Dim sortCol As Integer = _sortColumn
-        Dim sortAsc As Boolean = _sortAscending
         Dim emails As List(Of Models.Email) = Await Task.Run(
             Function() As List(Of Models.Email)
                 Return repo.GetEmails(folderName, pageSize:=500)
             End Function)
+
+        ' 待機中に別のロードが開始された場合は結果を破棄する
+        If myVersion <> _loadVersion Then Return
+
         _emailCache = emails
+        _currentFolderTotalCount = _emailCache.Count
         SortEmailCache()
         listViewEmails.VirtualListSize = _emailCache.Count
         listViewEmails.Invalidate()
+        UpdateFolderCountLabel()
         Await UpdateStatusBarAsync()
     End Function
 
@@ -475,10 +487,30 @@ Public Class MainForm
             emailPreview.ClearPreview()
             conversationView.ClearView()
             lblStatusCount.Text = String.Format("検索結果: {0:N0}件", _emailCache.Count)
+            UpdateFolderCountLabel()
         Catch ex As Exception
             MessageBox.Show("検索エラー:" & vbCrLf & ex.Message, "エラー",
                 MessageBoxButtons.OK, MessageBoxIcon.Error)
         End Try
+    End Sub
+
+    ' ════════════════════════════════════════════════════════════
+    '  フォルダ件数ラベル
+    ' ════════════════════════════════════════════════════════════
+
+    ''' <summary>ToolStrip 右端のフォルダ件数ラベルを更新する。</summary>
+    Private Sub UpdateFolderCountLabel()
+        Dim folderDisplayName As String = If(_currentFolder, "すべて")
+
+        If _searchQuery IsNot Nothing Then
+            ' 検索フィルタ中: "フォルダ名 N / M 件"
+            lblFolderCount.Text = String.Format("{0} {1:N0} / {2:N0} 件",
+                folderDisplayName, _emailCache.Count, _currentFolderTotalCount)
+        Else
+            ' 通常表示: "フォルダ名 N 件"
+            lblFolderCount.Text = String.Format("{0} {1:N0} 件",
+                folderDisplayName, _emailCache.Count)
+        End If
     End Sub
 
     ' ════════════════════════════════════════════════════════════

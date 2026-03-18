@@ -45,6 +45,7 @@ Partial Class MainForm
         Me.txtSearch = New System.Windows.Forms.ToolStripTextBox()
         Me.btnSearch = New System.Windows.Forms.ToolStripButton()
         Me.btnClearSearch = New System.Windows.Forms.ToolStripButton()
+        Me.lblFolderCount = New System.Windows.Forms.ToolStripLabel()
         Me.splitMain = New System.Windows.Forms.SplitContainer()
         Me.treeViewFolders = New System.Windows.Forms.TreeView()
         Me.splitRight = New System.Windows.Forms.SplitContainer()
@@ -182,7 +183,7 @@ Partial Class MainForm
         '
         'toolStrip
         '
-        Me.toolStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.btnImportNow, Me.btnAutoImport, Me.toolStripSep1, Me.txtSearch, Me.btnSearch, Me.btnClearSearch})
+        Me.toolStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.btnImportNow, Me.btnAutoImport, Me.toolStripSep1, Me.txtSearch, Me.btnSearch, Me.btnClearSearch, Me.lblFolderCount})
         Me.toolStrip.Location = New System.Drawing.Point(0, 24)
         Me.toolStrip.Name = "toolStrip"
         Me.toolStrip.Size = New System.Drawing.Size(1271, 25)
@@ -230,6 +231,13 @@ Partial Class MainForm
         Me.btnClearSearch.Size = New System.Drawing.Size(42, 22)
         Me.btnClearSearch.Text = "クリア"
         Me.btnClearSearch.ToolTipText = "検索をクリアします"
+        '
+        'lblFolderCount
+        '
+        Me.lblFolderCount.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right
+        Me.lblFolderCount.Name = "lblFolderCount"
+        Me.lblFolderCount.Size = New System.Drawing.Size(0, 22)
+        Me.lblFolderCount.Text = ""
         '
         'splitMain
         '
@@ -446,6 +454,7 @@ Partial Class MainForm
     Friend WithEvents txtSearch As System.Windows.Forms.ToolStripTextBox
     Friend WithEvents btnSearch As System.Windows.Forms.ToolStripButton
     Friend WithEvents btnClearSearch As System.Windows.Forms.ToolStripButton
+    Friend WithEvents lblFolderCount As System.Windows.Forms.ToolStripLabel
     Friend WithEvents splitMain As System.Windows.Forms.SplitContainer
     Friend WithEvents splitRight As System.Windows.Forms.SplitContainer
     Friend WithEvents treeViewFolders As System.Windows.Forms.TreeView
