@@ -681,6 +681,84 @@ END;"
             Return result
         End Function
 
+        ''' <summary>
+        ''' 指定フォルダのアーカイブ済みメールの message_id と id の Dictionary を返す。
+        ''' 削除同期で Outlook 側と突合するために使用する。
+        ''' </summary>
+        Public Function GetMessageIdsByFolder(folderName As String) As Dictionary(Of String, Integer)
+            Const sql As String = "SELECT message_id, id FROM emails WHERE folder_name = @folder_name AND message_id IS NOT NULL"
+            Dim result As New Dictionary(Of String, Integer)(StringComparer.OrdinalIgnoreCase)
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As New SQLiteCommand(sql, conn)
+                    cmd.Parameters.AddWithValue("@folder_name", folderName)
+                    Using reader As SQLiteDataReader = cmd.ExecuteReader()
+                        While reader.Read()
+                            Dim msgId As String = reader.GetString(0)
+                            Dim id As Integer = reader.GetInt32(1)
+                            If Not result.ContainsKey(msgId) Then
+                                result.Add(msgId, id)
+                            End If
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return result
+        End Function
+
+        ''' <summary>
+        ''' 複数メールを一括削除し、削除対象の添付ファイルパス一覧を返す。
+        ''' トゥームストーンへの登録も行う。
+        ''' ON DELETE CASCADE で attachments レコードは自動削除される。
+        ''' </summary>
+        Public Function DeleteEmailsByIds(ids As List(Of Integer)) As List(Of String)
+            Dim attachmentPaths As New List(Of String)()
+            If ids Is Nothing OrElse ids.Count = 0 Then Return attachmentPaths
+
+            Dim baseDir As String = IO.Path.GetFullPath(Config.AppSettings.Instance.AttachmentDirectory)
+
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using tx As SQLiteTransaction = conn.BeginTransaction()
+                    ' 添付ファイルパスを収集
+                    For Each emailId As Integer In ids
+                        Using cmd As New SQLiteCommand("SELECT file_path FROM attachments WHERE email_id = @id", conn)
+                            cmd.Parameters.AddWithValue("@id", CType(emailId, Object))
+                            Using reader As SQLiteDataReader = cmd.ExecuteReader()
+                                While reader.Read()
+                                    Dim relativePath As String = reader.GetString(0)
+                                    Dim fullPath As String = IO.Path.Combine(baseDir, relativePath)
+                                    attachmentPaths.Add(fullPath)
+                                End While
+                            End Using
+                        End Using
+                    Next
+
+                    ' message_id をトゥームストーンに登録
+                    Using cmd As New SQLiteCommand(
+                        "INSERT OR IGNORE INTO deleted_message_ids (message_id) " &
+                        "SELECT message_id FROM emails WHERE id = @id AND message_id IS NOT NULL", conn)
+                        cmd.Parameters.Add("@id", System.Data.DbType.Int32)
+                        For Each emailId As Integer In ids
+                            cmd.Parameters("@id").Value = CType(emailId, Object)
+                            cmd.ExecuteNonQuery()
+                        Next
+                    End Using
+
+                    ' メールを一括削除（CASCADE で attachments も削除）
+                    Using cmd As New SQLiteCommand("DELETE FROM emails WHERE id = @id", conn)
+                        cmd.Parameters.Add("@id", System.Data.DbType.Int32)
+                        For Each emailId As Integer In ids
+                            cmd.Parameters("@id").Value = CType(emailId, Object)
+                            cmd.ExecuteNonQuery()
+                        Next
+                    End Using
+
+                    tx.Commit()
+                End Using
+            End Using
+
+            Return attachmentPaths
+        End Function
+
         ''' <summary>同一 MessageID がすでに DB に存在するか確認する（重複取り込み防止）。</summary>
         Public Function MessageIdExists(messageId As String) As Boolean
             Const sql As String = "SELECT COUNT(1) FROM emails WHERE message_id = @message_id"

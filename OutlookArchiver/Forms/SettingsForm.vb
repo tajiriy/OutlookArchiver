@@ -43,6 +43,7 @@ Public Class SettingsForm
         Next
 
         cboImportOrder.SelectedIndex = If(_settings.ImportOldestFirst, 0, 1)
+        chkSyncDeletions.Checked = _settings.SyncDeletionsEnabled
 
         chkDefaultHtml.Checked = _settings.DefaultHtmlView
         chkSortAscending.Checked = _settings.ConversationSortAscending
@@ -65,6 +66,7 @@ Public Class SettingsForm
         _settings.TargetFolders = folders
 
         _settings.ImportOldestFirst = (cboImportOrder.SelectedIndex = 0)
+        _settings.SyncDeletionsEnabled = chkSyncDeletions.Checked
 
         _settings.DefaultHtmlView = chkDefaultHtml.Checked
         _settings.ConversationSortAscending = chkSortAscending.Checked

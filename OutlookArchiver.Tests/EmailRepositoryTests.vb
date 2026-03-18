@@ -739,6 +739,106 @@ Namespace Tests
         End Sub
 
         ' ════════════════════════════════════════════════════════════
+        '  フォルダ別 MessageID 取得
+        ' ════════════════════════════════════════════════════════════
+
+        <Test>
+        Public Sub GetMessageIdsByFolder_ReturnsOnlyMatchingFolder()
+            Dim email1 As Email = CreateTestEmail("msg1@example.com")
+            email1.FolderName = "受信トレイ"
+            Dim email2 As Email = CreateTestEmail("msg2@example.com")
+            email2.FolderName = "受信トレイ"
+            Dim email3 As Email = CreateTestEmail("msg3@example.com")
+            email3.FolderName = "送信済み"
+
+            _repo.InsertEmail(email1)
+            _repo.InsertEmail(email2)
+            _repo.InsertEmail(email3)
+
+            Dim result As Dictionary(Of String, Integer) = _repo.GetMessageIdsByFolder("受信トレイ")
+
+            Assert.AreEqual(2, result.Count)
+            Assert.IsTrue(result.ContainsKey("msg1@example.com"))
+            Assert.IsTrue(result.ContainsKey("msg2@example.com"))
+            Assert.IsFalse(result.ContainsKey("msg3@example.com"))
+        End Sub
+
+        <Test>
+        Public Sub GetMessageIdsByFolder_EmptyFolder_ReturnsEmptyDictionary()
+            Dim result As Dictionary(Of String, Integer) = _repo.GetMessageIdsByFolder("存在しないフォルダ")
+
+            Assert.AreEqual(0, result.Count)
+        End Sub
+
+        ' ════════════════════════════════════════════════════════════
+        '  一括削除
+        ' ════════════════════════════════════════════════════════════
+
+        <Test>
+        Public Sub DeleteEmailsByIds_RemovesEmailsAndRecordsTombstones()
+            Dim id1 As Integer = _repo.InsertEmail(CreateTestEmail("del1@example.com"))
+            Dim id2 As Integer = _repo.InsertEmail(CreateTestEmail("del2@example.com"))
+            Dim id3 As Integer = _repo.InsertEmail(CreateTestEmail("keep@example.com"))
+
+            Dim paths As List(Of String) = _repo.DeleteEmailsByIds(New List(Of Integer)() From {id1, id2})
+
+            ' 削除されていること
+            Assert.IsNull(_repo.GetEmailById(id1))
+            Assert.IsNull(_repo.GetEmailById(id2))
+            ' 残っていること
+            Assert.IsNotNull(_repo.GetEmailById(id3))
+            ' トゥームストーンに記録されていること
+            Assert.IsTrue(_repo.IsMessageIdDeleted("del1@example.com"))
+            Assert.IsTrue(_repo.IsMessageIdDeleted("del2@example.com"))
+            Assert.IsFalse(_repo.IsMessageIdDeleted("keep@example.com"))
+        End Sub
+
+        <Test>
+        Public Sub DeleteEmailsByIds_ReturnsAttachmentPaths()
+            Dim emailId As Integer = _repo.InsertEmail(CreateTestEmail("att-del@example.com"))
+            Dim att As New Attachment()
+            att.EmailId = emailId
+            att.FileName = "test.pdf"
+            att.FilePath = "subdir\test.pdf"
+            att.FileSize = 1024
+            _repo.InsertAttachment(att)
+
+            Dim paths As List(Of String) = _repo.DeleteEmailsByIds(New List(Of Integer)() From {emailId})
+
+            Assert.AreEqual(1, paths.Count)
+            Assert.IsTrue(paths(0).EndsWith("subdir\test.pdf"))
+        End Sub
+
+        <Test>
+        Public Sub DeleteEmailsByIds_EmptyList_NoError()
+            Dim paths As List(Of String) = _repo.DeleteEmailsByIds(New List(Of Integer)())
+
+            Assert.AreEqual(0, paths.Count)
+        End Sub
+
+        <Test>
+        Public Sub DeleteEmailsByIds_CascadeDeletesAttachments()
+            Dim emailId As Integer = _repo.InsertEmail(CreateTestEmail("cascade@example.com"))
+            Dim att As New Attachment()
+            att.EmailId = emailId
+            att.FileName = "doc.txt"
+            att.FilePath = "subdir\doc.txt"
+            att.FileSize = 512
+            _repo.InsertAttachment(att)
+
+            _repo.DeleteEmailsByIds(New List(Of Integer)() From {emailId})
+
+            ' attachments テーブルからも削除されていること
+            Using conn As System.Data.SQLite.SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As New System.Data.SQLite.SQLiteCommand(
+                    "SELECT COUNT(1) FROM attachments WHERE email_id = @id", conn)
+                    cmd.Parameters.AddWithValue("@id", CType(emailId, Object))
+                    Assert.AreEqual(0, Convert.ToInt32(cmd.ExecuteScalar()))
+                End Using
+            End Using
+        End Sub
+
+        ' ════════════════════════════════════════════════════════════
         '  ヘルパー
         ' ════════════════════════════════════════════════════════════
 

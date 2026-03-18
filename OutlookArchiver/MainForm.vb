@@ -280,6 +280,16 @@ Public Class MainForm
             Dim repo As Data.EmailRepository = _repo
             Dim settings As Config.AppSettings = _settings
             Dim dbManager As Data.DatabaseManager = _dbManager
+            Dim syncDeletions As Boolean = _settings.SyncDeletionsEnabled
+
+            Dim syncProgress As Progress(Of Services.SyncDeletionProgress) = Nothing
+            If syncDeletions Then
+                syncProgress = New Progress(Of Services.SyncDeletionProgress)(
+                    Sub(p)
+                        lblStatusCount.Text = String.Format("削除同期中... {0}/{1} ({2})",
+                            p.ScannedCount, p.TotalCount, p.FolderName)
+                    End Sub)
+            End If
 
             Dim staThread As New System.Threading.Thread(
                 Sub()
@@ -287,7 +297,14 @@ Public Class MainForm
                         Using outlookSvc As Services.OutlookService = Services.OutlookService.Connect()
                             Dim threadingSvc As New Services.ThreadingService(repo)
                             Dim importSvc As New Services.ImportService(outlookSvc, repo, threadingSvc, settings, dbManager)
-                            tcs.SetResult(importSvc.ImportFolders(targetFolders, maxCount, progress))
+                            Dim importResult As Services.ImportResult = importSvc.ImportFolders(targetFolders, maxCount, progress)
+
+                            ' 削除同期
+                            If syncDeletions Then
+                                importResult.DeletedCount = importSvc.SyncDeletionsForFolders(targetFolders, syncProgress)
+                            End If
+
+                            tcs.SetResult(importResult)
                         End Using
                     Catch ex As Exception
                         tcs.SetException(ex)
@@ -303,6 +320,9 @@ Public Class MainForm
             Dim msg As String = String.Format(
                 "取り込み完了{0}取り込み: {1}件 / スキップ: {2}件 / エラー: {3}件",
                 vbCrLf, result.ImportedCount, result.SkippedCount, result.ErrorCount)
+            If result.DeletedCount > 0 Then
+                msg &= String.Format("{0}削除同期: {1}件", vbCrLf, result.DeletedCount)
+            End If
             If result.ErrorCount > 0 Then
                 msg &= vbCrLf & vbCrLf & "エラー詳細:" & vbCrLf & String.Join(vbCrLf, result.Errors)
             End If

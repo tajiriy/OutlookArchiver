@@ -105,6 +105,18 @@ Namespace Config
             End Set
         End Property
 
+        ' ── 削除同期 ────────────────────────────────────────────────
+
+        ''' <summary>取り込み時に Outlook 側で削除されたメールをアーカイブからも削除するか</summary>
+        Public Property SyncDeletionsEnabled As Boolean
+            Get
+                Return GetBool("SyncDeletionsEnabled", defaultValue:=False)
+            End Get
+            Set(value As Boolean)
+                SaveSetting("SyncDeletionsEnabled", value.ToString())
+            End Set
+        End Property
+
         ' ── 結果ダイアログ ────────────────────────────────────────
 
         ''' <summary>取り込み完了時に結果ダイアログを表示するか</summary>

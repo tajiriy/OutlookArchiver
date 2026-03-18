@@ -24,11 +24,19 @@ Namespace Services
         Public Property SkippedCount As Integer
         Public Property ErrorCount As Integer
         Public Property TotalOutlookCount As Integer
+        Public Property DeletedCount As Integer
         Public Property Errors As List(Of String)
 
         Public Sub New()
             Errors = New List(Of String)()
         End Sub
+    End Class
+
+    ''' <summary>削除同期の進捗報告データ。</summary>
+    Public Class SyncDeletionProgress
+        Public Property FolderName As String
+        Public Property ScannedCount As Integer
+        Public Property TotalCount As Integer
     End Class
 
     ' ════════════════════════════════════════════════════════════
@@ -216,6 +224,77 @@ Namespace Services
             _repo.SaveExchangeAddressCache(_outlookSvc.GetExchangeCache())
 
             Return total
+        End Function
+
+        ' ════════════════════════════════════════════════════════════
+        '  削除同期
+        ' ════════════════════════════════════════════════════════════
+
+        ''' <summary>
+        ''' 指定フォルダで Outlook 側から削除されたメールをアーカイブ DB からも削除する。
+        ''' Outlook フォルダ内の全 MailItem の MessageID を取得し、DB 側と突合して
+        ''' Outlook に存在しないものを削除する。
+        ''' </summary>
+        Public Function SyncDeletions(folderName As String,
+                                       Optional progress As IProgress(Of SyncDeletionProgress) = Nothing) As Integer
+            Dim folder As Outlook.MAPIFolder = _outlookSvc.FindFolder(folderName)
+            If folder Is Nothing Then Return 0
+
+            ' Outlook 側の全 MessageID を取得（軽量スキャン）
+            Dim scanProgress As IProgress(Of Integer) = Nothing
+            If progress IsNot Nothing Then
+                Dim totalItems As Integer = folder.Items.Count
+                Dim fname As String = folderName
+                scanProgress = New Progress(Of Integer)(
+                    Sub(scanned As Integer)
+                        Dim p As New SyncDeletionProgress()
+                        p.FolderName = fname
+                        p.ScannedCount = scanned
+                        p.TotalCount = totalItems
+                        progress.Report(p)
+                    End Sub)
+            End If
+
+            Dim outlookIds As HashSet(Of String) = _outlookSvc.GetFolderMessageIds(folder, scanProgress)
+
+            ' DB 側のフォルダ内メールを取得
+            Dim archivedEmails As Dictionary(Of String, Integer) = _repo.GetMessageIdsByFolder(folderName)
+
+            ' Outlook に存在しないメールを特定
+            Dim idsToDelete As New List(Of Integer)()
+            For Each kvp As KeyValuePair(Of String, Integer) In archivedEmails
+                If Not outlookIds.Contains(kvp.Key) Then
+                    idsToDelete.Add(kvp.Value)
+                End If
+            Next
+
+            If idsToDelete.Count = 0 Then Return 0
+
+            ' 一括削除（添付ファイルパスも取得）
+            Dim attachmentPaths As List(Of String) = _repo.DeleteEmailsByIds(idsToDelete)
+
+            ' 添付ファイルの物理削除
+            For Each filePath As String In attachmentPaths
+                Try
+                    If IO.File.Exists(filePath) Then
+                        IO.File.Delete(filePath)
+                    End If
+                Catch
+                    ' 物理削除失敗は無視
+                End Try
+            Next
+
+            Return idsToDelete.Count
+        End Function
+
+        ''' <summary>複数フォルダの削除同期を実行する。</summary>
+        Public Function SyncDeletionsForFolders(folderNames As IEnumerable(Of String),
+                                                 Optional progress As IProgress(Of SyncDeletionProgress) = Nothing) As Integer
+            Dim totalDeleted As Integer = 0
+            For Each name As String In folderNames
+                totalDeleted += SyncDeletions(name, progress)
+            Next
+            Return totalDeleted
         End Function
 
         ' ════════════════════════════════════════════════════════════

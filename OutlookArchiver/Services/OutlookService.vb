@@ -132,6 +132,41 @@ Namespace Services
         End Function
 
         ' ════════════════════════════════════════════════════════════
+        '  フォルダ内 MessageID 一括取得（削除同期用）
+        ' ════════════════════════════════════════════════════════════
+
+        ''' <summary>
+        ''' フォルダ内の全 MailItem から MessageID のみを軽量に取得して HashSet で返す。
+        ''' Outlook 側で削除されたメールを検出するための突合に使用する。
+        ''' </summary>
+        Public Function GetFolderMessageIds(folder As Outlook.MAPIFolder,
+                                            Optional progress As IProgress(Of Integer) = Nothing) As HashSet(Of String)
+            Dim result As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+            Dim items As Outlook.Items = folder.Items
+            Dim totalCount As Integer = items.Count
+
+            For i As Integer = 1 To totalCount
+                Dim rawItem As Object = items.Item(i)
+                If TypeOf rawItem Is Outlook.MailItem Then
+                    Dim mailItem As Outlook.MailItem = CType(rawItem, Outlook.MailItem)
+                    Try
+                        Dim messageId As String = ExtractMessageId(mailItem)
+                        If Not String.IsNullOrEmpty(messageId) Then
+                            result.Add(messageId)
+                        End If
+                    Catch
+                        ' 個別メールの MessageID 取得エラーはスキップ
+                    End Try
+                End If
+                If progress IsNot Nothing AndAlso i Mod 100 = 0 Then
+                    progress.Report(i)
+                End If
+            Next
+
+            Return result
+        End Function
+
+        ' ════════════════════════════════════════════════════════════
         '  メールデータ抽出
         ' ════════════════════════════════════════════════════════════
 

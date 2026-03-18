@@ -121,6 +121,7 @@ Partial Class SettingsForm
         '
         'grpAutoImport
         '
+        Me.chkSyncDeletions = New System.Windows.Forms.CheckBox()
         Me.grpAutoImport.Controls.Add(Me.chkAutoImportEnabled)
         Me.grpAutoImport.Controls.Add(Me.lblInterval)
         Me.grpAutoImport.Controls.Add(Me.numInterval)
@@ -128,9 +129,10 @@ Partial Class SettingsForm
         Me.grpAutoImport.Controls.Add(Me.numMaxCount)
         Me.grpAutoImport.Controls.Add(Me.lblImportOrder)
         Me.grpAutoImport.Controls.Add(Me.cboImportOrder)
+        Me.grpAutoImport.Controls.Add(Me.chkSyncDeletions)
         Me.grpAutoImport.Location = New System.Drawing.Point(8, 110)
         Me.grpAutoImport.Name = "grpAutoImport"
-        Me.grpAutoImport.Size = New System.Drawing.Size(488, 132)
+        Me.grpAutoImport.Size = New System.Drawing.Size(488, 158)
         Me.grpAutoImport.TabIndex = 1
         Me.grpAutoImport.TabStop = False
         Me.grpAutoImport.Text = "自動取り込み"
@@ -198,12 +200,21 @@ Partial Class SettingsForm
         Me.cboImportOrder.Size = New System.Drawing.Size(140, 21)
         Me.cboImportOrder.TabIndex = 5
         '
+        'chkSyncDeletions
+        '
+        Me.chkSyncDeletions.AutoSize = True
+        Me.chkSyncDeletions.Location = New System.Drawing.Point(8, 128)
+        Me.chkSyncDeletions.Name = "chkSyncDeletions"
+        Me.chkSyncDeletions.Size = New System.Drawing.Size(380, 17)
+        Me.chkSyncDeletions.TabIndex = 6
+        Me.chkSyncDeletions.Text = "Outlook 側で削除されたメールをアーカイブからも削除する"
+        '
         'grpFolders
         '
         Me.grpFolders.Controls.Add(Me.lstFolders)
         Me.grpFolders.Controls.Add(Me.btnAddFolder)
         Me.grpFolders.Controls.Add(Me.btnRemoveFolder)
-        Me.grpFolders.Location = New System.Drawing.Point(8, 250)
+        Me.grpFolders.Location = New System.Drawing.Point(8, 276)
         Me.grpFolders.Name = "grpFolders"
         Me.grpFolders.Size = New System.Drawing.Size(488, 130)
         Me.grpFolders.TabIndex = 2
@@ -239,7 +250,7 @@ Partial Class SettingsForm
         Me.grpDisplay.Controls.Add(Me.chkDefaultHtml)
         Me.grpDisplay.Controls.Add(Me.chkSortAscending)
         Me.grpDisplay.Controls.Add(Me.chkShowImportResult)
-        Me.grpDisplay.Location = New System.Drawing.Point(8, 388)
+        Me.grpDisplay.Location = New System.Drawing.Point(8, 414)
         Me.grpDisplay.Name = "grpDisplay"
         Me.grpDisplay.Size = New System.Drawing.Size(488, 94)
         Me.grpDisplay.TabIndex = 3
@@ -276,7 +287,7 @@ Partial Class SettingsForm
         'grpData
         '
         Me.grpData.Controls.Add(Me.btnResetData)
-        Me.grpData.Location = New System.Drawing.Point(8, 490)
+        Me.grpData.Location = New System.Drawing.Point(8, 516)
         Me.grpData.Name = "grpData"
         Me.grpData.Size = New System.Drawing.Size(488, 56)
         Me.grpData.TabIndex = 5
@@ -295,7 +306,7 @@ Partial Class SettingsForm
         '
         Me.pnlButtons.Controls.Add(Me.btnOk)
         Me.pnlButtons.Controls.Add(Me.btnCancel)
-        Me.pnlButtons.Location = New System.Drawing.Point(8, 554)
+        Me.pnlButtons.Location = New System.Drawing.Point(8, 580)
         Me.pnlButtons.Name = "pnlButtons"
         Me.pnlButtons.Size = New System.Drawing.Size(488, 34)
         Me.pnlButtons.TabIndex = 4
@@ -324,7 +335,7 @@ Partial Class SettingsForm
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.Font = New System.Drawing.Font("Meiryo UI", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(128, Byte))
         Me.CancelButton = Me.btnCancel
-        Me.ClientSize = New System.Drawing.Size(512, 598)
+        Me.ClientSize = New System.Drawing.Size(512, 624)
         Me.Controls.Add(Me.grpPaths)
         Me.Controls.Add(Me.grpAutoImport)
         Me.Controls.Add(Me.grpFolders)
@@ -375,6 +386,7 @@ Partial Class SettingsForm
     Friend WithEvents chkDefaultHtml As System.Windows.Forms.CheckBox
     Friend WithEvents chkSortAscending As System.Windows.Forms.CheckBox
     Friend WithEvents chkShowImportResult As System.Windows.Forms.CheckBox
+    Friend WithEvents chkSyncDeletions As System.Windows.Forms.CheckBox
     Friend WithEvents grpData As System.Windows.Forms.GroupBox
     Friend WithEvents btnResetData As System.Windows.Forms.Button
     Friend WithEvents pnlButtons As System.Windows.Forms.Panel
