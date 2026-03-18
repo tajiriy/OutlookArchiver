@@ -168,6 +168,37 @@ Namespace Tests
             End Using
         End Sub
 
+        ' ── synchronous モード設定 ───────────────────────────────────
+
+        <Test>
+        Public Sub SetSynchronousMode_Off_ChangesPragma()
+            _dbManager.Initialize()
+
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                _dbManager.SetSynchronousMode(conn, "OFF")
+
+                Using cmd As New SQLiteCommand("PRAGMA synchronous;", conn)
+                    Dim mode As Integer = CInt(cmd.ExecuteScalar())
+                    Assert.AreEqual(0, mode) ' 0 = OFF
+                End Using
+            End Using
+        End Sub
+
+        <Test>
+        Public Sub SetSynchronousMode_Normal_RestoresPragma()
+            _dbManager.Initialize()
+
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                _dbManager.SetSynchronousMode(conn, "OFF")
+                _dbManager.SetSynchronousMode(conn, "NORMAL")
+
+                Using cmd As New SQLiteCommand("PRAGMA synchronous;", conn)
+                    Dim mode As Integer = CInt(cmd.ExecuteScalar())
+                    Assert.AreEqual(1, mode) ' 1 = NORMAL
+                End Using
+            End Using
+        End Sub
+
         ' ── ヘルパーメソッド ──────────────────────────────────────────
 
         Private Shared Function TableExists(conn As SQLiteConnection, tableName As String) As Boolean

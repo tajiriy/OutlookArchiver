@@ -271,13 +271,14 @@ Public Class MainForm
             Dim maxCount As Integer = _settings.MaxImportCount
             Dim repo As Data.EmailRepository = _repo
             Dim settings As Config.AppSettings = _settings
+            Dim dbManager As Data.DatabaseManager = _dbManager
 
             Dim staThread As New System.Threading.Thread(
                 Sub()
                     Try
                         Using outlookSvc As Services.OutlookService = Services.OutlookService.Connect()
                             Dim threadingSvc As New Services.ThreadingService(repo)
-                            Dim importSvc As New Services.ImportService(outlookSvc, repo, threadingSvc, settings)
+                            Dim importSvc As New Services.ImportService(outlookSvc, repo, threadingSvc, settings, dbManager)
                             tcs.SetResult(importSvc.ImportFolders(targetFolders, maxCount, progress))
                         End Using
                     Catch ex As Exception

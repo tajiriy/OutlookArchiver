@@ -45,20 +45,26 @@ Namespace Services
         Private ReadOnly _repo As Data.EmailRepository
         Private ReadOnly _threadingSvc As ThreadingService
         Private ReadOnly _settings As Config.AppSettings
+        Private ReadOnly _dbManager As Data.DatabaseManager
 
         Public Sub New(outlookSvc As OutlookService,
                        repo As Data.EmailRepository,
                        threadingSvc As ThreadingService,
-                       settings As Config.AppSettings)
+                       settings As Config.AppSettings,
+                       dbManager As Data.DatabaseManager)
             _outlookSvc = outlookSvc
             _repo = repo
             _threadingSvc = threadingSvc
             _settings = settings
+            _dbManager = dbManager
         End Sub
 
         ' ════════════════════════════════════════════════════════════
         '  メインメソッド
         ' ════════════════════════════════════════════════════════════
+
+        ''' <summary>バルクトランザクションを N 件ごとに中間コミットする件数。</summary>
+        Private Const BulkCommitInterval As Integer = 200
 
         ''' <summary>
         ''' 指定フォルダのメールを取り込む。
@@ -69,8 +75,6 @@ Namespace Services
         ''' <param name="existingIds">取り込み済み MessageID のキャッシュ</param>
         ''' <param name="deletedIds">削除済み MessageID のキャッシュ</param>
         ''' <param name="progress">進捗通知（Nothing の場合は通知しない）</param>
-        ''' <summary>バルクトランザクションを N 件ごとに中間コミットする件数。</summary>
-        Private Const BulkCommitInterval As Integer = 50
 
         Public Function ImportFolder(folderName As String,
                                      maxCount As Integer,
@@ -100,6 +104,16 @@ Namespace Services
             Dim subjectMap As Dictionary(Of String, String) = Nothing
             _repo.GetThreadIdCaches(messageIdMap, subjectMap)
             _threadingSvc.LoadCaches(messageIdMap, subjectMap)
+
+            ' ── 高速インポート: synchronous OFF + FTS トリガー無効化 ──
+            Dim perfConn As System.Data.SQLite.SQLiteConnection = _dbManager.GetConnection()
+            Try
+                _dbManager.SetSynchronousMode(perfConn, "OFF")
+                _repo.DisableFtsTriggers(perfConn)
+            Catch
+                perfConn.Dispose()
+                Throw
+            End Try
 
             ' ── DB バルク書き込みモード開始 ───────────────────────────
             _repo.BeginBulk()
@@ -161,6 +175,14 @@ Namespace Services
                 Throw
             Finally
                 _threadingSvc.ClearCaches()
+                ' ── 高速インポート後処理: FTS 再構築 + synchronous 復元 ──
+                Try
+                    _repo.RebuildFtsIndex(perfConn)
+                    _repo.EnableFtsTriggers(perfConn)
+                    _dbManager.SetSynchronousMode(perfConn, "NORMAL")
+                Finally
+                    perfConn.Dispose()
+                End Try
             End Try
 
             Return result

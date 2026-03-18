@@ -186,6 +186,16 @@ END;"
             ExecuteNonQuery(conn, sqlAttachDelete)
         End Sub
 
+        ' ── パフォーマンスチューニング ─────────────────────────────
+
+        ''' <summary>
+        ''' synchronous プラグマを設定する。
+        ''' 取り込み中は "OFF" にして fsync を省略し高速化、終了後に "NORMAL" に戻す。
+        ''' </summary>
+        Public Sub SetSynchronousMode(conn As SQLiteConnection, mode As String)
+            ExecuteNonQuery(conn, "PRAGMA synchronous=" & mode & ";")
+        End Sub
+
         ' ── ユーティリティ ────────────────────────────────────────
 
         Private Sub ExecuteNonQuery(conn As SQLiteConnection, sql As String)

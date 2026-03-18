@@ -594,6 +594,100 @@ Namespace Tests
         End Sub
 
         ' ════════════════════════════════════════════════════════════
+        '  Prepared Statement 再利用（バルクモード）
+        ' ════════════════════════════════════════════════════════════
+
+        <Test>
+        Public Sub BulkMode_PreparedStatement_InsertsCorrectly()
+            _repo.BeginBulk()
+            Dim id1 As Integer = _repo.InsertEmail(CreateTestEmail("ps1@example.com"))
+            Dim id2 As Integer = _repo.InsertEmail(CreateTestEmail("ps2@example.com"))
+            _repo.CommitBulk()
+
+            Assert.IsTrue(id1 > 0)
+            Assert.IsTrue(id2 > id1)
+            Assert.AreEqual(2, _repo.GetTotalCount())
+
+            Dim e1 As Email = _repo.GetEmailById(id1)
+            Assert.AreEqual("ps1@example.com", e1.MessageId)
+            Dim e2 As Email = _repo.GetEmailById(id2)
+            Assert.AreEqual("ps2@example.com", e2.MessageId)
+        End Sub
+
+        <Test>
+        Public Sub BulkMode_PreparedStatement_AttachmentInsertsCorrectly()
+            _repo.BeginBulk()
+            Dim emailId As Integer = _repo.InsertEmail(CreateTestEmail("psatt@example.com"))
+            Dim att As New Attachment()
+            att.EmailId = emailId
+            att.FileName = "test.pdf"
+            att.FilePath = "2025\01\test.pdf"
+            att.FileSize = 512
+            att.MimeType = "application/pdf"
+            Dim attId As Integer = _repo.InsertAttachment(att)
+            _repo.CommitBulk()
+
+            Assert.IsTrue(attId > 0)
+
+            ' DB 直接クエリで確認
+            Using conn As System.Data.SQLite.SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As New System.Data.SQLite.SQLiteCommand(
+                    "SELECT file_name FROM attachments WHERE id = @id", conn)
+                    cmd.Parameters.AddWithValue("@id", CType(attId, Object))
+                    Assert.AreEqual("test.pdf", CStr(cmd.ExecuteScalar()))
+                End Using
+            End Using
+        End Sub
+
+        ' ════════════════════════════════════════════════════════════
+        '  FTS トリガー無効化 / 再構築
+        ' ════════════════════════════════════════════════════════════
+
+        <Test>
+        Public Sub DisableFtsTriggers_InsertDoesNotUpdateFts()
+            Using conn As System.Data.SQLite.SQLiteConnection = _dbManager.GetConnection()
+                _repo.DisableFtsTriggers(conn)
+            End Using
+
+            ' トリガー無効中に挿入
+            Dim email As Email = CreateTestEmail("fts-off@example.com")
+            email.Subject = "FtsDisabledSubject"
+            _repo.InsertEmail(email)
+
+            ' FTS には反映されない（ASCII なので FTS MATCH が走る）
+            Dim results As List(Of Email) = _repo.SearchEmails("FtsDisabledSubject")
+            Assert.AreEqual(0, results.Count)
+
+            ' 再構築 + トリガー再有効化
+            Using conn As System.Data.SQLite.SQLiteConnection = _dbManager.GetConnection()
+                _repo.RebuildFtsIndex(conn)
+                _repo.EnableFtsTriggers(conn)
+            End Using
+
+            ' 再構築後は検索でヒットする
+            Dim afterRebuild As List(Of Email) = _repo.SearchEmails("FtsDisabledSubject")
+            Assert.AreEqual(1, afterRebuild.Count)
+        End Sub
+
+        <Test>
+        Public Sub EnableFtsTriggers_AfterRebuild_NewInsertUpdatedFts()
+            ' トリガー無効化→再構築→再有効化
+            Using conn As System.Data.SQLite.SQLiteConnection = _dbManager.GetConnection()
+                _repo.DisableFtsTriggers(conn)
+                _repo.RebuildFtsIndex(conn)
+                _repo.EnableFtsTriggers(conn)
+            End Using
+
+            ' 再有効化後に挿入したデータは FTS に反映されるはず
+            Dim email As Email = CreateTestEmail("fts-on@example.com")
+            email.Subject = "FtsReenabledSubject"
+            _repo.InsertEmail(email)
+
+            Dim results As List(Of Email) = _repo.SearchEmails("FtsReenabledSubject")
+            Assert.AreEqual(1, results.Count)
+        End Sub
+
+        ' ════════════════════════════════════════════════════════════
         '  ヘルパー
         ' ════════════════════════════════════════════════════════════
 

@@ -18,6 +18,10 @@ Namespace Data
         Private _bulkConn As SQLiteConnection = Nothing
         Private _bulkTx As SQLiteTransaction = Nothing
 
+        ' ── Prepared Statement 再利用 ────────────────────────────────
+        Private _bulkEmailCmd As SQLiteCommand = Nothing
+        Private _bulkAttachCmd As SQLiteCommand = Nothing
+
         Public Sub New(dbManager As DatabaseManager)
             _dbManager = dbManager
         End Sub
@@ -31,10 +35,13 @@ Namespace Data
             If _bulkConn IsNot Nothing Then Return  ' 既に開始済み
             _bulkConn = _dbManager.GetConnection()
             _bulkTx = _bulkConn.BeginTransaction()
+            _bulkEmailCmd = CreateEmailInsertCommand(_bulkConn)
+            _bulkAttachCmd = CreateAttachmentInsertCommand(_bulkConn)
         End Sub
 
         ''' <summary>バルクトランザクションをコミットして接続を閉じる。</summary>
         Public Sub CommitBulk()
+            DisposeBulkCommands()
             If _bulkTx IsNot Nothing Then
                 _bulkTx.Commit()
                 _bulkTx.Dispose()
@@ -48,6 +55,7 @@ Namespace Data
 
         ''' <summary>バルクトランザクションをロールバックして接続を閉じる。</summary>
         Public Sub RollbackBulk()
+            DisposeBulkCommands()
             If _bulkTx IsNot Nothing Then
                 _bulkTx.Rollback()
                 _bulkTx.Dispose()
@@ -56,6 +64,18 @@ Namespace Data
             If _bulkConn IsNot Nothing Then
                 _bulkConn.Dispose()
                 _bulkConn = Nothing
+            End If
+        End Sub
+
+        ''' <summary>Prepared Statement を破棄する。</summary>
+        Private Sub DisposeBulkCommands()
+            If _bulkEmailCmd IsNot Nothing Then
+                _bulkEmailCmd.Dispose()
+                _bulkEmailCmd = Nothing
+            End If
+            If _bulkAttachCmd IsNot Nothing Then
+                _bulkAttachCmd.Dispose()
+                _bulkAttachCmd = Nothing
             End If
         End Sub
 
@@ -70,18 +90,7 @@ Namespace Data
         '  Email 挿入・更新
         ' ════════════════════════════════════════════════════════════
 
-        ''' <summary>メールを DB に挿入し、採番された ID を返す。バルクモード中は共有トランザクションを使用する。</summary>
-        Public Function InsertEmail(email As Models.Email) As Integer
-            If _bulkConn IsNot Nothing Then
-                Return InsertEmailCore(email, _bulkConn)
-            End If
-            Using conn As SQLiteConnection = _dbManager.GetConnection()
-                Return InsertEmailCore(email, conn)
-            End Using
-        End Function
-
-        Private Function InsertEmailCore(email As Models.Email, conn As SQLiteConnection) As Integer
-            Const sql As String = "
+        Private Const EmailInsertSql As String = "
 INSERT INTO emails (
     message_id, in_reply_to, [references], thread_id, entry_id,
     subject, normalized_subject, sender_name, sender_email,
@@ -94,63 +103,188 @@ INSERT INTO emails (
     @body_text, @body_html, @received_at, @sent_at, @folder_name, @has_attachments, @email_size
 );
 SELECT last_insert_rowid();"
-            Using cmd As New SQLiteCommand(sql, conn)
-                cmd.Parameters.AddWithValue("@message_id", NullableStr(email.MessageId))
-                cmd.Parameters.AddWithValue("@in_reply_to", NullableStr(email.InReplyTo))
-                cmd.Parameters.AddWithValue("@references", NullableStr(email.References))
-                cmd.Parameters.AddWithValue("@thread_id", NullableStr(email.ThreadId))
-                cmd.Parameters.AddWithValue("@entry_id", NullableStr(email.EntryId))
-                cmd.Parameters.AddWithValue("@subject", NullableStr(email.Subject))
-                cmd.Parameters.AddWithValue("@normalized_subject", NullableStr(email.NormalizedSubject))
-                cmd.Parameters.AddWithValue("@sender_name", NullableStr(email.SenderName))
-                cmd.Parameters.AddWithValue("@sender_email", NullableStr(email.SenderEmail))
-                cmd.Parameters.AddWithValue("@to_recipients", NullableStr(email.ToRecipients))
-                cmd.Parameters.AddWithValue("@cc_recipients", NullableStr(email.CcRecipients))
-                cmd.Parameters.AddWithValue("@bcc_recipients", NullableStr(email.BccRecipients))
-                cmd.Parameters.AddWithValue("@body_text", NullableStr(email.BodyText))
-                cmd.Parameters.AddWithValue("@body_html", NullableStr(email.BodyHtml))
-                cmd.Parameters.AddWithValue("@received_at", email.ReceivedAt.ToString("o"))
-                cmd.Parameters.AddWithValue("@sent_at",
-                    If(email.SentAt.HasValue,
-                       CType(email.SentAt.Value.ToString("o"), Object),
-                       CType(DBNull.Value, Object)))
-                cmd.Parameters.AddWithValue("@folder_name", NullableStr(email.FolderName))
-                cmd.Parameters.AddWithValue("@has_attachments", CType(If(email.HasAttachments, 1, 0), Object))
-                cmd.Parameters.AddWithValue("@email_size", CType(email.EmailSize, Object))
-                Return Convert.ToInt32(cmd.ExecuteScalar())
+
+        ''' <summary>Email INSERT 用 Prepared Statement を作成する。</summary>
+        Private Shared Function CreateEmailInsertCommand(conn As SQLiteConnection) As SQLiteCommand
+            Dim cmd As New SQLiteCommand(EmailInsertSql, conn)
+            cmd.Parameters.Add("@message_id", System.Data.DbType.String)
+            cmd.Parameters.Add("@in_reply_to", System.Data.DbType.String)
+            cmd.Parameters.Add("@references", System.Data.DbType.String)
+            cmd.Parameters.Add("@thread_id", System.Data.DbType.String)
+            cmd.Parameters.Add("@entry_id", System.Data.DbType.String)
+            cmd.Parameters.Add("@subject", System.Data.DbType.String)
+            cmd.Parameters.Add("@normalized_subject", System.Data.DbType.String)
+            cmd.Parameters.Add("@sender_name", System.Data.DbType.String)
+            cmd.Parameters.Add("@sender_email", System.Data.DbType.String)
+            cmd.Parameters.Add("@to_recipients", System.Data.DbType.String)
+            cmd.Parameters.Add("@cc_recipients", System.Data.DbType.String)
+            cmd.Parameters.Add("@bcc_recipients", System.Data.DbType.String)
+            cmd.Parameters.Add("@body_text", System.Data.DbType.String)
+            cmd.Parameters.Add("@body_html", System.Data.DbType.String)
+            cmd.Parameters.Add("@received_at", System.Data.DbType.String)
+            cmd.Parameters.Add("@sent_at", System.Data.DbType.String)
+            cmd.Parameters.Add("@folder_name", System.Data.DbType.String)
+            cmd.Parameters.Add("@has_attachments", System.Data.DbType.Int32)
+            cmd.Parameters.Add("@email_size", System.Data.DbType.Int64)
+            Return cmd
+        End Function
+
+        ''' <summary>メールを DB に挿入し、採番された ID を返す。バルクモード中は共有トランザクションを使用する。</summary>
+        Public Function InsertEmail(email As Models.Email) As Integer
+            If _bulkConn IsNot Nothing Then
+                Return ExecuteEmailInsert(_bulkEmailCmd, email)
+            End If
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As SQLiteCommand = CreateEmailInsertCommand(conn)
+                    Return ExecuteEmailInsert(cmd, email)
+                End Using
             End Using
+        End Function
+
+        ''' <summary>Email INSERT コマンドにパラメータをセットして実行する。</summary>
+        Private Shared Function ExecuteEmailInsert(cmd As SQLiteCommand, email As Models.Email) As Integer
+            cmd.Parameters("@message_id").Value = NullableStr(email.MessageId)
+            cmd.Parameters("@in_reply_to").Value = NullableStr(email.InReplyTo)
+            cmd.Parameters("@references").Value = NullableStr(email.References)
+            cmd.Parameters("@thread_id").Value = NullableStr(email.ThreadId)
+            cmd.Parameters("@entry_id").Value = NullableStr(email.EntryId)
+            cmd.Parameters("@subject").Value = NullableStr(email.Subject)
+            cmd.Parameters("@normalized_subject").Value = NullableStr(email.NormalizedSubject)
+            cmd.Parameters("@sender_name").Value = NullableStr(email.SenderName)
+            cmd.Parameters("@sender_email").Value = NullableStr(email.SenderEmail)
+            cmd.Parameters("@to_recipients").Value = NullableStr(email.ToRecipients)
+            cmd.Parameters("@cc_recipients").Value = NullableStr(email.CcRecipients)
+            cmd.Parameters("@bcc_recipients").Value = NullableStr(email.BccRecipients)
+            cmd.Parameters("@body_text").Value = NullableStr(email.BodyText)
+            cmd.Parameters("@body_html").Value = NullableStr(email.BodyHtml)
+            cmd.Parameters("@received_at").Value = email.ReceivedAt.ToString("o")
+            cmd.Parameters("@sent_at").Value =
+                If(email.SentAt.HasValue,
+                   CType(email.SentAt.Value.ToString("o"), Object),
+                   CType(DBNull.Value, Object))
+            cmd.Parameters("@folder_name").Value = NullableStr(email.FolderName)
+            cmd.Parameters("@has_attachments").Value = CType(If(email.HasAttachments, 1, 0), Object)
+            cmd.Parameters("@email_size").Value = CType(email.EmailSize, Object)
+            Return Convert.ToInt32(cmd.ExecuteScalar())
         End Function
 
         ' ════════════════════════════════════════════════════════════
         '  Attachment 挿入
         ' ════════════════════════════════════════════════════════════
 
-        ''' <summary>添付ファイルメタデータを DB に挿入し、採番された ID を返す。バルクモード中は共有トランザクションを使用する。</summary>
-        Public Function InsertAttachment(attachment As Models.Attachment) As Integer
-            If _bulkConn IsNot Nothing Then
-                Return InsertAttachmentCore(attachment, _bulkConn)
-            End If
-            Using conn As SQLiteConnection = _dbManager.GetConnection()
-                Return InsertAttachmentCore(attachment, conn)
-            End Using
-        End Function
-
-        Private Function InsertAttachmentCore(attachment As Models.Attachment, conn As SQLiteConnection) As Integer
-            Const sql As String = "
+        Private Const AttachmentInsertSql As String = "
 INSERT INTO attachments (email_id, file_name, file_path, file_size, mime_type, content_id, is_inline)
 VALUES (@email_id, @file_name, @file_path, @file_size, @mime_type, @content_id, @is_inline);
 SELECT last_insert_rowid();"
-            Using cmd As New SQLiteCommand(sql, conn)
-                cmd.Parameters.AddWithValue("@email_id", CType(attachment.EmailId, Object))
-                cmd.Parameters.AddWithValue("@file_name", attachment.FileName)
-                cmd.Parameters.AddWithValue("@file_path", attachment.FilePath)
-                cmd.Parameters.AddWithValue("@file_size", CType(attachment.FileSize, Object))
-                cmd.Parameters.AddWithValue("@mime_type", NullableStr(attachment.MimeType))
-                cmd.Parameters.AddWithValue("@content_id", NullableStr(attachment.ContentId))
-                cmd.Parameters.AddWithValue("@is_inline", CType(If(attachment.IsInline, 1, 0), Object))
-                Return Convert.ToInt32(cmd.ExecuteScalar())
+
+        ''' <summary>Attachment INSERT 用 Prepared Statement を作成する。</summary>
+        Private Shared Function CreateAttachmentInsertCommand(conn As SQLiteConnection) As SQLiteCommand
+            Dim cmd As New SQLiteCommand(AttachmentInsertSql, conn)
+            cmd.Parameters.Add("@email_id", System.Data.DbType.Int32)
+            cmd.Parameters.Add("@file_name", System.Data.DbType.String)
+            cmd.Parameters.Add("@file_path", System.Data.DbType.String)
+            cmd.Parameters.Add("@file_size", System.Data.DbType.Int64)
+            cmd.Parameters.Add("@mime_type", System.Data.DbType.String)
+            cmd.Parameters.Add("@content_id", System.Data.DbType.String)
+            cmd.Parameters.Add("@is_inline", System.Data.DbType.Int32)
+            Return cmd
+        End Function
+
+        ''' <summary>添付ファイルメタデータを DB に挿入し、採番された ID を返す。バルクモード中は共有トランザクションを使用する。</summary>
+        Public Function InsertAttachment(attachment As Models.Attachment) As Integer
+            If _bulkConn IsNot Nothing Then
+                Return ExecuteAttachmentInsert(_bulkAttachCmd, attachment)
+            End If
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As SQLiteCommand = CreateAttachmentInsertCommand(conn)
+                    Return ExecuteAttachmentInsert(cmd, attachment)
+                End Using
             End Using
         End Function
+
+        ''' <summary>Attachment INSERT コマンドにパラメータをセットして実行する。</summary>
+        Private Shared Function ExecuteAttachmentInsert(cmd As SQLiteCommand, attachment As Models.Attachment) As Integer
+            cmd.Parameters("@email_id").Value = CType(attachment.EmailId, Object)
+            cmd.Parameters("@file_name").Value = attachment.FileName
+            cmd.Parameters("@file_path").Value = attachment.FilePath
+            cmd.Parameters("@file_size").Value = CType(attachment.FileSize, Object)
+            cmd.Parameters("@mime_type").Value = NullableStr(attachment.MimeType)
+            cmd.Parameters("@content_id").Value = NullableStr(attachment.ContentId)
+            cmd.Parameters("@is_inline").Value = CType(If(attachment.IsInline, 1, 0), Object)
+            Return Convert.ToInt32(cmd.ExecuteScalar())
+        End Function
+
+        ' ════════════════════════════════════════════════════════════
+        '  FTS トリガー制御（取り込み高速化）
+        ' ════════════════════════════════════════════════════════════
+
+        ''' <summary>FTS 同期トリガーを一時的に無効化する（取り込み中の INSERT を高速化）。</summary>
+        Public Sub DisableFtsTriggers(conn As SQLiteConnection)
+            Dim sql As String = "
+DROP TRIGGER IF EXISTS emails_ai;
+DROP TRIGGER IF EXISTS emails_ad;
+DROP TRIGGER IF EXISTS emails_au;
+DROP TRIGGER IF EXISTS attachments_ai;
+DROP TRIGGER IF EXISTS attachments_ad;"
+            Using cmd As New SQLiteCommand(sql, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Sub
+
+        ''' <summary>FTS 同期トリガーを再作成する。RebuildFtsIndex の後に呼ぶこと。</summary>
+        Public Sub EnableFtsTriggers(conn As SQLiteConnection)
+            Dim sqlEmailsAi As String = "
+CREATE TRIGGER IF NOT EXISTS emails_ai AFTER INSERT ON emails BEGIN
+    INSERT INTO emails_fts(rowid, subject, body_text, sender_name, sender_email)
+    VALUES (new.id, new.subject, new.body_text, new.sender_name, new.sender_email);
+END;"
+            Dim sqlEmailsAd As String = "
+CREATE TRIGGER IF NOT EXISTS emails_ad AFTER DELETE ON emails BEGIN
+    DELETE FROM emails_fts WHERE rowid = old.id;
+END;"
+            Dim sqlEmailsAu As String = "
+CREATE TRIGGER IF NOT EXISTS emails_au AFTER UPDATE ON emails BEGIN
+    DELETE FROM emails_fts WHERE rowid = old.id;
+    INSERT INTO emails_fts(rowid, subject, body_text, sender_name, sender_email)
+    VALUES (new.id, new.subject, new.body_text, new.sender_name, new.sender_email);
+END;"
+            Dim sqlAttachAi As String = "
+CREATE TRIGGER IF NOT EXISTS attachments_ai AFTER INSERT ON attachments BEGIN
+    INSERT INTO attachments_fts(rowid, file_name)
+    VALUES (new.id, new.file_name);
+END;"
+            Dim sqlAttachAd As String = "
+CREATE TRIGGER IF NOT EXISTS attachments_ad AFTER DELETE ON attachments BEGIN
+    DELETE FROM attachments_fts WHERE rowid = old.id;
+END;"
+            Using cmd As New SQLiteCommand(sqlEmailsAi, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+            Using cmd As New SQLiteCommand(sqlEmailsAd, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+            Using cmd As New SQLiteCommand(sqlEmailsAu, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+            Using cmd As New SQLiteCommand(sqlAttachAi, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+            Using cmd As New SQLiteCommand(sqlAttachAd, conn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Sub
+
+        ''' <summary>FTS インデックスをメインテーブルから一括再構築する。</summary>
+        Public Sub RebuildFtsIndex(conn As SQLiteConnection)
+            ' emails_fts を再構築
+            Using cmd As New SQLiteCommand("INSERT INTO emails_fts(emails_fts) VALUES('rebuild');", conn)
+                cmd.ExecuteNonQuery()
+            End Using
+            ' attachments_fts を再構築
+            Using cmd As New SQLiteCommand("INSERT INTO attachments_fts(attachments_fts) VALUES('rebuild');", conn)
+                cmd.ExecuteNonQuery()
+            End Using
+        End Sub
 
         ' ════════════════════════════════════════════════════════════
         '  Email 取得
@@ -586,7 +720,7 @@ SELECT last_insert_rowid();"
         End Function
 
         ''' <summary>Nothing の文字列を DBNull.Value に変換するヘルパー。</summary>
-        Private Function NullableStr(value As String) As Object
+        Private Shared Function NullableStr(value As String) As Object
             If value Is Nothing Then Return CType(DBNull.Value, Object)
             Return CType(value, Object)
         End Function
