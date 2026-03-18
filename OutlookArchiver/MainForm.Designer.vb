@@ -237,7 +237,7 @@ Partial Class MainForm
         '
         Me.splitMain.Panel2.Controls.Add(Me.splitRight)
         Me.splitMain.Size = New System.Drawing.Size(1271, 668)
-        Me.splitMain.SplitterDistance = 150
+        Me.splitMain.SplitterDistance = 250
         Me.splitMain.TabIndex = 0
         '
         'treeViewFolders
@@ -246,7 +246,7 @@ Partial Class MainForm
         Me.treeViewFolders.HideSelection = False
         Me.treeViewFolders.Location = New System.Drawing.Point(0, 0)
         Me.treeViewFolders.Name = "treeViewFolders"
-        Me.treeViewFolders.Size = New System.Drawing.Size(150, 668)
+        Me.treeViewFolders.Size = New System.Drawing.Size(250, 668)
         Me.treeViewFolders.TabIndex = 0
         '
         'splitRight
@@ -286,7 +286,7 @@ Partial Class MainForm
         'colSubject
         '
         Me.colSubject.Text = "件名"
-        Me.colSubject.Width = 360
+        Me.colSubject.Width = 720
         '
         'colSender
         '
