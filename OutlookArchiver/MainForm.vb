@@ -403,6 +403,11 @@ Public Class MainForm
         txtSearch.SelectAll()
     End Sub
 
+    Private Sub btnClearSearch_Click(sender As Object, e As EventArgs) Handles btnClearSearch.Click
+        txtSearch.Text = String.Empty
+        RunSearch()
+    End Sub
+
     Private Sub txtSearch_KeyDown(sender As Object, e As KeyEventArgs) Handles txtSearch.KeyDown
         If e.KeyCode = Keys.Enter Then
             RunSearch()
