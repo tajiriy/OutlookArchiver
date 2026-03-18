@@ -9,11 +9,14 @@ OutlookArchiver は .NET Framework 4.6.2 / VB.NET の Windows Forms デスクト
 ## ビルド・実行コマンド
 
 ```bash
-# ビルド（Debug）
+# ビルド（Debug）— 本体 + テストプロジェクト
 ./build.sh
 
 # リリースビルド
 ./build.sh Release
+
+# テスト実行
+./test.sh
 ```
 
 > `build.sh` を必ず使用すること。直接 `msbuild` コマンドは使わない。
@@ -23,11 +26,12 @@ OutlookArchiver は .NET Framework 4.6.2 / VB.NET の Windows Forms デスクト
 - **言語**: VB.NET
 - **フレームワーク**: .NET Framework 4.6.2
 - **UI**: Windows Forms
+- **テスト**: NUnit 3.14 / NUnit3TestAdapter 4.5
 - **プロジェクト形式**: 旧形式 (.vbproj / MSBuild ToolsVersion 15.0)
 
 ## アーキテクチャ
 
-- ソリューション (`OutlookArchiver.slnx`) に `OutlookArchiver/`（本体）を含む構成
+- ソリューション (`OutlookArchiver.slnx`) に `OutlookArchiver/`（本体）と `OutlookArchiver.Tests/`（テスト）を含む構成
 - エントリポイント: `My.MyApplication` → `MainForm`
 - `MainForm.Designer.vb` はデザイナー自動生成ファイル。手動編集しないこと
 
