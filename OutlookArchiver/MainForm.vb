@@ -265,6 +265,22 @@ Public Class MainForm
         Await RunImportAsync()
     End Sub
 
+    Private Sub menuItemImportCancel_Click(sender As Object, e As EventArgs) Handles menuItemImportCancel.Click
+        If Not _isImporting OrElse _importCts Is Nothing Then Return
+
+        Dim answer As DialogResult = MessageBox.Show(
+            "取り込みを中止しますか？" & vbCrLf &
+            "（処理中のバッチはロールバックされます）",
+            "取り込み中止の確認",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Question,
+            MessageBoxDefaultButton.Button2)
+
+        If answer = DialogResult.Yes Then
+            _importCts.Cancel()
+        End If
+    End Sub
+
     ''' <summary>
     ''' Outlook COM は STA スレッドが必要なため、TaskCompletionSource + 専用STAスレッドで実行する。
     ''' </summary>
@@ -274,6 +290,7 @@ Public Class MainForm
         _importCts = New System.Threading.CancellationTokenSource()
         btnImportNow.Enabled = False
         menuItemImportNow.Enabled = False
+        menuItemImportCancel.Enabled = True
         lblStatusCount.Text = "取り込み中..."
 
         Try
@@ -375,6 +392,7 @@ Public Class MainForm
             End If
             btnImportNow.Enabled = True
             menuItemImportNow.Enabled = True
+            menuItemImportCancel.Enabled = False
         End Try
         Await UpdateStatusBarAsync()
     End Function

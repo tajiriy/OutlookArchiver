@@ -28,6 +28,7 @@ Partial Class MainForm
         Me.menuItemFileExit = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemImport = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemImportNow = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuItemImportCancel = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemSearch = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemSettings = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemHelp = New System.Windows.Forms.ToolStripMenuItem()
@@ -101,7 +102,7 @@ Partial Class MainForm
         '
         'menuItemImport
         '
-        Me.menuItemImport.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemImportNow})
+        Me.menuItemImport.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemImportNow, Me.menuItemImportCancel})
         Me.menuItemImport.Name = "menuItemImport"
         Me.menuItemImport.Size = New System.Drawing.Size(73, 20)
         Me.menuItemImport.Text = "取り込み(&I)"
@@ -112,6 +113,13 @@ Partial Class MainForm
         Me.menuItemImportNow.ShortcutKeys = System.Windows.Forms.Keys.F5
         Me.menuItemImportNow.Size = New System.Drawing.Size(183, 22)
         Me.menuItemImportNow.Text = "今すぐ取り込み(&N)"
+        '
+        'menuItemImportCancel
+        '
+        Me.menuItemImportCancel.Name = "menuItemImportCancel"
+        Me.menuItemImportCancel.Size = New System.Drawing.Size(183, 22)
+        Me.menuItemImportCancel.Text = "取り込み中止(&C)"
+        Me.menuItemImportCancel.Enabled = False
         '
         'menuItemSearch
         '
@@ -421,6 +429,7 @@ Partial Class MainForm
     Friend WithEvents menuItemFileExit As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemImport As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemImportNow As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuItemImportCancel As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemSearch As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemSettings As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemHelp As System.Windows.Forms.ToolStripMenuItem
