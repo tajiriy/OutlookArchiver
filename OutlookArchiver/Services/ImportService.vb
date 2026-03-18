@@ -46,6 +46,7 @@ Namespace Services
         Public Property ImportedCount As Integer
         Public Property SkippedCount As Integer
         Public Property ErrorCount As Integer
+        Public Property ErrorSkipCount As Integer
         Public Property TotalOutlookCount As Integer
         Public Property DeletedCount As Integer
         Public Property Errors As List(Of ImportErrorEntry)
@@ -106,12 +107,14 @@ Namespace Services
         ''' <param name="maxCount">今回の最大取り込み件数</param>
         ''' <param name="existingIds">取り込み済み MessageID のキャッシュ</param>
         ''' <param name="deletedIds">削除済み MessageID のキャッシュ</param>
+        ''' <param name="errorIds">エラー除外 MessageID のキャッシュ</param>
         ''' <param name="progress">進捗通知（Nothing の場合は通知しない）</param>
 
         Public Function ImportFolder(folderName As String,
                                      maxCount As Integer,
                                      existingIds As HashSet(Of String),
                                      deletedIds As HashSet(Of String),
+                                     errorIds As HashSet(Of String),
                                      Optional progress As IProgress(Of ImportProgress) = Nothing,
                                      Optional cancellationToken As CancellationToken = Nothing) As ImportResult
             Dim result As New ImportResult()
@@ -174,7 +177,8 @@ Namespace Services
                     Dim subject As String = mailItem.Subject
 
                     Try
-                        Dim imported As Boolean = ProcessMailItem(mailItem, attachBaseDir, existingIds, deletedIds, result, folderName)
+                        Dim skipReason As Integer = 0
+                        Dim imported As Boolean = ProcessMailItem(mailItem, attachBaseDir, existingIds, deletedIds, errorIds, result, folderName, skipReason)
                         If imported Then
                             result.ImportedCount += 1
                             sinceLastCommit += 1
@@ -185,7 +189,11 @@ Namespace Services
                                 sinceLastCommit = 0
                             End If
                         Else
-                            result.SkippedCount += 1
+                            If skipReason = SkipReasonError Then
+                                result.ErrorSkipCount += 1
+                            Else
+                                result.SkippedCount += 1
+                            End If
                         End If
                     Catch ex As Exception
                         result.ErrorCount += 1
@@ -203,6 +211,14 @@ Namespace Services
                         End Try
                         result.Errors.Add(New ImportErrorEntry(folderName, errMsgId, subject, ex.Message, errReceivedDate, errSenderName))
                         Logger.Error(String.Format("メール取り込みエラー — フォルダ: {0}, 件名: {1}", folderName, subject), ex)
+                        ' エラーになったメールを次回以降スキップ対象に登録
+                        If Not String.IsNullOrEmpty(errMsgId) Then
+                            Try
+                                _repo.InsertErrorMessageId(errMsgId, folderName, subject, ex.Message, errReceivedDate, errSenderName)
+                                errorIds.Add(errMsgId)
+                            Catch
+                            End Try
+                        End If
                     End Try
 
                     ' 進捗通知
@@ -219,8 +235,12 @@ Namespace Services
                 ' 残分をコミット
                 _repo.CommitBulk()
 
-                Logger.Info(String.Format("フォルダ '{0}' の取り込みが完了しました — 新規: {1}件, スキップ: {2}件, エラー: {3}件",
-                    folderName, result.ImportedCount, result.SkippedCount, result.ErrorCount))
+                Dim logMsg As String = String.Format("フォルダ '{0}' の取り込みが完了しました — 新規: {1}件, スキップ: {2}件, エラー: {3}件",
+                    folderName, result.ImportedCount, result.SkippedCount, result.ErrorCount)
+                If result.ErrorSkipCount > 0 Then
+                    logMsg &= String.Format(", エラー除外: {0}件", result.ErrorSkipCount)
+                End If
+                Logger.Info(logMsg)
 
             Catch ex As OperationCanceledException
                 _repo.RollbackBulk()
@@ -253,16 +273,18 @@ Namespace Services
             ' 全 MessageID を一括キャッシュ（1件ずつ SQL を発行するより大幅に高速）
             Dim existingIds As HashSet(Of String) = _repo.GetAllMessageIds()
             Dim deletedIds As HashSet(Of String) = _repo.GetAllDeletedMessageIds()
+            Dim errorIds As HashSet(Of String) = _repo.GetAllErrorMessageIds()
 
             ' Exchange アドレスキャッシュを DB からロード
             _outlookSvc.LoadExchangeCache(_repo.LoadExchangeAddressCache())
 
             For Each name As String In folderNames
                 cancellationToken.ThrowIfCancellationRequested()
-                Dim r As ImportResult = ImportFolder(name, maxCountPerFolder, existingIds, deletedIds, progress, cancellationToken)
+                Dim r As ImportResult = ImportFolder(name, maxCountPerFolder, existingIds, deletedIds, errorIds, progress, cancellationToken)
                 total.ImportedCount += r.ImportedCount
                 total.SkippedCount += r.SkippedCount
                 total.ErrorCount += r.ErrorCount
+                total.ErrorSkipCount += r.ErrorSkipCount
                 total.TotalOutlookCount += r.TotalOutlookCount
                 total.Errors.AddRange(r.Errors)
             Next
@@ -360,21 +382,33 @@ Namespace Services
         '  1件処理
         ' ════════════════════════════════════════════════════════════
 
+        ''' <summary>スキップ理由: 通常（重複・削除済み）</summary>
+        Private Const SkipReasonNormal As Integer = 0
+        ''' <summary>スキップ理由: エラー除外</summary>
+        Private Const SkipReasonError As Integer = 1
+
         ''' <summary>
         ''' 1件の MailItem を処理する。
-        ''' 重複・削除済みの場合は False を返す。新規保存した場合は True を返す。
+        ''' 重複・削除済み・エラー除外の場合は False を返す。新規保存した場合は True を返す。
         ''' </summary>
         Private Function ProcessMailItem(mailItem As Outlook.MailItem,
                                          attachBaseDir As String,
                                          existingIds As HashSet(Of String),
                                          deletedIds As HashSet(Of String),
+                                         errorIds As HashSet(Of String),
                                          importResult As ImportResult,
-                                         folderName As String) As Boolean
+                                         folderName As String,
+                                         ByRef skipReason As Integer) As Boolean
+            skipReason = SkipReasonNormal
             ' 軽量に MessageID だけ取得して重複チェック（本文・受信者等の重いCOM操作を回避）
             Dim messageId As String = _outlookSvc.ExtractMessageId(mailItem)
             If Not String.IsNullOrEmpty(messageId) Then
                 If existingIds.Contains(messageId) Then Return False
                 If deletedIds.Contains(messageId) Then Return False
+                If errorIds.Contains(messageId) Then
+                    skipReason = SkipReasonError
+                    Return False
+                End If
             End If
 
             ' 新規メールのみフルデータを抽出

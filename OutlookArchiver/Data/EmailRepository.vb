@@ -681,6 +681,119 @@ SELECT last_insert_rowid();"
         End Sub
 
         ' ════════════════════════════════════════════════════════════
+        '  エラー除外 MessageID
+        ' ════════════════════════════════════════════════════════════
+
+        ''' <summary>全エラー除外 MessageID を一括取得する（取り込み時の高速スキップ用）。</summary>
+        Public Function GetAllErrorMessageIds() As HashSet(Of String)
+            Const sql As String = "SELECT message_id FROM error_message_ids"
+            Dim result As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As New SQLiteCommand(sql, conn)
+                    Using reader As SQLiteDataReader = cmd.ExecuteReader()
+                        While reader.Read()
+                            result.Add(reader.GetString(0))
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return result
+        End Function
+
+        ''' <summary>エラー MessageID を登録する（次回以降の取り込みでスキップされる）。</summary>
+        Public Sub InsertErrorMessageId(messageId As String,
+                                         folderName As String,
+                                         subject As String,
+                                         errorMessage As String,
+                                         Optional receivedDate As DateTime? = Nothing,
+                                         Optional senderName As String = "")
+            If String.IsNullOrEmpty(messageId) Then Return
+            Const sql As String =
+                "INSERT OR REPLACE INTO error_message_ids (message_id, folder_name, subject, error_message, received_date, sender_name) " &
+                "VALUES (@message_id, @folder_name, @subject, @error_message, @received_date, @sender_name)"
+            If _bulkConn IsNot Nothing Then
+                Using cmd As New SQLiteCommand(sql, _bulkConn)
+                    cmd.Transaction = _bulkTx
+                    SetErrorMessageIdParams(cmd, messageId, folderName, subject, errorMessage, receivedDate, senderName)
+                    cmd.ExecuteNonQuery()
+                End Using
+            Else
+                Using conn As SQLiteConnection = _dbManager.GetConnection()
+                    Using cmd As New SQLiteCommand(sql, conn)
+                        SetErrorMessageIdParams(cmd, messageId, folderName, subject, errorMessage, receivedDate, senderName)
+                        cmd.ExecuteNonQuery()
+                    End Using
+                End Using
+            End If
+        End Sub
+
+        ''' <summary>InsertErrorMessageId のパラメータセット用ヘルパー。</summary>
+        Private Shared Sub SetErrorMessageIdParams(cmd As SQLiteCommand,
+                                                    messageId As String,
+                                                    folderName As String,
+                                                    subject As String,
+                                                    errorMessage As String,
+                                                    receivedDate As DateTime?,
+                                                    senderName As String)
+            cmd.Parameters.AddWithValue("@message_id", messageId)
+            cmd.Parameters.AddWithValue("@folder_name", NullableStr(folderName))
+            cmd.Parameters.AddWithValue("@subject", NullableStr(subject))
+            cmd.Parameters.AddWithValue("@error_message", NullableStr(errorMessage))
+            cmd.Parameters.AddWithValue("@received_date",
+                If(receivedDate.HasValue,
+                   CType(receivedDate.Value.ToString("o"), Object),
+                   CType(DBNull.Value, Object)))
+            cmd.Parameters.AddWithValue("@sender_name", NullableStr(senderName))
+        End Sub
+
+        ''' <summary>指定 MessageID のエラー除外を解除する。</summary>
+        Public Sub DeleteErrorMessageId(messageId As String)
+            Const sql As String = "DELETE FROM error_message_ids WHERE message_id = @message_id"
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As New SQLiteCommand(sql, conn)
+                    cmd.Parameters.AddWithValue("@message_id", messageId)
+                    cmd.ExecuteNonQuery()
+                End Using
+            End Using
+        End Sub
+
+        ''' <summary>全エラー除外を解除する。</summary>
+        Public Sub ClearAllErrorMessageIds()
+            Const sql As String = "DELETE FROM error_message_ids"
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As New SQLiteCommand(sql, conn)
+                    cmd.ExecuteNonQuery()
+                End Using
+            End Using
+        End Sub
+
+        ''' <summary>エラー除外リストの全件を取得する（UI 表示用）。</summary>
+        Public Function GetErrorMessageEntries() As System.Data.DataTable
+            Const sql As String =
+                "SELECT message_id, folder_name, subject, error_message, received_date, sender_name, error_date " &
+                "FROM error_message_ids ORDER BY error_date DESC"
+            Dim dt As New System.Data.DataTable()
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As New SQLiteCommand(sql, conn)
+                    Using reader As SQLiteDataReader = cmd.ExecuteReader()
+                        dt.Load(reader)
+                    End Using
+                End Using
+            End Using
+            Return dt
+        End Function
+
+        ''' <summary>エラー除外リストの件数を返す。</summary>
+        Public Function GetErrorMessageIdCount() As Integer
+            Const sql As String = "SELECT COUNT(1) FROM error_message_ids"
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As New SQLiteCommand(sql, conn)
+                    Return Convert.ToInt32(cmd.ExecuteScalar())
+                End Using
+            End Using
+        End Function
+
+        ' ════════════════════════════════════════════════════════════
         '  Exchange アドレスキャッシュ
         ' ════════════════════════════════════════════════════════════
 

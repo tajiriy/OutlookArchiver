@@ -401,10 +401,14 @@ Public Class MainForm
             importStopwatch.Stop()
             _lastOutlookTotalCount = result.TotalOutlookCount
 
-            Services.Logger.Info(String.Format(
+            Dim importLogMsg As String = String.Format(
                 "取り込みが完了しました — 取り込み: {0}件, スキップ: {1}件, エラー: {2}件, 所要時間: {3:F1}秒",
                 result.ImportedCount, result.SkippedCount, result.ErrorCount,
-                importStopwatch.Elapsed.TotalSeconds))
+                importStopwatch.Elapsed.TotalSeconds)
+            If result.ErrorSkipCount > 0 Then
+                importLogMsg &= String.Format(", エラー除外: {0}件", result.ErrorSkipCount)
+            End If
+            Services.Logger.Info(importLogMsg)
 
             If result.DeletedCount > 0 Then
                 Services.Logger.Info(String.Format("削除同期: {0}件", result.DeletedCount))
@@ -417,6 +421,9 @@ Public Class MainForm
             Dim msg As String = String.Format(
                 "取り込み完了{0}取り込み: {1}件 / スキップ: {2}件 / エラー: {3}件",
                 vbCrLf, result.ImportedCount, result.SkippedCount, result.ErrorCount)
+            If result.ErrorSkipCount > 0 Then
+                msg &= String.Format(" / エラー除外: {0}件", result.ErrorSkipCount)
+            End If
             If result.DeletedCount > 0 Then
                 msg &= String.Format("{0}削除同期: {1}件", vbCrLf, result.DeletedCount)
             End If
@@ -545,6 +552,9 @@ Public Class MainForm
             result.ImportedCount, result.SkippedCount)
         If result.ErrorCount > 0 Then
             msg &= String.Format(" / エラー: {0}件", result.ErrorCount)
+        End If
+        If result.ErrorSkipCount > 0 Then
+            msg &= String.Format(" / エラー除外: {0}件", result.ErrorSkipCount)
         End If
         If result.DeletedCount > 0 Then
             msg &= String.Format(" / 削除同期: {0}件", result.DeletedCount)
@@ -1129,6 +1139,14 @@ Public Class MainForm
             StopAutoImport()
             StartAutoImport()
         End If
+    End Sub
+
+    ' ── エラー除外リスト ──────────────────────────────────────
+
+    Private Sub menuItemErrorExclusion_Click(sender As Object, e As EventArgs) Handles menuItemErrorExclusion.Click
+        Using frm As New Forms.ErrorExclusionForm(_repo)
+            frm.ShowDialog(Me)
+        End Using
     End Sub
 
     ' ── テーブルビューア ──────────────────────────────────────

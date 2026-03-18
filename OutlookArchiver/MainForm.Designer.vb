@@ -30,6 +30,7 @@ Partial Class MainForm
         Me.menuItemImport = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemImportNow = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemImportCancel = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuItemErrorExclusion = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemSearch = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemSettings = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemHelp = New System.Windows.Forms.ToolStripMenuItem()
@@ -56,21 +57,20 @@ Partial Class MainForm
         Me.colReceivedAt = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.tabControl = New System.Windows.Forms.TabControl()
         Me.tabPageNormal = New System.Windows.Forms.TabPage()
+        Me.emailPreview = New OutlookArchiver.Controls.EmailPreviewControl()
         Me.tabPageThread = New System.Windows.Forms.TabPage()
+        Me.conversationView = New OutlookArchiver.Controls.ConversationViewControl()
+        Me.btnToggleView = New System.Windows.Forms.Button()
         Me.statusStrip = New System.Windows.Forms.StatusStrip()
         Me.lblStatusCount = New System.Windows.Forms.ToolStripStatusLabel()
         Me.lblStatusSep = New System.Windows.Forms.ToolStripStatusLabel()
         Me.lblStatusLastImport = New System.Windows.Forms.ToolStripStatusLabel()
-        Me.btnToggleView = New System.Windows.Forms.Button()
-        Me.emailPreview = New OutlookArchiver.Controls.EmailPreviewControl()
-        Me.conversationView = New OutlookArchiver.Controls.ConversationViewControl()
         Me.notifyIcon = New System.Windows.Forms.NotifyIcon(Me.components)
         Me.trayContextMenu = New System.Windows.Forms.ContextMenuStrip(Me.components)
         Me.trayMenuShow = New System.Windows.Forms.ToolStripMenuItem()
         Me.trayMenuImportNow = New System.Windows.Forms.ToolStripMenuItem()
         Me.trayMenuSep1 = New System.Windows.Forms.ToolStripSeparator()
         Me.trayMenuExit = New System.Windows.Forms.ToolStripMenuItem()
-        Me.trayContextMenu.SuspendLayout()
         Me.menuStrip.SuspendLayout()
         Me.toolStrip.SuspendLayout()
         CType(Me.splitMain, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -85,6 +85,7 @@ Partial Class MainForm
         Me.tabPageNormal.SuspendLayout()
         Me.tabPageThread.SuspendLayout()
         Me.statusStrip.SuspendLayout()
+        Me.trayContextMenu.SuspendLayout()
         Me.SuspendLayout()
         '
         'menuStrip
@@ -92,7 +93,7 @@ Partial Class MainForm
         Me.menuStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemFile, Me.menuItemImport, Me.menuItemSearch, Me.menuItemSettings, Me.menuItemHelp})
         Me.menuStrip.Location = New System.Drawing.Point(0, 0)
         Me.menuStrip.Name = "menuStrip"
-        Me.menuStrip.Size = New System.Drawing.Size(1271, 24)
+        Me.menuStrip.Size = New System.Drawing.Size(1397, 24)
         Me.menuStrip.TabIndex = 0
         '
         'menuItemFile
@@ -111,7 +112,7 @@ Partial Class MainForm
         '
         'menuItemImport
         '
-        Me.menuItemImport.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemImportNow, Me.menuItemImportCancel})
+        Me.menuItemImport.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemImportNow, Me.menuItemImportCancel, Me.menuItemErrorExclusion})
         Me.menuItemImport.Name = "menuItemImport"
         Me.menuItemImport.Size = New System.Drawing.Size(73, 20)
         Me.menuItemImport.Text = "取り込み(&I)"
@@ -125,10 +126,16 @@ Partial Class MainForm
         '
         'menuItemImportCancel
         '
+        Me.menuItemImportCancel.Enabled = False
         Me.menuItemImportCancel.Name = "menuItemImportCancel"
         Me.menuItemImportCancel.Size = New System.Drawing.Size(183, 22)
         Me.menuItemImportCancel.Text = "取り込み中止(&C)"
-        Me.menuItemImportCancel.Enabled = False
+        '
+        'menuItemErrorExclusion
+        '
+        Me.menuItemErrorExclusion.Name = "menuItemErrorExclusion"
+        Me.menuItemErrorExclusion.Size = New System.Drawing.Size(183, 22)
+        Me.menuItemErrorExclusion.Text = "エラー除外リスト(&E)..."
         '
         'menuItemSearch
         '
@@ -144,13 +151,10 @@ Partial Class MainForm
         '
         'menuItemHelp
         '
-        Me.menuItemHelp.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemHelpTables, New System.Windows.Forms.ToolStripSeparator(), Me.menuItemHelpAbout})
+        Me.menuItemHelp.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemHelpTables, Me.menuItemHelpAbout})
         Me.menuItemHelp.Name = "menuItemHelp"
         Me.menuItemHelp.Size = New System.Drawing.Size(65, 20)
         Me.menuItemHelp.Text = "ヘルプ(&H)"
-        '
-        'menuItemHelpAbout
-        '
         '
         'menuItemHelpTables
         '
@@ -162,25 +166,25 @@ Partial Class MainForm
         'menuItemTableEmails
         '
         Me.menuItemTableEmails.Name = "menuItemTableEmails"
-        Me.menuItemTableEmails.Size = New System.Drawing.Size(220, 22)
+        Me.menuItemTableEmails.Size = New System.Drawing.Size(206, 22)
         Me.menuItemTableEmails.Text = "emails"
         '
         'menuItemTableAttachments
         '
         Me.menuItemTableAttachments.Name = "menuItemTableAttachments"
-        Me.menuItemTableAttachments.Size = New System.Drawing.Size(220, 22)
+        Me.menuItemTableAttachments.Size = New System.Drawing.Size(206, 22)
         Me.menuItemTableAttachments.Text = "attachments"
         '
         'menuItemTableDeletedIds
         '
         Me.menuItemTableDeletedIds.Name = "menuItemTableDeletedIds"
-        Me.menuItemTableDeletedIds.Size = New System.Drawing.Size(220, 22)
+        Me.menuItemTableDeletedIds.Size = New System.Drawing.Size(206, 22)
         Me.menuItemTableDeletedIds.Text = "deleted_message_ids"
         '
         'menuItemTableExchangeCache
         '
         Me.menuItemTableExchangeCache.Name = "menuItemTableExchangeCache"
-        Me.menuItemTableExchangeCache.Size = New System.Drawing.Size(220, 22)
+        Me.menuItemTableExchangeCache.Size = New System.Drawing.Size(206, 22)
         Me.menuItemTableExchangeCache.Text = "exchange_address_cache"
         '
         'menuItemHelpAbout
@@ -194,7 +198,7 @@ Partial Class MainForm
         Me.toolStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.btnImportNow, Me.btnAutoImport, Me.toolStripSep1, Me.txtSearch, Me.btnSearch, Me.btnClearSearch, Me.lblFolderCount})
         Me.toolStrip.Location = New System.Drawing.Point(0, 24)
         Me.toolStrip.Name = "toolStrip"
-        Me.toolStrip.Size = New System.Drawing.Size(1271, 25)
+        Me.toolStrip.Size = New System.Drawing.Size(1397, 25)
         Me.toolStrip.TabIndex = 1
         '
         'btnImportNow
@@ -220,6 +224,7 @@ Partial Class MainForm
         '
         'txtSearch
         '
+        Me.txtSearch.Font = New System.Drawing.Font("Yu Gothic UI", 9.0!)
         Me.txtSearch.Name = "txtSearch"
         Me.txtSearch.Size = New System.Drawing.Size(200, 25)
         Me.txtSearch.ToolTipText = "検索キーワードを入力してEnterまたは検索ボタンを押してください"
@@ -236,7 +241,7 @@ Partial Class MainForm
         '
         Me.btnClearSearch.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text
         Me.btnClearSearch.Name = "btnClearSearch"
-        Me.btnClearSearch.Size = New System.Drawing.Size(42, 22)
+        Me.btnClearSearch.Size = New System.Drawing.Size(37, 22)
         Me.btnClearSearch.Text = "クリア"
         Me.btnClearSearch.ToolTipText = "検索をクリアします"
         '
@@ -245,7 +250,6 @@ Partial Class MainForm
         Me.lblFolderCount.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right
         Me.lblFolderCount.Name = "lblFolderCount"
         Me.lblFolderCount.Size = New System.Drawing.Size(0, 22)
-        Me.lblFolderCount.Text = ""
         '
         'splitMain
         '
@@ -260,8 +264,8 @@ Partial Class MainForm
         'splitMain.Panel2
         '
         Me.splitMain.Panel2.Controls.Add(Me.splitRight)
-        Me.splitMain.Size = New System.Drawing.Size(1271, 668)
-        Me.splitMain.SplitterDistance = 300
+        Me.splitMain.Size = New System.Drawing.Size(1397, 726)
+        Me.splitMain.SplitterDistance = 329
         Me.splitMain.TabIndex = 0
         '
         'treeViewFolders
@@ -270,7 +274,7 @@ Partial Class MainForm
         Me.treeViewFolders.HideSelection = False
         Me.treeViewFolders.Location = New System.Drawing.Point(0, 0)
         Me.treeViewFolders.Name = "treeViewFolders"
-        Me.treeViewFolders.Size = New System.Drawing.Size(250, 668)
+        Me.treeViewFolders.Size = New System.Drawing.Size(329, 726)
         Me.treeViewFolders.TabIndex = 0
         '
         'splitRight
@@ -288,8 +292,8 @@ Partial Class MainForm
         '
         Me.splitRight.Panel2.Controls.Add(Me.tabControl)
         Me.splitRight.Panel2.Controls.Add(Me.btnToggleView)
-        Me.splitRight.Size = New System.Drawing.Size(1117, 668)
-        Me.splitRight.SplitterDistance = 260
+        Me.splitRight.Size = New System.Drawing.Size(1064, 726)
+        Me.splitRight.SplitterDistance = 282
         Me.splitRight.TabIndex = 0
         '
         'listViewEmails
@@ -301,7 +305,7 @@ Partial Class MainForm
         Me.listViewEmails.Location = New System.Drawing.Point(0, 0)
         Me.listViewEmails.MultiSelect = False
         Me.listViewEmails.Name = "listViewEmails"
-        Me.listViewEmails.Size = New System.Drawing.Size(1117, 260)
+        Me.listViewEmails.Size = New System.Drawing.Size(1064, 282)
         Me.listViewEmails.TabIndex = 0
         Me.listViewEmails.UseCompatibleStateImageBehavior = False
         Me.listViewEmails.View = System.Windows.Forms.View.Details
@@ -330,25 +334,33 @@ Partial Class MainForm
         Me.tabControl.Location = New System.Drawing.Point(0, 0)
         Me.tabControl.Name = "tabControl"
         Me.tabControl.SelectedIndex = 0
-        Me.tabControl.Size = New System.Drawing.Size(1117, 404)
+        Me.tabControl.Size = New System.Drawing.Size(1064, 440)
         Me.tabControl.TabIndex = 0
         '
         'tabPageNormal
         '
         Me.tabPageNormal.Controls.Add(Me.emailPreview)
-        Me.tabPageNormal.Location = New System.Drawing.Point(4, 22)
+        Me.tabPageNormal.Location = New System.Drawing.Point(4, 24)
         Me.tabPageNormal.Name = "tabPageNormal"
-        Me.tabPageNormal.Size = New System.Drawing.Size(1109, 378)
+        Me.tabPageNormal.Size = New System.Drawing.Size(1056, 412)
         Me.tabPageNormal.TabIndex = 0
         Me.tabPageNormal.Text = "通常表示"
         Me.tabPageNormal.UseVisualStyleBackColor = True
         '
+        'emailPreview
+        '
+        Me.emailPreview.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.emailPreview.Location = New System.Drawing.Point(0, 0)
+        Me.emailPreview.Name = "emailPreview"
+        Me.emailPreview.Size = New System.Drawing.Size(1056, 412)
+        Me.emailPreview.TabIndex = 0
+        '
         'tabPageThread
         '
         Me.tabPageThread.Controls.Add(Me.conversationView)
-        Me.tabPageThread.Location = New System.Drawing.Point(4, 22)
+        Me.tabPageThread.Location = New System.Drawing.Point(4, 24)
         Me.tabPageThread.Name = "tabPageThread"
-        Me.tabPageThread.Size = New System.Drawing.Size(1109, 378)
+        Me.tabPageThread.Size = New System.Drawing.Size(959, 376)
         Me.tabPageThread.TabIndex = 1
         Me.tabPageThread.Text = "会話ビュー"
         Me.tabPageThread.UseVisualStyleBackColor = True
@@ -358,15 +370,26 @@ Partial Class MainForm
         Me.conversationView.Dock = System.Windows.Forms.DockStyle.Fill
         Me.conversationView.Location = New System.Drawing.Point(0, 0)
         Me.conversationView.Name = "conversationView"
-        Me.conversationView.Size = New System.Drawing.Size(1109, 378)
+        Me.conversationView.Size = New System.Drawing.Size(959, 376)
         Me.conversationView.TabIndex = 0
+        '
+        'btnToggleView
+        '
+        Me.btnToggleView.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnToggleView.AutoSize = True
+        Me.btnToggleView.Enabled = False
+        Me.btnToggleView.Location = New System.Drawing.Point(-55, 0)
+        Me.btnToggleView.Name = "btnToggleView"
+        Me.btnToggleView.Size = New System.Drawing.Size(77, 25)
+        Me.btnToggleView.TabIndex = 1
+        Me.btnToggleView.Text = "テキスト表示"
         '
         'statusStrip
         '
         Me.statusStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.lblStatusCount, Me.lblStatusSep, Me.lblStatusLastImport})
-        Me.statusStrip.Location = New System.Drawing.Point(0, 717)
+        Me.statusStrip.Location = New System.Drawing.Point(0, 775)
         Me.statusStrip.Name = "statusStrip"
-        Me.statusStrip.Size = New System.Drawing.Size(1271, 22)
+        Me.statusStrip.Size = New System.Drawing.Size(1397, 22)
         Me.statusStrip.TabIndex = 3
         '
         'lblStatusCount
@@ -387,69 +410,51 @@ Partial Class MainForm
         Me.lblStatusLastImport.Size = New System.Drawing.Size(85, 17)
         Me.lblStatusLastImport.Text = "最終取り込み: -"
         '
-        'btnToggleView
-        '
-        Me.btnToggleView.Name = "btnToggleView"
-        Me.btnToggleView.Text = "テキスト表示"
-        Me.btnToggleView.AutoSize = True
-        Me.btnToggleView.Height = 22
-        Me.btnToggleView.Enabled = False
-        Me.btnToggleView.Anchor = CType(System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right, System.Windows.Forms.AnchorStyles)
-        '
-        'emailPreview
-        '
-        Me.emailPreview.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.emailPreview.Location = New System.Drawing.Point(0, 0)
-        Me.emailPreview.Name = "emailPreview"
-        Me.emailPreview.Size = New System.Drawing.Size(1109, 378)
-        Me.emailPreview.TabIndex = 0
-        '
         'notifyIcon
         '
         Me.notifyIcon.ContextMenuStrip = Me.trayContextMenu
         Me.notifyIcon.Text = "OutlookArchiver"
-        Me.notifyIcon.Visible = False
         '
         'trayContextMenu
         '
         Me.trayContextMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.trayMenuShow, Me.trayMenuImportNow, Me.trayMenuSep1, Me.trayMenuExit})
         Me.trayContextMenu.Name = "trayContextMenu"
-        Me.trayContextMenu.Size = New System.Drawing.Size(170, 76)
+        Me.trayContextMenu.Size = New System.Drawing.Size(159, 76)
         '
         'trayMenuShow
         '
         Me.trayMenuShow.Font = New System.Drawing.Font("Meiryo UI", 9.0!, System.Drawing.FontStyle.Bold)
         Me.trayMenuShow.Name = "trayMenuShow"
-        Me.trayMenuShow.Size = New System.Drawing.Size(169, 22)
+        Me.trayMenuShow.Size = New System.Drawing.Size(158, 22)
         Me.trayMenuShow.Text = "表示(&S)"
         '
         'trayMenuImportNow
         '
         Me.trayMenuImportNow.Name = "trayMenuImportNow"
-        Me.trayMenuImportNow.Size = New System.Drawing.Size(169, 22)
+        Me.trayMenuImportNow.Size = New System.Drawing.Size(158, 22)
         Me.trayMenuImportNow.Text = "今すぐ取り込み(&I)"
         '
         'trayMenuSep1
         '
         Me.trayMenuSep1.Name = "trayMenuSep1"
-        Me.trayMenuSep1.Size = New System.Drawing.Size(166, 6)
+        Me.trayMenuSep1.Size = New System.Drawing.Size(155, 6)
         '
         'trayMenuExit
         '
         Me.trayMenuExit.Name = "trayMenuExit"
-        Me.trayMenuExit.Size = New System.Drawing.Size(169, 22)
+        Me.trayMenuExit.Size = New System.Drawing.Size(158, 22)
         Me.trayMenuExit.Text = "終了(&X)"
         '
         'MainForm
         '
-        Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.Font = New System.Drawing.Font("Meiryo UI", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(128, Byte))
-        Me.ClientSize = New System.Drawing.Size(1271, 739)
+        Me.ClientSize = New System.Drawing.Size(1397, 797)
         Me.Controls.Add(Me.splitMain)
         Me.Controls.Add(Me.toolStrip)
         Me.Controls.Add(Me.menuStrip)
         Me.Controls.Add(Me.statusStrip)
+        Me.Font = New System.Drawing.Font("Meiryo UI", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(128, Byte))
         Me.MainMenuStrip = Me.menuStrip
         Me.Name = "MainForm"
         Me.Text = "OutlookArchiver"
@@ -463,6 +468,7 @@ Partial Class MainForm
         Me.splitMain.ResumeLayout(False)
         Me.splitRight.Panel1.ResumeLayout(False)
         Me.splitRight.Panel2.ResumeLayout(False)
+        Me.splitRight.Panel2.PerformLayout()
         CType(Me.splitRight, System.ComponentModel.ISupportInitialize).EndInit()
         Me.splitRight.ResumeLayout(False)
         Me.tabControl.ResumeLayout(False)
@@ -483,6 +489,7 @@ Partial Class MainForm
     Friend WithEvents menuItemImport As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemImportNow As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemImportCancel As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuItemErrorExclusion As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemSearch As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemSettings As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemHelp As System.Windows.Forms.ToolStripMenuItem

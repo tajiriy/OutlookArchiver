@@ -691,6 +691,111 @@ Namespace Tests
         End Sub
 
         ' ════════════════════════════════════════════════════════════
+        '  エラー除外 MessageID
+        ' ════════════════════════════════════════════════════════════
+
+        <Test>
+        Public Sub GetAllErrorMessageIds_ReturnsRegisteredIds()
+            _repo.InsertErrorMessageId("err1@example.com", "受信トレイ", "件名1", "エラー内容1")
+            _repo.InsertErrorMessageId("err2@example.com", "送信済み", "件名2", "エラー内容2")
+
+            Dim errorIds As HashSet(Of String) = _repo.GetAllErrorMessageIds()
+
+            Assert.AreEqual(2, errorIds.Count)
+            Assert.IsTrue(errorIds.Contains("err1@example.com"))
+            Assert.IsTrue(errorIds.Contains("err2@example.com"))
+        End Sub
+
+        <Test>
+        Public Sub GetAllErrorMessageIds_CaseInsensitive()
+            _repo.InsertErrorMessageId("ERR@EXAMPLE.COM", "受信トレイ", "件名", "エラー")
+
+            Dim errorIds As HashSet(Of String) = _repo.GetAllErrorMessageIds()
+
+            Assert.IsTrue(errorIds.Contains("err@example.com"))
+        End Sub
+
+        <Test>
+        Public Sub InsertErrorMessageId_EmptyId_DoesNotInsert()
+            _repo.InsertErrorMessageId("", "受信トレイ", "件名", "エラー")
+
+            Dim errorIds As HashSet(Of String) = _repo.GetAllErrorMessageIds()
+
+            Assert.AreEqual(0, errorIds.Count)
+        End Sub
+
+        <Test>
+        Public Sub InsertErrorMessageId_DuplicateId_Replaces()
+            _repo.InsertErrorMessageId("err@example.com", "受信トレイ", "件名1", "エラー1")
+            _repo.InsertErrorMessageId("err@example.com", "受信トレイ", "件名1", "エラー2")
+
+            Dim errorIds As HashSet(Of String) = _repo.GetAllErrorMessageIds()
+
+            Assert.AreEqual(1, errorIds.Count)
+        End Sub
+
+        <Test>
+        Public Sub InsertErrorMessageId_WithReceivedDate_Persists()
+            Dim received As New DateTime(2025, 6, 15, 10, 30, 0)
+            _repo.InsertErrorMessageId("err@example.com", "受信トレイ", "件名", "エラー", received, "送信者太郎")
+
+            Dim dt As System.Data.DataTable = _repo.GetErrorMessageEntries()
+
+            Assert.AreEqual(1, dt.Rows.Count)
+            Assert.AreEqual("err@example.com", CStr(dt.Rows(0)("message_id")))
+            Assert.AreEqual("受信トレイ", CStr(dt.Rows(0)("folder_name")))
+            Assert.AreEqual("件名", CStr(dt.Rows(0)("subject")))
+            Assert.AreEqual("エラー", CStr(dt.Rows(0)("error_message")))
+            Assert.AreEqual("送信者太郎", CStr(dt.Rows(0)("sender_name")))
+        End Sub
+
+        <Test>
+        Public Sub DeleteErrorMessageId_RemovesSpecificId()
+            _repo.InsertErrorMessageId("err1@example.com", "受信トレイ", "件名1", "エラー1")
+            _repo.InsertErrorMessageId("err2@example.com", "受信トレイ", "件名2", "エラー2")
+
+            _repo.DeleteErrorMessageId("err1@example.com")
+
+            Dim errorIds As HashSet(Of String) = _repo.GetAllErrorMessageIds()
+            Assert.AreEqual(1, errorIds.Count)
+            Assert.IsFalse(errorIds.Contains("err1@example.com"))
+            Assert.IsTrue(errorIds.Contains("err2@example.com"))
+        End Sub
+
+        <Test>
+        Public Sub ClearAllErrorMessageIds_RemovesAll()
+            _repo.InsertErrorMessageId("err1@example.com", "受信トレイ", "件名1", "エラー1")
+            _repo.InsertErrorMessageId("err2@example.com", "受信トレイ", "件名2", "エラー2")
+
+            _repo.ClearAllErrorMessageIds()
+
+            Dim errorIds As HashSet(Of String) = _repo.GetAllErrorMessageIds()
+            Assert.AreEqual(0, errorIds.Count)
+        End Sub
+
+        <Test>
+        Public Sub GetErrorMessageIdCount_ReturnsCorrectCount()
+            Assert.AreEqual(0, _repo.GetErrorMessageIdCount())
+
+            _repo.InsertErrorMessageId("err1@example.com", "受信トレイ", "件名1", "エラー1")
+            Assert.AreEqual(1, _repo.GetErrorMessageIdCount())
+
+            _repo.InsertErrorMessageId("err2@example.com", "受信トレイ", "件名2", "エラー2")
+            Assert.AreEqual(2, _repo.GetErrorMessageIdCount())
+        End Sub
+
+        <Test>
+        Public Sub InsertErrorMessageId_InBulkMode_Persists()
+            _repo.BeginBulk()
+            _repo.InsertErrorMessageId("bulk-err@example.com", "受信トレイ", "件名", "エラー")
+            _repo.CommitBulk()
+
+            Dim errorIds As HashSet(Of String) = _repo.GetAllErrorMessageIds()
+            Assert.AreEqual(1, errorIds.Count)
+            Assert.IsTrue(errorIds.Contains("bulk-err@example.com"))
+        End Sub
+
+        ' ════════════════════════════════════════════════════════════
         '  ヘルパー
         ' ════════════════════════════════════════════════════════════
 

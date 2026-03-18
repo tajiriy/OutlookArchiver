@@ -94,6 +94,16 @@ CREATE TABLE IF NOT EXISTS exchange_address_cache (
     ex_address   TEXT PRIMARY KEY,
     smtp_address TEXT NOT NULL,
     cached_at    TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS error_message_ids (
+    message_id    TEXT PRIMARY KEY,
+    folder_name   TEXT,
+    subject       TEXT,
+    error_message TEXT,
+    received_date TEXT,
+    sender_name   TEXT,
+    error_date    TEXT DEFAULT (datetime('now', 'localtime'))
 );"
             ExecuteNonQuery(conn, sql)
         End Sub
@@ -128,7 +138,7 @@ CREATE INDEX IF NOT EXISTS idx_attachments_email_id      ON attachments(email_id
         ''' <summary>指定テーブルの全行を DataTable で返す。長文列は先頭100文字に切り詰める。</summary>
         Public Function GetTableData(tableName As String) As System.Data.DataTable
             ' テーブル名をホワイトリストで検証（SQLインジェクション防止）
-            Dim allowed() As String = {"emails", "attachments", "deleted_message_ids", "exchange_address_cache"}
+            Dim allowed() As String = {"emails", "attachments", "deleted_message_ids", "exchange_address_cache", "error_message_ids"}
             If Array.IndexOf(allowed, tableName) < 0 Then
                 Throw New ArgumentException("無効なテーブル名: " & tableName)
             End If
