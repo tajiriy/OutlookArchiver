@@ -593,6 +593,33 @@ Namespace Tests
             Assert.IsTrue(result.HasAttachments)
         End Sub
 
+        <Test>
+        Public Sub UpdateHasAttachments_SetsToFalse()
+            Dim email As Email = CreateTestEmail("upd-att@example.com")
+            email.HasAttachments = True
+
+            Dim id As Integer = _repo.InsertEmail(email)
+            Dim before As Email = _repo.GetEmailById(id)
+            Assert.IsTrue(before.HasAttachments)
+
+            _repo.UpdateHasAttachments(id, False)
+            Dim after As Email = _repo.GetEmailById(id)
+            Assert.IsFalse(after.HasAttachments)
+        End Sub
+
+        <Test>
+        Public Sub UpdateHasAttachments_InBulkMode_SetsToFalse()
+            _repo.BeginBulk()
+            Dim email As Email = CreateTestEmail("upd-att-bulk@example.com")
+            email.HasAttachments = True
+            Dim id As Integer = _repo.InsertEmail(email)
+            _repo.UpdateHasAttachments(id, False)
+            _repo.CommitBulk()
+
+            Dim result As Email = _repo.GetEmailById(id)
+            Assert.IsFalse(result.HasAttachments)
+        End Sub
+
         ' ════════════════════════════════════════════════════════════
         '  Prepared Statement 再利用（バルクモード）
         ' ════════════════════════════════════════════════════════════
