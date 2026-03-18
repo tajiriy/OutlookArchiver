@@ -39,6 +39,7 @@ Partial Class MainForm
         Me.menuItemTableAttachments = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemTableDeletedIds = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemTableExchangeCache = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuItemHelpManual = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemHelpAbout = New System.Windows.Forms.ToolStripMenuItem()
         Me.toolStrip = New System.Windows.Forms.ToolStrip()
         Me.btnImportNow = New System.Windows.Forms.ToolStripButton()
@@ -151,10 +152,17 @@ Partial Class MainForm
         '
         'menuItemHelp
         '
-        Me.menuItemHelp.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemHelpTables, Me.menuItemHelpAbout})
+        Me.menuItemHelp.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemHelpManual, Me.menuItemHelpTables, Me.menuItemHelpAbout})
         Me.menuItemHelp.Name = "menuItemHelp"
         Me.menuItemHelp.Size = New System.Drawing.Size(65, 20)
         Me.menuItemHelp.Text = "ヘルプ(&H)"
+        '
+        'menuItemHelpManual
+        '
+        Me.menuItemHelpManual.Name = "menuItemHelpManual"
+        Me.menuItemHelpManual.ShortcutKeys = System.Windows.Forms.Keys.F1
+        Me.menuItemHelpManual.Size = New System.Drawing.Size(158, 22)
+        Me.menuItemHelpManual.Text = "ユーザーマニュアル(&M)"
         '
         'menuItemHelpTables
         '
@@ -498,6 +506,7 @@ Partial Class MainForm
     Friend WithEvents menuItemTableAttachments As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemTableDeletedIds As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemTableExchangeCache As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuItemHelpManual As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemHelpAbout As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents toolStrip As System.Windows.Forms.ToolStrip
     Friend WithEvents btnImportNow As System.Windows.Forms.ToolStripButton
