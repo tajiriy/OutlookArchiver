@@ -1177,7 +1177,7 @@ Public Class MainForm
     End Sub
 
     Private Sub menuItemHelpAbout_Click(sender As Object, e As EventArgs) Handles menuItemHelpAbout.Click
-        MessageBox.Show("OutlookArchiver" & vbCrLf & "Outlook メールアーカイブツール",
+        MessageBox.Show("OutlookArchiver" & vbCrLf & "Outlook メール保管ツール",
             "バージョン情報", MessageBoxButtons.OK, MessageBoxIcon.Information)
     End Sub
 

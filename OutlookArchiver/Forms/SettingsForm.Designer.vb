@@ -238,7 +238,7 @@ Partial Class SettingsForm
         Me.chkSyncDeletions.Name = "chkSyncDeletions"
         Me.chkSyncDeletions.Size = New System.Drawing.Size(380, 17)
         Me.chkSyncDeletions.TabIndex = 7
-        Me.chkSyncDeletions.Text = "Outlook 側で削除されたメールをアーカイブからも削除する"
+        Me.chkSyncDeletions.Text = "Outlook 側で削除されたメールをデータベースからも削除する"
         '
         'grpFolders
         '

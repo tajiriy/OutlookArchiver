@@ -550,7 +550,7 @@ SELECT last_insert_rowid();"
         End Function
 
         ''' <summary>
-        ''' 指定フォルダのアーカイブ済みメールの message_id と id の Dictionary を返す。
+        ''' 指定フォルダの取り込み済みメールの message_id と id の Dictionary を返す。
         ''' 削除同期で Outlook 側と突合するために使用する。
         ''' </summary>
         Public Function GetMessageIdsByFolder(folderName As String) As Dictionary(Of String, Integer)

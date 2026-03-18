@@ -102,7 +102,7 @@ Namespace Config
 
         ' ── 対象フォルダ ──────────────────────────────────────────
 
-        ''' <summary>アーカイブ対象の Outlook フォルダ名一覧</summary>
+        ''' <summary>取り込み対象の Outlook フォルダ名一覧</summary>
         Public Property TargetFolders As List(Of String)
             Get
                 Dim val As String = ConfigurationManager.AppSettings("TargetFolders")
@@ -128,7 +128,7 @@ Namespace Config
 
         ' ── 削除同期 ────────────────────────────────────────────────
 
-        ''' <summary>取り込み時に Outlook 側で削除されたメールをアーカイブからも削除するか</summary>
+        ''' <summary>取り込み時に Outlook 側で削除されたメールをデータベースからも削除するか</summary>
         Public Property SyncDeletionsEnabled As Boolean
             Get
                 Return GetBool("SyncDeletionsEnabled", defaultValue:=False)
