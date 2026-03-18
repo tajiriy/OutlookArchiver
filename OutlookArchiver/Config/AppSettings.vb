@@ -85,7 +85,7 @@ Namespace Config
         Public Property TargetFolders As List(Of String)
             Get
                 Dim val As String = ConfigurationManager.AppSettings("TargetFolders")
-                If String.IsNullOrEmpty(val) Then Return New List(Of String)({"受信トレイ"})
+                If String.IsNullOrEmpty(val) Then Return New List(Of String)({"受信トレイ", "送信済みアイテム"})
                 Return New List(Of String)(val.Split(";"c))
             End Get
             Set(value As List(Of String))
