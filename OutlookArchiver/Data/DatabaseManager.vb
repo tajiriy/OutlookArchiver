@@ -202,6 +202,27 @@ END;"
             ExecuteNonQuery(conn, "PRAGMA synchronous=" & mode & ";")
         End Sub
 
+        ' ── テーブルデータ取得 ────────────────────────────────────
+
+        ''' <summary>指定テーブルの全行を DataTable で返す。</summary>
+        Public Function GetTableData(tableName As String) As System.Data.DataTable
+            ' テーブル名をホワイトリストで検証（SQLインジェクション防止）
+            Dim allowed() As String = {"emails", "attachments", "deleted_message_ids", "exchange_address_cache"}
+            If Array.IndexOf(allowed, tableName) < 0 Then
+                Throw New ArgumentException("無効なテーブル名: " & tableName)
+            End If
+
+            Dim dt As New System.Data.DataTable()
+            Using conn As SQLiteConnection = GetConnection()
+                Using cmd As New SQLiteCommand("SELECT * FROM " & tableName, conn)
+                    Using reader As SQLiteDataReader = cmd.ExecuteReader()
+                        dt.Load(reader)
+                    End Using
+                End Using
+            End Using
+            Return dt
+        End Function
+
         ' ── ユーティリティ ────────────────────────────────────────
 
         Private Sub ExecuteNonQuery(conn As SQLiteConnection, sql As String)

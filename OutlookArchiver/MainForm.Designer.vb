@@ -31,6 +31,11 @@ Partial Class MainForm
         Me.menuItemSearch = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemSettings = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemHelp = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuItemHelpTables = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuItemTableEmails = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuItemTableAttachments = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuItemTableDeletedIds = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuItemTableExchangeCache = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemHelpAbout = New System.Windows.Forms.ToolStripMenuItem()
         Me.toolStrip = New System.Windows.Forms.ToolStrip()
         Me.btnImportNow = New System.Windows.Forms.ToolStripButton()
@@ -121,10 +126,44 @@ Partial Class MainForm
         '
         'menuItemHelp
         '
-        Me.menuItemHelp.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemHelpAbout})
+        Me.menuItemHelp.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemHelpTables, New System.Windows.Forms.ToolStripSeparator(), Me.menuItemHelpAbout})
         Me.menuItemHelp.Name = "menuItemHelp"
         Me.menuItemHelp.Size = New System.Drawing.Size(65, 20)
         Me.menuItemHelp.Text = "ヘルプ(&H)"
+        '
+        'menuItemHelpAbout
+        '
+        '
+        'menuItemHelpTables
+        '
+        Me.menuItemHelpTables.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemTableEmails, Me.menuItemTableAttachments, Me.menuItemTableDeletedIds, Me.menuItemTableExchangeCache})
+        Me.menuItemHelpTables.Name = "menuItemHelpTables"
+        Me.menuItemHelpTables.Size = New System.Drawing.Size(158, 22)
+        Me.menuItemHelpTables.Text = "テーブル(&T)"
+        '
+        'menuItemTableEmails
+        '
+        Me.menuItemTableEmails.Name = "menuItemTableEmails"
+        Me.menuItemTableEmails.Size = New System.Drawing.Size(220, 22)
+        Me.menuItemTableEmails.Text = "emails"
+        '
+        'menuItemTableAttachments
+        '
+        Me.menuItemTableAttachments.Name = "menuItemTableAttachments"
+        Me.menuItemTableAttachments.Size = New System.Drawing.Size(220, 22)
+        Me.menuItemTableAttachments.Text = "attachments"
+        '
+        'menuItemTableDeletedIds
+        '
+        Me.menuItemTableDeletedIds.Name = "menuItemTableDeletedIds"
+        Me.menuItemTableDeletedIds.Size = New System.Drawing.Size(220, 22)
+        Me.menuItemTableDeletedIds.Text = "deleted_message_ids"
+        '
+        'menuItemTableExchangeCache
+        '
+        Me.menuItemTableExchangeCache.Name = "menuItemTableExchangeCache"
+        Me.menuItemTableExchangeCache.Size = New System.Drawing.Size(220, 22)
+        Me.menuItemTableExchangeCache.Text = "exchange_address_cache"
         '
         'menuItemHelpAbout
         '
@@ -375,6 +414,11 @@ Partial Class MainForm
     Friend WithEvents menuItemSearch As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemSettings As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemHelp As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuItemHelpTables As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuItemTableEmails As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuItemTableAttachments As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuItemTableDeletedIds As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuItemTableExchangeCache As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemHelpAbout As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents toolStrip As System.Windows.Forms.ToolStrip
     Friend WithEvents btnImportNow As System.Windows.Forms.ToolStripButton

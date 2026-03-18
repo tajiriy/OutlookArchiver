@@ -766,6 +766,30 @@ Public Class MainForm
         End If
     End Sub
 
+    ' ── テーブルビューア ──────────────────────────────────────
+
+    Private Sub menuItemTableEmails_Click(sender As Object, e As EventArgs) Handles menuItemTableEmails.Click
+        ShowTableViewer("emails")
+    End Sub
+
+    Private Sub menuItemTableAttachments_Click(sender As Object, e As EventArgs) Handles menuItemTableAttachments.Click
+        ShowTableViewer("attachments")
+    End Sub
+
+    Private Sub menuItemTableDeletedIds_Click(sender As Object, e As EventArgs) Handles menuItemTableDeletedIds.Click
+        ShowTableViewer("deleted_message_ids")
+    End Sub
+
+    Private Sub menuItemTableExchangeCache_Click(sender As Object, e As EventArgs) Handles menuItemTableExchangeCache.Click
+        ShowTableViewer("exchange_address_cache")
+    End Sub
+
+    Private Sub ShowTableViewer(tableName As String)
+        Using frm As New Forms.TableViewerForm(_dbManager, tableName)
+            frm.ShowDialog(Me)
+        End Using
+    End Sub
+
     Private Sub menuItemHelpAbout_Click(sender As Object, e As EventArgs) Handles menuItemHelpAbout.Click
         MessageBox.Show("OutlookArchiver" & vbCrLf & "Outlook メールアーカイブツール",
             "バージョン情報", MessageBoxButtons.OK, MessageBoxIcon.Information)
