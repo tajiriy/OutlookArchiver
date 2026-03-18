@@ -401,6 +401,49 @@ ALTER TABLE attachments ADD COLUMN is_inline  INTEGER DEFAULT 0;
 
 ---
 
+## メール検索: 高度なフィルタ構文
+
+### 概要
+
+MainForm の検索ボックスに列指定・AND/OR・添付有無フィルタを導入。テーブルビューアのフィルタ構文と統一された操作感を提供する。
+
+### 検索構文
+
+| 入力形式 | 動作 | 例 |
+|---------|------|-----|
+| `テキスト` | 全検索対象列で部分一致 (OR) | `amazon` |
+| `列名: 値` | 指定列で部分一致 (LIKE) | `件名: amazon` |
+| `列名= 値` | 指定列で完全一致 (=) | `件名= 請求書` |
+| `条件 and 条件` | AND 結合 | `件名: amazon and 添付: あり` |
+| `条件 or 条件` | OR 結合 | `件名: amazon or 件名: google` |
+
+### 利用可能な列名
+
+| 日本語名 | DB列名 | 検索対象 |
+|---------|--------|---------|
+| `件名` | `subject` | emails.subject |
+| `本文` | `body_text` | emails.body_text |
+| `差出人` | `sender_name` | emails.sender_name |
+| `メール` | `sender_email` | emails.sender_email |
+| `添付ファイル` | `file_name` | attachments.file_name |
+| `添付` | `has_attachments` | emails.has_attachments（`あり`/`なし`） |
+| `フォルダ` | `folder_name` | emails.folder_name |
+
+### 追加ファイル
+
+| ファイル | 役割 |
+|---------|------|
+| `Filters/EmailSearchFilter.vb` | フィルタ文字列を SQLite WHERE 句に変換。日本語↔DB列名マッピングを担当 |
+
+### 変更ファイル
+
+| ファイル | 変更内容 |
+|---------|---------|
+| `Data/EmailRepository.vb` | `SearchEmailsFiltered()` メソッド追加（EmailSearchFilter 経由の検索） |
+| `MainForm.vb` | `RunSearch()` を `SearchEmailsFiltered()` 呼び出しに変更 |
+
+---
+
 ## 技術的注意点
 
 | 項目 | 内容 |
