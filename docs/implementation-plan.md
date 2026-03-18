@@ -293,6 +293,40 @@ ALTER TABLE attachments ADD COLUMN is_inline  INTEGER DEFAULT 0;
 
 ---
 
+## データ初期化の再起動不要化
+
+### 変更前
+
+データ初期化（DB削除・添付フォルダ削除）後に「アプリを再起動してください」と案内していた。
+
+### 変更後
+
+`SettingsForm` に `DataWasReset As Boolean` プロパティを追加。初期化成功時にフラグをセットしてダイアログを閉じる。`MainForm` 側で `DataWasReset = True` を検出すると `ReinitializeApp()` を呼び出し、`InitializeServices()` の再実行と UI 全リセット（フォルダツリー・メール一覧・プレビュー・検索クエリ）を行う。
+
+---
+
+## 取り込みパフォーマンス改善
+
+### 背景
+
+古い PST からの取り込みで約 5分/100件 かかっていた。Outlook COM の `Body`/`HTMLBody` 取得は Outlook 側の制約で改善困難だが、DB 書き込みとスレッド判定に起因する遅延は大幅に改善できる。
+
+### ① DB 書き込みのバルクトランザクション化
+
+- **変更前**: `InsertEmail` / `InsertAttachment` が 1件ごとに接続を開き自動コミット（SQLite は毎回 fsync）
+- **変更後**: `EmailRepository` に `BeginBulk()` / `CommitBulk()` / `RollbackBulk()` を追加。`ImportFolder` 全体を共有トランザクションで包み、50件ごとに中間コミット（クラッシュ時のデータロスを 50件以内に限定）
+
+### ② スレッド判定のインメモリキャッシュ化
+
+- **変更前**: 1件ごとに `MessageId → ThreadId` / `NormalizedSubject → ThreadId` を DB クエリ（最大 3クエリ/件）
+- **変更後**: 取り込み開始前に `EmailRepository.GetThreadIdCaches()` で全件を Dictionary にロード。`ThreadingService.LoadCaches()` でセット後、セッション中はメモリ参照のみ。新規割り当てはリアルタイムでキャッシュに追記。終了後は `ClearCaches()` で解放
+
+### ③ 添付 ContentID の二重取得を除去
+
+`ExtractEmailData` での HasAttachments チェックで ContentID 取得（PropertyAccessor）を行っていたが、同じ処理が `SaveAttachments` でも行われていた。`ExtractEmailData` 側を OLE 除外のみに簡略化し COM 呼び出しを削減。
+
+---
+
 ## 技術的注意点
 
 | 項目 | 内容 |
