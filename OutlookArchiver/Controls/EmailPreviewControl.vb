@@ -2,6 +2,7 @@ Option Explicit On
 Option Strict On
 Option Infer Off
 
+Imports System.Drawing
 Imports System.IO
 Imports System.Text.RegularExpressions
 
@@ -18,6 +19,8 @@ Namespace Controls
         Private _currentEmail As Models.Email
         Private _showHtml As Boolean
         Private _highlightQuery As String
+        Private _attachImageList As System.Windows.Forms.ImageList
+        Private _attachContextMenu As System.Windows.Forms.ContextMenuStrip
 
         ' ════════════════════════════════════════════════════════════
         '  初期化
@@ -26,11 +29,23 @@ Namespace Controls
         Public Sub New()
             InitializeComponent()
             ' キャプションラベルにボールドフォントを適用
-            Dim boldFont As New System.Drawing.Font(Me.Font, System.Drawing.FontStyle.Bold)
+            Dim boldFont As New Font(Me.Font, FontStyle.Bold)
             lblFromCaption.Font = boldFont
             lblDateCaption.Font = boldFont
             lblSubjectCaption.Font = boldFont
             lblToCaption.Font = boldFont
+
+            ' 添付ファイルアイコン用 ImageList
+            _attachImageList = New System.Windows.Forms.ImageList()
+            _attachImageList.ImageSize = New Size(16, 16)
+            _attachImageList.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit
+            BuildAttachmentIcons()
+
+            ' 添付ファイル右クリックメニュー
+            _attachContextMenu = New System.Windows.Forms.ContextMenuStrip()
+            Dim menuSaveAs As New System.Windows.Forms.ToolStripMenuItem("名前を付けて保存...")
+            AddHandler menuSaveAs.Click, AddressOf AttachmentSaveAs_Click
+            _attachContextMenu.Items.Add(menuSaveAs)
         End Sub
 
         ' ════════════════════════════════════════════════════════════
@@ -230,15 +245,13 @@ Namespace Controls
                 For Each m As Match In matches
                     Dim recipName As String = m.Groups("name").Value.Trim()
                     Dim recipEmail As String = m.Groups("email").Value.Trim()
-                    If recipName.Length > 0 AndAlso recipEmail.Length > 0 Then
-                        parts.Add(recipName & " <" & recipEmail & ">")
+                    If recipName.Length > 0 Then
+                        parts.Add(recipName)
                     ElseIf recipEmail.Length > 0 Then
                         parts.Add(recipEmail)
-                    ElseIf recipName.Length > 0 Then
-                        parts.Add(recipName)
                     End If
                 Next
-                Return String.Join(", ", parts.ToArray())
+                Return String.Join("; ", parts.ToArray())
             End If
 
             ' フォールバック: 単純な文字列配列 ["a@b.com","c@d.com"]
@@ -261,20 +274,103 @@ Namespace Controls
                 If att.IsInline Then Continue For
 
                 Dim btn As New System.Windows.Forms.Button()
-                btn.Text = att.FileName
+                btn.Text = "  " & att.FileName
                 btn.Tag = att
                 btn.Height = 26
                 btn.Width = flowAttachments.ClientSize.Width - 10
                 btn.AutoSize = False
                 btn.AutoEllipsis = True
                 btn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-                btn.Padding = New System.Windows.Forms.Padding(4, 0, 4, 0)
+                btn.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
+                btn.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText
+                btn.ImageList = _attachImageList
+                btn.ImageKey = GetIconKey(Path.GetExtension(att.FileName))
+                btn.Padding = New System.Windows.Forms.Padding(2, 0, 2, 0)
+                btn.ContextMenuStrip = _attachContextMenu
                 AddHandler btn.Click, AddressOf AttachmentButton_Click
                 flowAttachments.Controls.Add(btn)
                 hasVisible = True
             Next
             pnlAttachments.Visible = hasVisible
         End Sub
+
+        ' ════════════════════════════════════════════════════════════
+        '  添付ファイルアイコン
+        ' ════════════════════════════════════════════════════════════
+
+        ''' <summary>ファイル種類ごとのアイコンを ImageList に登録する。</summary>
+        Private Sub BuildAttachmentIcons()
+            ' PDF (赤)
+            _attachImageList.Images.Add("pdf", CreateFileIcon(Color.FromArgb(220, 50, 50), "P"))
+            ' Word (青)
+            _attachImageList.Images.Add("doc", CreateFileIcon(Color.FromArgb(40, 90, 180), "W"))
+            ' Excel (緑)
+            _attachImageList.Images.Add("xls", CreateFileIcon(Color.FromArgb(30, 130, 60), "X"))
+            ' PowerPoint (オレンジ)
+            _attachImageList.Images.Add("ppt", CreateFileIcon(Color.FromArgb(210, 120, 20), "P"))
+            ' 画像 (紫)
+            _attachImageList.Images.Add("img", CreateFileIcon(Color.FromArgb(120, 70, 170), "I"))
+            ' テキスト (グレー)
+            _attachImageList.Images.Add("txt", CreateFileIcon(Color.FromArgb(100, 100, 100), "T"))
+            ' 圧縮 (黄)
+            _attachImageList.Images.Add("zip", CreateFileIcon(Color.FromArgb(180, 150, 20), "Z"))
+            ' その他 (グレー)
+            _attachImageList.Images.Add("other", CreateFileIcon(Color.FromArgb(140, 140, 140), ""))
+        End Sub
+
+        ''' <summary>16×16 のファイルアイコンを生成する。</summary>
+        Private Shared Function CreateFileIcon(baseColor As Color, letter As String) As Bitmap
+            Dim bmp As New Bitmap(16, 16)
+            Using g As Graphics = Graphics.FromImage(bmp)
+                g.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias
+
+                ' 角丸矩形（ファイル形状）
+                Using brush As New SolidBrush(baseColor)
+                    g.FillRectangle(brush, 1, 1, 14, 14)
+                End Using
+                ' 折り目（右上三角）
+                Dim pts() As Point = {New Point(10, 1), New Point(15, 6), New Point(15, 1)}
+                Using brush As New SolidBrush(Color.FromArgb(60, Color.White))
+                    g.FillPolygon(brush, pts)
+                End Using
+
+                ' 中央の文字
+                If letter.Length > 0 Then
+                    Using fnt As New Font("Segoe UI", 7.5F, FontStyle.Bold)
+                        Using sf As New StringFormat()
+                            sf.Alignment = StringAlignment.Center
+                            sf.LineAlignment = StringAlignment.Center
+                            g.DrawString(letter, fnt, Brushes.White, New RectangleF(0, 1, 16, 15), sf)
+                        End Using
+                    End Using
+                End If
+            End Using
+            Return bmp
+        End Function
+
+        ''' <summary>拡張子からアイコンキーを返す。</summary>
+        Private Shared Function GetIconKey(ext As String) As String
+            If String.IsNullOrEmpty(ext) Then Return "other"
+            Select Case ext.ToLower()
+                Case ".pdf"
+                    Return "pdf"
+                Case ".doc", ".docx", ".docm", ".rtf"
+                    Return "doc"
+                Case ".xls", ".xlsx", ".xlsm", ".csv"
+                    Return "xls"
+                Case ".ppt", ".pptx", ".pptm"
+                    Return "ppt"
+                Case ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".svg", ".webp"
+                    Return "img"
+                Case ".txt", ".log", ".xml", ".json", ".html", ".htm", ".css", ".js", ".vb", ".cs"
+                    Return "txt"
+                Case ".zip", ".rar", ".7z", ".tar", ".gz", ".lzh"
+                    Return "zip"
+                Case Else
+                    Return "other"
+            End Select
+        End Function
 
         ' ════════════════════════════════════════════════════════════
         '  イベントハンドラ
@@ -299,6 +395,42 @@ Namespace Controls
                 webBrowser.Visible = False
                 btnToggleView.Text = "HTML 表示"
             End If
+        End Sub
+
+        Private Sub AttachmentSaveAs_Click(sender As Object, e As EventArgs)
+            ' コンテキストメニューの親ボタンから Attachment を取得
+            Dim menuItem As System.Windows.Forms.ToolStripMenuItem =
+                TryCast(sender, System.Windows.Forms.ToolStripMenuItem)
+            If menuItem Is Nothing Then Return
+            Dim cms As System.Windows.Forms.ContextMenuStrip =
+                TryCast(menuItem.Owner, System.Windows.Forms.ContextMenuStrip)
+            If cms Is Nothing Then Return
+            Dim btn As System.Windows.Forms.Button =
+                TryCast(cms.SourceControl, System.Windows.Forms.Button)
+            If btn Is Nothing Then Return
+
+            Dim att As Models.Attachment = TryCast(btn.Tag, Models.Attachment)
+            If att Is Nothing Then Return
+
+            If Not File.Exists(att.FilePath) Then
+                MessageBox.Show("ファイルが見つかりません:" & vbCrLf & att.FilePath,
+                    "エラー", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Return
+            End If
+
+            Using dlg As New System.Windows.Forms.SaveFileDialog()
+                dlg.FileName = att.FileName
+                dlg.Filter = "すべてのファイル (*.*)|*.*"
+                dlg.Title = "添付ファイルを保存"
+                If dlg.ShowDialog(Me) = System.Windows.Forms.DialogResult.OK Then
+                    Try
+                        File.Copy(att.FilePath, dlg.FileName, True)
+                    Catch ex As Exception
+                        MessageBox.Show("保存に失敗しました:" & vbCrLf & ex.Message,
+                            "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                    End Try
+                End If
+            End Using
         End Sub
 
         Private Sub AttachmentButton_Click(sender As Object, e As EventArgs)

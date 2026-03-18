@@ -54,16 +54,19 @@ Namespace Controls
             Me.pnlAttachments.SuspendLayout()
             Me.SuspendLayout()
 
-            ' ── pnlHeader (Dock=Top, 88px) ──────────────────────────────
+            ' ── pnlHeader (Dock=Top, AutoSize) ──────────────────────────
             Me.pnlHeader.BackColor = System.Drawing.SystemColors.Info
             Me.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top
-            Me.pnlHeader.Height = 88
+            Me.pnlHeader.AutoSize = True
+            Me.pnlHeader.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
+            Me.pnlHeader.MinimumSize = New System.Drawing.Size(0, 88)
             Me.pnlHeader.Name = "pnlHeader"
             Me.pnlHeader.Padding = New System.Windows.Forms.Padding(4, 2, 4, 2)
             Me.pnlHeader.Controls.Add(Me.tlpHeader)
 
             ' ── tlpHeader (2列・4行) ─────────────────────────────────────
             Me.tlpHeader.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.tlpHeader.AutoSize = True
             Me.tlpHeader.Name = "tlpHeader"
             Me.tlpHeader.ColumnCount = 2
             Me.tlpHeader.RowCount = 4
@@ -72,13 +75,13 @@ Namespace Controls
             Me.tlpHeader.ColumnStyles.Add(
                 New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100.0!))
             Me.tlpHeader.RowStyles.Add(
-                New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+                New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 22.0!))
             Me.tlpHeader.RowStyles.Add(
-                New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+                New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 22.0!))
             Me.tlpHeader.RowStyles.Add(
-                New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+                New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 22.0!))
             Me.tlpHeader.RowStyles.Add(
-                New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+                New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize))
 
             ' キャプションラベル
             Me.lblFromCaption.Dock = System.Windows.Forms.DockStyle.Fill
@@ -118,8 +121,10 @@ Namespace Controls
 
             Me.lblToValue.Dock = System.Windows.Forms.DockStyle.Fill
             Me.lblToValue.Name = "lblToValue"
-            Me.lblToValue.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
-            Me.lblToValue.AutoEllipsis = True
+            Me.lblToValue.TextAlign = System.Drawing.ContentAlignment.TopLeft
+            Me.lblToValue.AutoSize = True
+            Me.lblToValue.MaximumSize = New System.Drawing.Size(0, 0)
+            Me.lblToValue.Padding = New System.Windows.Forms.Padding(0, 3, 0, 3)
 
             Me.tlpHeader.Controls.Add(Me.lblFromCaption, 0, 0)
             Me.tlpHeader.Controls.Add(Me.lblFromValue, 1, 0)
