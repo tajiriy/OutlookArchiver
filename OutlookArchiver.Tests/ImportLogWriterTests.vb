@@ -96,12 +96,23 @@ Public Class ImportLogWriterTests
 
     <Test>
     Public Sub ImportErrorEntry_SetsAllProperties()
-        Dim entry As New ImportErrorEntry("受信トレイ", "msg-123", "テスト件名", "テストエラー")
+        Dim testDate As New DateTime(2025, 6, 15, 10, 30, 0)
+        Dim entry As New ImportErrorEntry("受信トレイ", "msg-123", "テスト件名", "テストエラー", testDate, "田中太郎")
 
         Assert.AreEqual("受信トレイ", entry.FolderName)
         Assert.AreEqual("msg-123", entry.MessageId)
         Assert.AreEqual("テスト件名", entry.Subject)
+        Assert.AreEqual(testDate, entry.ReceivedDate)
+        Assert.AreEqual("田中太郎", entry.SenderName)
         Assert.AreEqual("テストエラー", entry.ErrorMessage)
+    End Sub
+
+    <Test>
+    Public Sub ImportErrorEntry_OptionalParams_DefaultToEmptyAndNothing()
+        Dim entry As New ImportErrorEntry("受信トレイ", "msg-123", "テスト件名", "テストエラー")
+
+        Assert.IsNull(entry.ReceivedDate)
+        Assert.AreEqual("", entry.SenderName)
     End Sub
 
     ' ── ImportResult ────────────────────────────────────────

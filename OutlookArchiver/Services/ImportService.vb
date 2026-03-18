@@ -25,13 +25,18 @@ Namespace Services
         Public Property FolderName As String
         Public Property MessageId As String
         Public Property Subject As String
+        Public Property ReceivedDate As DateTime?
+        Public Property SenderName As String
         Public Property ErrorMessage As String
 
-        Public Sub New(folderName As String, messageId As String, subject As String, errorMessage As String)
+        Public Sub New(folderName As String, messageId As String, subject As String, errorMessage As String,
+                       Optional receivedDate As DateTime? = Nothing, Optional senderName As String = "")
             Me.Timestamp = DateTime.Now
             Me.FolderName = folderName
             Me.MessageId = messageId
             Me.Subject = subject
+            Me.ReceivedDate = receivedDate
+            Me.SenderName = senderName
             Me.ErrorMessage = errorMessage
         End Sub
     End Class
@@ -189,7 +194,14 @@ Namespace Services
                             errMsgId = _outlookSvc.ExtractMessageId(mailItem)
                         Catch
                         End Try
-                        result.Errors.Add(New ImportErrorEntry(folderName, errMsgId, subject, ex.Message))
+                        Dim errReceivedDate As DateTime? = Nothing
+                        Dim errSenderName As String = ""
+                        Try
+                            errReceivedDate = mailItem.ReceivedTime
+                            errSenderName = mailItem.SenderName
+                        Catch
+                        End Try
+                        result.Errors.Add(New ImportErrorEntry(folderName, errMsgId, subject, ex.Message, errReceivedDate, errSenderName))
                         Logger.Error(String.Format("メール取り込みエラー — フォルダ: {0}, 件名: {1}", folderName, subject), ex)
                     End Try
 
@@ -388,7 +400,7 @@ Namespace Services
                     _repo.InsertAttachment(att)
                 Next
                 For Each errMsg As String In attachSaveErrors
-                    importResult.Errors.Add(New ImportErrorEntry(folderName, email.MessageId, email.Subject, errMsg))
+                    importResult.Errors.Add(New ImportErrorEntry(folderName, email.MessageId, email.Subject, errMsg, email.ReceivedAt, email.SenderName))
                     importResult.ErrorCount += 1
                 Next
 

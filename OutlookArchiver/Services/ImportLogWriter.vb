@@ -37,6 +37,8 @@ Namespace Services
                     sw.WriteLine("  フォルダ   : " & If(String.IsNullOrEmpty(entry.FolderName), "(不明)", entry.FolderName))
                     sw.WriteLine("  MessageID  : " & If(String.IsNullOrEmpty(entry.MessageId), "(不明)", entry.MessageId))
                     sw.WriteLine("  件名       : " & If(String.IsNullOrEmpty(entry.Subject), "(不明)", entry.Subject))
+                    sw.WriteLine("  受信日時   : " & If(entry.ReceivedDate.HasValue, entry.ReceivedDate.Value.ToString("yyyy-MM-dd HH:mm:ss"), "(不明)"))
+                    sw.WriteLine("  送信者     : " & If(String.IsNullOrEmpty(entry.SenderName), "(不明)", entry.SenderName))
                     sw.WriteLine("  エラー内容 : " & entry.ErrorMessage)
                     sw.WriteLine()
                 Next
