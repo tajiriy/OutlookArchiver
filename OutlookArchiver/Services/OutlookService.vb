@@ -27,6 +27,9 @@ Namespace Services
         Private ReadOnly _ns As Outlook.NameSpace
         Private _disposed As Boolean
 
+        ''' <summary>Exchange アドレス (EX) → SMTP アドレスのキャッシュ。GetExchangeUser() のネットワーク往復を削減する。</summary>
+        Private ReadOnly _exchangeSmtpCache As New Dictionary(Of String, String)()
+
         Private Sub New(app As Outlook.Application)
             _app = app
             _ns = _app.GetNamespace("MAPI")
@@ -339,19 +342,38 @@ Namespace Services
         '  差出人・受信者ヘルパー
         ' ════════════════════════════════════════════════════════════
 
-        Private Shared Function GetSenderEmail(mailItem As Outlook.MailItem) As String
+        Private Function GetSenderEmail(mailItem As Outlook.MailItem) As String
             If mailItem.SenderEmailType <> "EX" Then
                 Return mailItem.SenderEmailAddress
             End If
+            Dim exAddr As String = mailItem.SenderEmailAddress
+            Return ResolveExchangeAddress(exAddr, Function() mailItem.Sender)
+        End Function
+
+        ''' <summary>
+        ''' Exchange アドレスを SMTP アドレスに解決する。キャッシュがあればネットワーク往復を回避する。
+        ''' </summary>
+        Private Function ResolveExchangeAddress(exAddress As String,
+                                                 getAddressEntry As Func(Of Outlook.AddressEntry)) As String
+            If String.IsNullOrEmpty(exAddress) Then Return exAddress
+
+            ' キャッシュヒット
+            Dim cached As String = Nothing
+            If _exchangeSmtpCache.TryGetValue(exAddress, cached) Then Return cached
+
+            ' キャッシュミス → Exchange Server に問い合わせ
+            Dim resolved As String = exAddress
             Try
-                Dim sender As Outlook.AddressEntry = mailItem.Sender
-                If sender IsNot Nothing Then
-                    Dim exUser As Outlook.ExchangeUser = sender.GetExchangeUser()
-                    If exUser IsNot Nothing Then Return exUser.PrimarySmtpAddress
+                Dim entry As Outlook.AddressEntry = getAddressEntry()
+                If entry IsNot Nothing Then
+                    Dim exUser As Outlook.ExchangeUser = entry.GetExchangeUser()
+                    If exUser IsNot Nothing Then resolved = exUser.PrimarySmtpAddress
                 End If
             Catch
             End Try
-            Return mailItem.SenderEmailAddress
+
+            _exchangeSmtpCache(exAddress) = resolved
+            Return resolved
         End Function
 
         ''' <summary>指定タイプの受信者を JSON 配列文字列にシリアライズする。</summary>
