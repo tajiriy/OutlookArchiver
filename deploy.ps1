@@ -11,7 +11,19 @@ $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $BuildDir = Join-Path $ProjectRoot "OutlookArchiver\bin\Release"
-$MSBuild = "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe"
+# vswhere で最新の Visual Studio から MSBuild.exe を検出
+$vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+if (-not (Test-Path $vswhere)) {
+    throw "vswhere.exe が見つかりません: $vswhere"
+}
+$vsPath = & $vswhere -latest -requires Microsoft.Component.MSBuild -property installationPath
+if (-not $vsPath) {
+    throw "MSBuild がインストールされた Visual Studio が見つかりません"
+}
+$MSBuild = Join-Path $vsPath "MSBuild\Current\Bin\MSBuild.exe"
+if (-not (Test-Path $MSBuild)) {
+    throw "MSBuild.exe が見つかりません: $MSBuild"
+}
 $Project = Join-Path $ProjectRoot "OutlookArchiver\OutlookArchiver.vbproj"
 
 Write-Host "=== OutlookArchiver デプロイ ==="
