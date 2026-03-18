@@ -247,6 +247,21 @@ Public Class MainForm
         conversationView.ShowThread(threadEmails, email.Id)
     End Sub
 
+    ''' <summary>メール一覧のダブルクリックで別ウィンドウにメールを表示する。</summary>
+    Private Sub listViewEmails_DoubleClick(sender As Object, e As EventArgs) Handles listViewEmails.DoubleClick
+        If listViewEmails.SelectedIndices.Count = 0 Then Return
+
+        Dim idx As Integer = listViewEmails.SelectedIndices(0)
+        If idx < 0 OrElse idx >= _emailCache.Count Then Return
+
+        Dim email As Models.Email = _repo.GetEmailById(_emailCache(idx).Id)
+        If email Is Nothing Then Return
+
+        Dim frm As New Forms.EmailViewForm()
+        frm.ShowEmail(email, _searchQuery)
+        frm.Show()
+    End Sub
+
     ''' <summary>VirtualMode: 指定インデックスのListViewItemを返す。</summary>
     Private Sub listViewEmails_RetrieveVirtualItem(sender As Object, e As RetrieveVirtualItemEventArgs) Handles listViewEmails.RetrieveVirtualItem
         If e.ItemIndex < 0 OrElse e.ItemIndex >= _emailCache.Count Then
