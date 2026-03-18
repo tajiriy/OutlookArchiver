@@ -24,6 +24,18 @@ Namespace Controls
         Private _attachLargeImageList As System.Windows.Forms.ImageList
         Private _attachContextMenu As System.Windows.Forms.ContextMenuStrip
         Private _attachToolTip As System.Windows.Forms.ToolTip
+        Private ReadOnly _htmlSanitizer As New Services.HtmlSanitizerService()
+
+        ''' <summary>ダブルクリックで開くことをブロックする危険な拡張子。</summary>
+        Private Shared ReadOnly BlockedExtensions() As String = {
+            ".exe", ".bat", ".cmd", ".com", ".scr", ".pif",
+            ".vbs", ".vbe", ".js", ".jse", ".wsf", ".wsh", ".ws",
+            ".ps1", ".ps2", ".psc1", ".psc2",
+            ".msi", ".msp", ".mst",
+            ".cpl", ".hta", ".inf", ".reg",
+            ".dll", ".ocx", ".sys",
+            ".lnk", ".url"
+        }
 
         ' ════════════════════════════════════════════════════════════
         '  初期化
@@ -61,6 +73,9 @@ Namespace Controls
             Dim menuSaveAs As New System.Windows.Forms.ToolStripMenuItem("名前を付けて保存...")
             AddHandler menuSaveAs.Click, AddressOf AttachmentSaveAs_Click
             _attachContextMenu.Items.Add(menuSaveAs)
+
+            ' WebBrowser のリンククリック制御
+            AddHandler webBrowser.Navigating, AddressOf WebBrowser_Navigating
         End Sub
 
         ' ════════════════════════════════════════════════════════════
@@ -112,6 +127,7 @@ Namespace Controls
             _showHtml = Not _showHtml
             If _showHtml Then
                 Dim html As String = If(_currentEmail.BodyHtml, String.Empty)
+                html = _htmlSanitizer.Sanitize(html)
                 html = ReplaceCidReferences(html, _currentEmail.Attachments)
                 If Not String.IsNullOrEmpty(_highlightQuery) Then
                     html = InjectHighlightScript(html, _highlightQuery)
@@ -156,6 +172,7 @@ Namespace Controls
 
             If _showHtml Then
                 Dim html As String = If(email.BodyHtml, String.Empty)
+                html = _htmlSanitizer.Sanitize(html)
                 html = ReplaceCidReferences(html, email.Attachments)
                 If Not String.IsNullOrEmpty(_highlightQuery) Then
                     html = InjectHighlightScript(html, _highlightQuery)
@@ -539,6 +556,12 @@ Namespace Controls
             If ext = ".jpg" OrElse ext = ".jpeg" OrElse ext = ".png" OrElse
                ext = ".gif" OrElse ext = ".bmp" Then
                 ShowImagePreview(att.FilePath, att.FileName)
+            ElseIf IsBlockedExtension(ext) Then
+                MessageBox.Show(
+                    "セキュリティ上の理由により、この種類のファイルは直接開けません。" & vbCrLf &
+                    "右クリック→「名前を付けて保存」で保存してから開いてください。" & vbCrLf & vbCrLf &
+                    "ファイル名: " & att.FileName,
+                    "ブロックされたファイル", MessageBoxButtons.OK, MessageBoxIcon.Warning)
             Else
                 Try
                     Dim psi As New System.Diagnostics.ProcessStartInfo(att.FilePath)
@@ -586,6 +609,50 @@ Namespace Controls
 
             img.Dispose()
             frm.Dispose()
+        End Sub
+
+        ''' <summary>指定された拡張子がブロック対象かどうかを返す。</summary>
+        Private Shared Function IsBlockedExtension(ext As String) As Boolean
+            If String.IsNullOrEmpty(ext) Then Return False
+            For Each blocked As String In BlockedExtensions
+                If String.Equals(ext, blocked, StringComparison.OrdinalIgnoreCase) Then
+                    Return True
+                End If
+            Next
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' WebBrowser のナビゲーションを制御する。
+        ''' about:blank（初期表示・DocumentText セット）以外のナビゲーションをブロックし、
+        ''' 外部 URL の場合はデフォルトブラウザで開くか確認する。
+        ''' </summary>
+        Private Sub WebBrowser_Navigating(sender As Object, e As System.Windows.Forms.WebBrowserNavigatingEventArgs)
+            Dim url As String = e.Url.ToString()
+
+            ' about:blank は DocumentText の設定時に発生するため許可
+            If url.Equals("about:blank", StringComparison.OrdinalIgnoreCase) Then Return
+
+            ' それ以外のナビゲーションはキャンセル
+            e.Cancel = True
+
+            ' http/https リンクの場合、ユーザーに確認してデフォルトブラウザで開く
+            If url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) OrElse
+               url.StartsWith("https://", StringComparison.OrdinalIgnoreCase) Then
+                Dim result As System.Windows.Forms.DialogResult = MessageBox.Show(
+                    "外部リンクをブラウザで開きますか？" & vbCrLf & vbCrLf & url,
+                    "リンクを開く", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
+                If result = System.Windows.Forms.DialogResult.Yes Then
+                    Try
+                        Dim psi As New System.Diagnostics.ProcessStartInfo(url)
+                        psi.UseShellExecute = True
+                        System.Diagnostics.Process.Start(psi)
+                    Catch ex As Exception
+                        MessageBox.Show("リンクを開けませんでした:" & vbCrLf & ex.Message,
+                            "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                    End Try
+                End If
+            End If
         End Sub
 
     End Class

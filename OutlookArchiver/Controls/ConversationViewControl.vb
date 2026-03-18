@@ -12,6 +12,7 @@ Namespace Controls
         Inherits System.Windows.Forms.UserControl
 
         Private ReadOnly _quoteStripper As New Services.QuoteStripperService()
+        Private ReadOnly _htmlSanitizer As New Services.HtmlSanitizerService()
         Private _threadEmails As List(Of Models.Email)
         Private _showHtml As Boolean
 
@@ -21,6 +22,8 @@ Namespace Controls
 
         Public Sub New()
             InitializeComponent()
+            ' WebBrowser のリンククリック制御
+            AddHandler webBrowserMsg.Navigating, AddressOf WebBrowserMsg_Navigating
         End Sub
 
         ' ════════════════════════════════════════════════════════════
@@ -105,7 +108,8 @@ Namespace Controls
         ''' <summary>現在の _showHtml に応じて引用除去済み本文をレンダリングする。</summary>
         Private Sub RenderBody(email As Models.Email)
             If _showHtml AndAlso Not String.IsNullOrEmpty(email.BodyHtml) Then
-                webBrowserMsg.DocumentText = _quoteStripper.StripQuotesFromHtml(email.BodyHtml)
+                Dim sanitizedHtml As String = _htmlSanitizer.Sanitize(email.BodyHtml)
+                webBrowserMsg.DocumentText = _quoteStripper.StripQuotesFromHtml(sanitizedHtml)
                 webBrowserMsg.Visible = True
                 txtBodyMsg.Visible = False
                 btnToggleMsgView.Text = "テキスト表示"
@@ -145,6 +149,33 @@ Namespace Controls
             If email Is Nothing Then Return
             _showHtml = Not _showHtml
             RenderBody(email)
+        End Sub
+
+        ''' <summary>
+        ''' WebBrowser のナビゲーションを制御する。
+        ''' about:blank 以外のナビゲーションをブロックし、外部 URL は確認後にデフォルトブラウザで開く。
+        ''' </summary>
+        Private Sub WebBrowserMsg_Navigating(sender As Object, e As System.Windows.Forms.WebBrowserNavigatingEventArgs)
+            Dim url As String = e.Url.ToString()
+            If url.Equals("about:blank", StringComparison.OrdinalIgnoreCase) Then Return
+            e.Cancel = True
+
+            If url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) OrElse
+               url.StartsWith("https://", StringComparison.OrdinalIgnoreCase) Then
+                Dim result As System.Windows.Forms.DialogResult = MessageBox.Show(
+                    "外部リンクをブラウザで開きますか？" & vbCrLf & vbCrLf & url,
+                    "リンクを開く", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
+                If result = System.Windows.Forms.DialogResult.Yes Then
+                    Try
+                        Dim psi As New System.Diagnostics.ProcessStartInfo(url)
+                        psi.UseShellExecute = True
+                        System.Diagnostics.Process.Start(psi)
+                    Catch ex As Exception
+                        MessageBox.Show("リンクを開けませんでした:" & vbCrLf & ex.Message,
+                            "エラー", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                    End Try
+                End If
+            End If
         End Sub
 
     End Class

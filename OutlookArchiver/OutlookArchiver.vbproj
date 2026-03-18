@@ -93,6 +93,7 @@
     <Compile Include="Services\ImportService.vb" />
     <Compile Include="Services\OutlookService.vb" />
     <Compile Include="Services\QuoteStripperService.vb" />
+    <Compile Include="Services\HtmlSanitizerService.vb" />
     <Compile Include="Services\ThreadingService.vb" />
     <Compile Include="Controls\ConversationViewControl.vb">
       <SubType>UserControl</SubType>
