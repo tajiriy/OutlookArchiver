@@ -246,6 +246,9 @@ ImportService.ImportFolder(folderName)
 - `OutlookService` に `_exchangeSmtpCache`（`Dictionary(Of String, String)`）を追加
 - `GetSenderEmail` / `SerializeRecipients` 内の `GetExchangeUser()` 呼び出しを `ResolveExchangeAddress()` 経由に統一
 - 同じ EX アドレスに対する2回目以降のネットワーク往復を回避。社内メールの多い環境で効果大
+- **永続化**: `exchange_address_cache` テーブル（`ex_address` PRIMARY KEY, `smtp_address`, `cached_at`）を SQLite に追加
+- 取り込み開始時に DB → メモリにロード、取り込み終了時にメモリ → DB に `INSERT OR IGNORE` で書き戻し
+- アプリ再起動後も過去に解決済みの Exchange アドレスはキャッシュヒットし、ネットワーク往復が不要
 
 #### 添付ファイル OLE チェックの短絡評価
 
