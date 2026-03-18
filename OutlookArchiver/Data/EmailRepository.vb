@@ -407,6 +407,21 @@ END;"
             End Using
         End Function
 
+        ''' <summary>最終取り込み日時（emails.created_at の最大値）を返す。レコードがない場合は Nothing。</summary>
+        Public Function GetLastImportDate() As DateTime?
+            Const sql As String = "SELECT MAX(created_at) FROM emails"
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As New SQLiteCommand(sql, conn)
+                    Dim result As Object = cmd.ExecuteScalar()
+                    If result Is Nothing OrElse TypeOf result Is DBNull Then Return Nothing
+                    Dim dateStr As String = CType(result, String)
+                    Dim dt As DateTime
+                    If DateTime.TryParse(dateStr, dt) Then Return dt
+                    Return Nothing
+                End Using
+            End Using
+        End Function
+
         ' ════════════════════════════════════════════════════════════
         '  Attachment 取得
         ' ════════════════════════════════════════════════════════════

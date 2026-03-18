@@ -715,6 +715,30 @@ Namespace Tests
         End Sub
 
         ' ════════════════════════════════════════════════════════════
+        '  最終取り込み日時
+        ' ════════════════════════════════════════════════════════════
+
+        <Test>
+        Public Sub GetLastImportDate_NoEmails_ReturnsNothing()
+            Dim result As DateTime? = _repo.GetLastImportDate()
+
+            Assert.IsFalse(result.HasValue)
+        End Sub
+
+        <Test>
+        Public Sub GetLastImportDate_WithEmails_ReturnsLatestCreatedAt()
+            _repo.InsertEmail(CreateTestEmail("first@example.com"))
+            ' created_at は DEFAULT (datetime('now', 'localtime')) で自動設定される
+            _repo.InsertEmail(CreateTestEmail("second@example.com"))
+
+            Dim result As DateTime? = _repo.GetLastImportDate()
+
+            Assert.IsTrue(result.HasValue)
+            ' created_at は now なので今日の日付であるはず
+            Assert.AreEqual(DateTime.Now.Date, result.Value.Date)
+        End Sub
+
+        ' ════════════════════════════════════════════════════════════
         '  ヘルパー
         ' ════════════════════════════════════════════════════════════
 

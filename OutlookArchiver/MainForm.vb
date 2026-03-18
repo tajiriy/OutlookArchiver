@@ -472,7 +472,16 @@ Public Class MainForm
         Catch
             lblStatusCount.Text = "総数 -件"
         End Try
-        lblStatusLastImport.Text = "最終取り込み: -"
+        Try
+            Dim lastImport As DateTime? = _repo.GetLastImportDate()
+            If lastImport.HasValue Then
+                lblStatusLastImport.Text = "最終取り込み: " & lastImport.Value.ToString("yyyy/MM/dd HH:mm")
+            Else
+                lblStatusLastImport.Text = "最終取り込み: -"
+            End If
+        Catch
+            lblStatusLastImport.Text = "最終取り込み: -"
+        End Try
     End Sub
 
     ' ════════════════════════════════════════════════════════════
