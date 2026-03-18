@@ -48,6 +48,10 @@ Public Class SettingsForm
         chkDefaultHtml.Checked = _settings.DefaultHtmlView
         chkSortAscending.Checked = _settings.ConversationSortAscending
         chkShowImportResult.Checked = _settings.ShowImportResult
+
+        chkMinimizeToTray.Checked = _settings.MinimizeToTray
+        chkCloseToTray.Checked = _settings.CloseToTray
+        chkShowBalloonOnImport.Checked = _settings.ShowBalloonOnImport
     End Sub
 
     ''' <summary>各コントロールの値を設定に保存する。</summary>
@@ -71,6 +75,10 @@ Public Class SettingsForm
         _settings.DefaultHtmlView = chkDefaultHtml.Checked
         _settings.ConversationSortAscending = chkSortAscending.Checked
         _settings.ShowImportResult = chkShowImportResult.Checked
+
+        _settings.MinimizeToTray = chkMinimizeToTray.Checked
+        _settings.CloseToTray = chkCloseToTray.Checked
+        _settings.ShowBalloonOnImport = chkShowBalloonOnImport.Checked
     End Sub
 
     ' ════════════════════════════════════════════════════════════

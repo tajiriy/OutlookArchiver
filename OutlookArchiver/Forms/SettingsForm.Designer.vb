@@ -43,6 +43,10 @@ Partial Class SettingsForm
         Me.chkDefaultHtml = New System.Windows.Forms.CheckBox()
         Me.chkSortAscending = New System.Windows.Forms.CheckBox()
         Me.chkShowImportResult = New System.Windows.Forms.CheckBox()
+        Me.grpTray = New System.Windows.Forms.GroupBox()
+        Me.chkMinimizeToTray = New System.Windows.Forms.CheckBox()
+        Me.chkCloseToTray = New System.Windows.Forms.CheckBox()
+        Me.chkShowBalloonOnImport = New System.Windows.Forms.CheckBox()
         Me.grpData = New System.Windows.Forms.GroupBox()
         Me.btnResetData = New System.Windows.Forms.Button()
         Me.pnlButtons = New System.Windows.Forms.Panel()
@@ -54,6 +58,7 @@ Partial Class SettingsForm
         CType(Me.numMaxCount, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.grpFolders.SuspendLayout()
         Me.grpDisplay.SuspendLayout()
+        Me.grpTray.SuspendLayout()
         Me.grpData.SuspendLayout()
         Me.pnlButtons.SuspendLayout()
         Me.SuspendLayout()
@@ -284,10 +289,49 @@ Partial Class SettingsForm
         Me.chkShowImportResult.TabIndex = 2
         Me.chkShowImportResult.Text = "取り込み完了時に結果ダイアログを表示する"
         '
+        'grpTray
+        '
+        Me.grpTray.Controls.Add(Me.chkMinimizeToTray)
+        Me.grpTray.Controls.Add(Me.chkCloseToTray)
+        Me.grpTray.Controls.Add(Me.chkShowBalloonOnImport)
+        Me.grpTray.Location = New System.Drawing.Point(8, 516)
+        Me.grpTray.Name = "grpTray"
+        Me.grpTray.Size = New System.Drawing.Size(488, 94)
+        Me.grpTray.TabIndex = 6
+        Me.grpTray.TabStop = False
+        Me.grpTray.Text = "タスクトレイ"
+        '
+        'chkMinimizeToTray
+        '
+        Me.chkMinimizeToTray.AutoSize = True
+        Me.chkMinimizeToTray.Location = New System.Drawing.Point(8, 22)
+        Me.chkMinimizeToTray.Name = "chkMinimizeToTray"
+        Me.chkMinimizeToTray.Size = New System.Drawing.Size(296, 17)
+        Me.chkMinimizeToTray.TabIndex = 0
+        Me.chkMinimizeToTray.Text = "最小化時にタスクトレイに格納する"
+        '
+        'chkCloseToTray
+        '
+        Me.chkCloseToTray.AutoSize = True
+        Me.chkCloseToTray.Location = New System.Drawing.Point(8, 46)
+        Me.chkCloseToTray.Name = "chkCloseToTray"
+        Me.chkCloseToTray.Size = New System.Drawing.Size(296, 17)
+        Me.chkCloseToTray.TabIndex = 1
+        Me.chkCloseToTray.Text = "閉じるボタンでタスクトレイに格納する"
+        '
+        'chkShowBalloonOnImport
+        '
+        Me.chkShowBalloonOnImport.AutoSize = True
+        Me.chkShowBalloonOnImport.Location = New System.Drawing.Point(8, 70)
+        Me.chkShowBalloonOnImport.Name = "chkShowBalloonOnImport"
+        Me.chkShowBalloonOnImport.Size = New System.Drawing.Size(296, 17)
+        Me.chkShowBalloonOnImport.TabIndex = 2
+        Me.chkShowBalloonOnImport.Text = "取り込み完了時にバルーン通知を表示する"
+        '
         'grpData
         '
         Me.grpData.Controls.Add(Me.btnResetData)
-        Me.grpData.Location = New System.Drawing.Point(8, 516)
+        Me.grpData.Location = New System.Drawing.Point(8, 618)
         Me.grpData.Name = "grpData"
         Me.grpData.Size = New System.Drawing.Size(488, 56)
         Me.grpData.TabIndex = 5
@@ -306,7 +350,7 @@ Partial Class SettingsForm
         '
         Me.pnlButtons.Controls.Add(Me.btnOk)
         Me.pnlButtons.Controls.Add(Me.btnCancel)
-        Me.pnlButtons.Location = New System.Drawing.Point(8, 580)
+        Me.pnlButtons.Location = New System.Drawing.Point(8, 682)
         Me.pnlButtons.Name = "pnlButtons"
         Me.pnlButtons.Size = New System.Drawing.Size(488, 34)
         Me.pnlButtons.TabIndex = 4
@@ -335,11 +379,12 @@ Partial Class SettingsForm
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.Font = New System.Drawing.Font("Meiryo UI", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(128, Byte))
         Me.CancelButton = Me.btnCancel
-        Me.ClientSize = New System.Drawing.Size(512, 624)
+        Me.ClientSize = New System.Drawing.Size(512, 726)
         Me.Controls.Add(Me.grpPaths)
         Me.Controls.Add(Me.grpAutoImport)
         Me.Controls.Add(Me.grpFolders)
         Me.Controls.Add(Me.grpDisplay)
+        Me.Controls.Add(Me.grpTray)
         Me.Controls.Add(Me.grpData)
         Me.Controls.Add(Me.pnlButtons)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
@@ -357,6 +402,8 @@ Partial Class SettingsForm
         Me.grpFolders.ResumeLayout(False)
         Me.grpDisplay.ResumeLayout(False)
         Me.grpDisplay.PerformLayout()
+        Me.grpTray.ResumeLayout(False)
+        Me.grpTray.PerformLayout()
         Me.grpData.ResumeLayout(False)
         Me.pnlButtons.ResumeLayout(False)
         Me.ResumeLayout(False)
@@ -387,6 +434,10 @@ Partial Class SettingsForm
     Friend WithEvents chkSortAscending As System.Windows.Forms.CheckBox
     Friend WithEvents chkShowImportResult As System.Windows.Forms.CheckBox
     Friend WithEvents chkSyncDeletions As System.Windows.Forms.CheckBox
+    Friend WithEvents grpTray As System.Windows.Forms.GroupBox
+    Friend WithEvents chkMinimizeToTray As System.Windows.Forms.CheckBox
+    Friend WithEvents chkCloseToTray As System.Windows.Forms.CheckBox
+    Friend WithEvents chkShowBalloonOnImport As System.Windows.Forms.CheckBox
     Friend WithEvents grpData As System.Windows.Forms.GroupBox
     Friend WithEvents btnResetData As System.Windows.Forms.Button
     Friend WithEvents pnlButtons As System.Windows.Forms.Panel

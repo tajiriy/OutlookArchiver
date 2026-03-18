@@ -117,6 +117,38 @@ Namespace Config
             End Set
         End Property
 
+        ' ── タスクトレイ常駐 ──────────────────────────────────────
+
+        ''' <summary>最小化時にタスクトレイに格納するか</summary>
+        Public Property MinimizeToTray As Boolean
+            Get
+                Return GetBool("MinimizeToTray", defaultValue:=True)
+            End Get
+            Set(value As Boolean)
+                SaveSetting("MinimizeToTray", value.ToString())
+            End Set
+        End Property
+
+        ''' <summary>閉じるボタンでタスクトレイに格納するか</summary>
+        Public Property CloseToTray As Boolean
+            Get
+                Return GetBool("CloseToTray", defaultValue:=True)
+            End Get
+            Set(value As Boolean)
+                SaveSetting("CloseToTray", value.ToString())
+            End Set
+        End Property
+
+        ''' <summary>取り込み完了時にバルーン通知を表示するか</summary>
+        Public Property ShowBalloonOnImport As Boolean
+            Get
+                Return GetBool("ShowBalloonOnImport", defaultValue:=True)
+            End Get
+            Set(value As Boolean)
+                SaveSetting("ShowBalloonOnImport", value.ToString())
+            End Set
+        End Property
+
         ' ── 結果ダイアログ ────────────────────────────────────────
 
         ''' <summary>取り込み完了時に結果ダイアログを表示するか</summary>

@@ -80,6 +80,7 @@
     <Compile Include="HtmlSanitizerServiceTests.vb" />
     <Compile Include="ImportLogWriterTests.vb" />
     <Compile Include="LoggerTests.vb" />
+    <Compile Include="AppSettingsTests.vb" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

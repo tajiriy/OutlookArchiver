@@ -23,6 +23,7 @@ Partial Class MainForm
 
     <System.Diagnostics.DebuggerStepThrough()> _
     Private Sub InitializeComponent()
+        Me.components = New System.ComponentModel.Container()
         Me.menuStrip = New System.Windows.Forms.MenuStrip()
         Me.menuItemFile = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemFileExit = New System.Windows.Forms.ToolStripMenuItem()
@@ -63,6 +64,13 @@ Partial Class MainForm
         Me.btnToggleView = New System.Windows.Forms.Button()
         Me.emailPreview = New OutlookArchiver.Controls.EmailPreviewControl()
         Me.conversationView = New OutlookArchiver.Controls.ConversationViewControl()
+        Me.notifyIcon = New System.Windows.Forms.NotifyIcon(Me.components)
+        Me.trayContextMenu = New System.Windows.Forms.ContextMenuStrip(Me.components)
+        Me.trayMenuShow = New System.Windows.Forms.ToolStripMenuItem()
+        Me.trayMenuImportNow = New System.Windows.Forms.ToolStripMenuItem()
+        Me.trayMenuSep1 = New System.Windows.Forms.ToolStripSeparator()
+        Me.trayMenuExit = New System.Windows.Forms.ToolStripMenuItem()
+        Me.trayContextMenu.SuspendLayout()
         Me.menuStrip.SuspendLayout()
         Me.toolStrip.SuspendLayout()
         CType(Me.splitMain, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -396,6 +404,42 @@ Partial Class MainForm
         Me.emailPreview.Size = New System.Drawing.Size(1109, 378)
         Me.emailPreview.TabIndex = 0
         '
+        'notifyIcon
+        '
+        Me.notifyIcon.ContextMenuStrip = Me.trayContextMenu
+        Me.notifyIcon.Text = "OutlookArchiver"
+        Me.notifyIcon.Visible = False
+        '
+        'trayContextMenu
+        '
+        Me.trayContextMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.trayMenuShow, Me.trayMenuImportNow, Me.trayMenuSep1, Me.trayMenuExit})
+        Me.trayContextMenu.Name = "trayContextMenu"
+        Me.trayContextMenu.Size = New System.Drawing.Size(170, 76)
+        '
+        'trayMenuShow
+        '
+        Me.trayMenuShow.Font = New System.Drawing.Font("Meiryo UI", 9.0!, System.Drawing.FontStyle.Bold)
+        Me.trayMenuShow.Name = "trayMenuShow"
+        Me.trayMenuShow.Size = New System.Drawing.Size(169, 22)
+        Me.trayMenuShow.Text = "表示(&S)"
+        '
+        'trayMenuImportNow
+        '
+        Me.trayMenuImportNow.Name = "trayMenuImportNow"
+        Me.trayMenuImportNow.Size = New System.Drawing.Size(169, 22)
+        Me.trayMenuImportNow.Text = "今すぐ取り込み(&I)"
+        '
+        'trayMenuSep1
+        '
+        Me.trayMenuSep1.Name = "trayMenuSep1"
+        Me.trayMenuSep1.Size = New System.Drawing.Size(166, 6)
+        '
+        'trayMenuExit
+        '
+        Me.trayMenuExit.Name = "trayMenuExit"
+        Me.trayMenuExit.Size = New System.Drawing.Size(169, 22)
+        Me.trayMenuExit.Text = "終了(&X)"
+        '
         'MainForm
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
@@ -426,6 +470,7 @@ Partial Class MainForm
         Me.tabPageThread.ResumeLayout(False)
         Me.statusStrip.ResumeLayout(False)
         Me.statusStrip.PerformLayout()
+        Me.trayContextMenu.ResumeLayout(False)
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -472,5 +517,11 @@ Partial Class MainForm
     Friend WithEvents lblStatusSep As System.Windows.Forms.ToolStripStatusLabel
     Friend WithEvents lblStatusLastImport As System.Windows.Forms.ToolStripStatusLabel
     Friend WithEvents btnToggleView As System.Windows.Forms.Button
+    Friend WithEvents notifyIcon As System.Windows.Forms.NotifyIcon
+    Friend WithEvents trayContextMenu As System.Windows.Forms.ContextMenuStrip
+    Friend WithEvents trayMenuShow As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents trayMenuImportNow As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents trayMenuSep1 As System.Windows.Forms.ToolStripSeparator
+    Friend WithEvents trayMenuExit As System.Windows.Forms.ToolStripMenuItem
 
 End Class

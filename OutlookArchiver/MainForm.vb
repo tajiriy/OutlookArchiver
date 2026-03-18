@@ -21,6 +21,7 @@ Public Class MainForm
     Private _importCts As System.Threading.CancellationTokenSource
     Private _lastOutlookTotalCount As Integer = -1  ' -1 = 未取得
     Private _autoImportEnabled As Boolean
+    Private _isRealClose As Boolean       ' True = 本当に終了する（トレイ格納ではなく）
     Private _searchQuery As String        ' 現在の検索クエリ（Nothing = 検索なし）
     Private _updatingFolderCounts As Boolean ' フォルダ件数更新中のイベント抑制フラグ
     Private _currentFolderTotalCount As Integer ' 現在選択中フォルダの総件数
@@ -46,6 +47,7 @@ Public Class MainForm
 
         InitializeServices()
         SetupAutoImportTimer()
+        SetupNotifyIcon()
         SetupEmailListColumns()
         SetupListViewContextMenu()
         SetupToggleViewButton()
@@ -421,6 +423,9 @@ Public Class MainForm
                 MessageBox.Show(msg, "取り込み結果", MessageBoxButtons.OK, MessageBoxIcon.Information)
             End If
 
+            ' トレイ常駐中はバルーン通知
+            ShowImportBalloon(result)
+
             ' フォルダツリーとメール一覧を更新
             LoadFolderTree()
             Await LoadEmailsAsync(_currentFolder)
@@ -448,6 +453,85 @@ Public Class MainForm
         End Try
         Await UpdateStatusBarAsync()
     End Function
+
+    ' ════════════════════════════════════════════════════════════
+    '  タスクトレイ常駐
+    ' ════════════════════════════════════════════════════════════
+
+    ''' <summary>NotifyIcon のアイコンとイベントを設定する。</summary>
+    Private Sub SetupNotifyIcon()
+        ' 実行ファイルからアイコンを取得（アイコン未設定の場合はデフォルトアイコン）
+        Dim exePath As String = System.Reflection.Assembly.GetExecutingAssembly().Location
+        Dim appIcon As System.Drawing.Icon = System.Drawing.Icon.ExtractAssociatedIcon(exePath)
+        If appIcon IsNot Nothing Then
+            notifyIcon.Icon = appIcon
+            Me.Icon = appIcon
+        End If
+        notifyIcon.Visible = True
+
+        AddHandler notifyIcon.DoubleClick, AddressOf NotifyIcon_DoubleClick
+        AddHandler trayMenuShow.Click, AddressOf TrayMenuShow_Click
+        AddHandler trayMenuImportNow.Click, AddressOf TrayMenuImportNow_Click
+        AddHandler trayMenuExit.Click, AddressOf TrayMenuExit_Click
+    End Sub
+
+    ''' <summary>フォームをタスクトレイに格納する。</summary>
+    Private Sub MinimizeToSystemTray()
+        Me.Hide()
+        Me.ShowInTaskbar = False
+        Services.Logger.Info("タスクトレイに格納しました")
+    End Sub
+
+    ''' <summary>タスクトレイからフォームを復帰する。</summary>
+    Private Sub RestoreFromSystemTray()
+        Me.Show()
+        Me.ShowInTaskbar = True
+        Me.WindowState = FormWindowState.Normal
+        Me.Activate()
+    End Sub
+
+    ''' <summary>最小化時にタスクトレイへ格納する。</summary>
+    Private Sub MainForm_Resize(sender As Object, e As EventArgs) Handles MyBase.Resize
+        If Me.WindowState = FormWindowState.Minimized AndAlso _settings.MinimizeToTray Then
+            MinimizeToSystemTray()
+        End If
+    End Sub
+
+    Private Sub NotifyIcon_DoubleClick(sender As Object, e As EventArgs)
+        RestoreFromSystemTray()
+    End Sub
+
+    Private Sub TrayMenuShow_Click(sender As Object, e As EventArgs)
+        RestoreFromSystemTray()
+    End Sub
+
+    Private Async Sub TrayMenuImportNow_Click(sender As Object, e As EventArgs)
+        RestoreFromSystemTray()
+        Await RunImportAsync()
+    End Sub
+
+    Private Sub TrayMenuExit_Click(sender As Object, e As EventArgs)
+        _isRealClose = True
+        Me.Close()
+    End Sub
+
+    ''' <summary>取り込み完了時にバルーン通知を表示する。</summary>
+    Private Sub ShowImportBalloon(result As Services.ImportResult)
+        If Not _settings.ShowBalloonOnImport Then Return
+        If Not notifyIcon.Visible Then Return
+
+        Dim msg As String = String.Format("取り込み: {0}件 / スキップ: {1}件",
+            result.ImportedCount, result.SkippedCount)
+        If result.ErrorCount > 0 Then
+            msg &= String.Format(" / エラー: {0}件", result.ErrorCount)
+        End If
+        If result.DeletedCount > 0 Then
+            msg &= String.Format(" / 削除同期: {0}件", result.DeletedCount)
+        End If
+
+        Dim tipIcon As ToolTipIcon = If(result.ErrorCount > 0, ToolTipIcon.Warning, ToolTipIcon.Info)
+        notifyIcon.ShowBalloonTip(5000, "取り込み完了", msg, tipIcon)
+    End Sub
 
     ' ════════════════════════════════════════════════════════════
     '  自動取り込み
@@ -896,6 +980,15 @@ Public Class MainForm
 
     ''' <summary>フォーム終了時に列設定を保存する。取り込み中の場合は確認ダイアログを表示する。</summary>
     Private Sub MainForm_FormClosing(sender As Object, e As FormClosingEventArgs) Handles MyBase.FormClosing
+        ' 閉じるボタンでトレイに格納（ユーザー操作かつ本当の終了でない場合）
+        If e.CloseReason = CloseReason.UserClosing AndAlso
+           Not _isRealClose AndAlso
+           _settings.CloseToTray Then
+            e.Cancel = True
+            MinimizeToSystemTray()
+            Return
+        End If
+
         If _isImporting Then
             Dim answer As DialogResult = MessageBox.Show(
                 "メールの取り込み中です。中断して終了しますか？" & vbCrLf &
@@ -924,6 +1017,7 @@ Public Class MainForm
         End If
 
         SaveColumnSettings()
+        notifyIcon.Visible = False
         Services.Logger.Info("アプリケーションを終了します")
     End Sub
 
@@ -932,6 +1026,7 @@ Public Class MainForm
     ' ════════════════════════════════════════════════════════════
 
     Private Sub menuItemFileExit_Click(sender As Object, e As EventArgs) Handles menuItemFileExit.Click
+        _isRealClose = True
         Me.Close()
     End Sub
 
