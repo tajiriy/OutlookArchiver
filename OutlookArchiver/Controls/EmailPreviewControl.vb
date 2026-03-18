@@ -18,6 +18,7 @@ Namespace Controls
 
         Private _currentEmail As Models.Email
         Private _showHtml As Boolean
+        Private _canToggle As Boolean
         Private _highlightQuery As String
         Private _attachImageList As System.Windows.Forms.ImageList
         Private _attachContextMenu As System.Windows.Forms.ContextMenuStrip
@@ -73,8 +74,42 @@ Namespace Controls
             txtBodyText.Text = String.Empty
             flowAttachments.Controls.Clear()
             pnlAttachments.Visible = False
-            btnToggleView.Enabled = False
-            btnToggleView.Text = "テキスト表示"
+            _canToggle = False
+            _showHtml = False
+        End Sub
+
+        ''' <summary>HTML/テキスト表示の切り替えが可能かどうか。</summary>
+        Public ReadOnly Property CanToggleView As Boolean
+            Get
+                Return _canToggle
+            End Get
+        End Property
+
+        ''' <summary>現在 HTML 表示中かどうか。</summary>
+        Public ReadOnly Property IsHtmlView As Boolean
+            Get
+                Return _showHtml
+            End Get
+        End Property
+
+        ''' <summary>HTML/テキスト表示を切り替える。MainForm のボタンから呼ばれる。</summary>
+        Public Sub ToggleView()
+            If _currentEmail Is Nothing Then Return
+            _showHtml = Not _showHtml
+            If _showHtml Then
+                Dim html As String = If(_currentEmail.BodyHtml, String.Empty)
+                html = ReplaceCidReferences(html, _currentEmail.Attachments)
+                If Not String.IsNullOrEmpty(_highlightQuery) Then
+                    html = InjectHighlightScript(html, _highlightQuery)
+                End If
+                webBrowser.DocumentText = html
+                webBrowser.Visible = True
+                txtBodyText.Visible = False
+            Else
+                txtBodyText.Text = If(_currentEmail.BodyText, String.Empty)
+                txtBodyText.Visible = True
+                webBrowser.Visible = False
+            End If
         End Sub
 
         ' ════════════════════════════════════════════════════════════
@@ -102,7 +137,7 @@ Namespace Controls
             Dim hasText As Boolean = Not String.IsNullOrEmpty(email.BodyText)
 
             ' 両方ある場合のみトグル有効
-            btnToggleView.Enabled = hasHtml AndAlso hasText
+            _canToggle = hasHtml AndAlso hasText
             _showHtml = hasHtml
 
             If _showHtml Then
@@ -114,12 +149,10 @@ Namespace Controls
                 webBrowser.DocumentText = html
                 webBrowser.Visible = True
                 txtBodyText.Visible = False
-                btnToggleView.Text = "テキスト表示"
             Else
                 txtBodyText.Text = If(email.BodyText, String.Empty)
                 txtBodyText.Visible = True
                 webBrowser.Visible = False
-                btnToggleView.Text = "HTML 表示"
             End If
         End Sub
 
@@ -375,27 +408,6 @@ Namespace Controls
         ' ════════════════════════════════════════════════════════════
         '  イベントハンドラ
         ' ════════════════════════════════════════════════════════════
-
-        Private Sub btnToggleView_Click(sender As Object, e As EventArgs) Handles btnToggleView.Click
-            If _currentEmail Is Nothing Then Return
-            _showHtml = Not _showHtml
-            If _showHtml Then
-                Dim html As String = If(_currentEmail.BodyHtml, String.Empty)
-                html = ReplaceCidReferences(html, _currentEmail.Attachments)
-                If Not String.IsNullOrEmpty(_highlightQuery) Then
-                    html = InjectHighlightScript(html, _highlightQuery)
-                End If
-                webBrowser.DocumentText = html
-                webBrowser.Visible = True
-                txtBodyText.Visible = False
-                btnToggleView.Text = "テキスト表示"
-            Else
-                txtBodyText.Text = If(_currentEmail.BodyText, String.Empty)
-                txtBodyText.Visible = True
-                webBrowser.Visible = False
-                btnToggleView.Text = "HTML 表示"
-            End If
-        End Sub
 
         Private Sub AttachmentSaveAs_Click(sender As Object, e As EventArgs)
             ' コンテキストメニューの親ボタンから Attachment を取得

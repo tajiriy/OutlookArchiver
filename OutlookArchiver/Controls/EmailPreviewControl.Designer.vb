@@ -35,9 +35,6 @@ Namespace Controls
             Me.lblToCaption = New System.Windows.Forms.Label()
             Me.lblToValue = New System.Windows.Forms.Label()
 
-            Me.pnlToolbar = New System.Windows.Forms.Panel()
-            Me.btnToggleView = New System.Windows.Forms.Button()
-
             Me.pnlBody = New System.Windows.Forms.Panel()
             Me.webBrowser = New System.Windows.Forms.WebBrowser()
             Me.txtBodyText = New System.Windows.Forms.RichTextBox()
@@ -49,7 +46,6 @@ Namespace Controls
             ' ── Begin Init ─────────────────────────────────────────────
             Me.pnlHeader.SuspendLayout()
             Me.tlpHeader.SuspendLayout()
-            Me.pnlToolbar.SuspendLayout()
             Me.pnlBody.SuspendLayout()
             Me.pnlAttachments.SuspendLayout()
             Me.SuspendLayout()
@@ -135,20 +131,6 @@ Namespace Controls
             Me.tlpHeader.Controls.Add(Me.lblToCaption, 0, 3)
             Me.tlpHeader.Controls.Add(Me.lblToValue, 1, 3)
 
-            ' ── pnlToolbar (Dock=Top, 30px) ─────────────────────────────
-            Me.pnlToolbar.Dock = System.Windows.Forms.DockStyle.Top
-            Me.pnlToolbar.Height = 30
-            Me.pnlToolbar.Name = "pnlToolbar"
-            Me.pnlToolbar.Padding = New System.Windows.Forms.Padding(4, 3, 4, 3)
-            Me.pnlToolbar.Controls.Add(Me.btnToggleView)
-
-            ' btnToggleView
-            Me.btnToggleView.Name = "btnToggleView"
-            Me.btnToggleView.Text = "テキスト表示"
-            Me.btnToggleView.AutoSize = True
-            Me.btnToggleView.Height = 23
-            Me.btnToggleView.Enabled = False
-
             ' ── pnlAttachments (Dock=Right, 180px) ─────────────────────
             Me.pnlAttachments.Dock = System.Windows.Forms.DockStyle.Right
             Me.pnlAttachments.Width = 180
@@ -195,18 +177,16 @@ Namespace Controls
             Me.txtBodyText.Visible = False
 
             ' ── UserControl 設定 ─────────────────────────────────────────
-            ' 追加順序: pnlBody → pnlAttachments → pnlToolbar → pnlHeader
+            ' 追加順序: pnlBody → pnlAttachments → pnlHeader
             '  (後から追加したものが先にDock処理される)
             Me.Controls.Add(Me.pnlBody)
             Me.Controls.Add(Me.pnlAttachments)
-            Me.Controls.Add(Me.pnlToolbar)
             Me.Controls.Add(Me.pnlHeader)
             Me.Name = "EmailPreviewControl"
 
             ' ── End Init ───────────────────────────────────────────────
             Me.pnlAttachments.ResumeLayout(False)
             Me.pnlBody.ResumeLayout(False)
-            Me.pnlToolbar.ResumeLayout(False)
             Me.tlpHeader.ResumeLayout(False)
             Me.pnlHeader.ResumeLayout(False)
             Me.ResumeLayout(False)
@@ -223,8 +203,6 @@ Namespace Controls
         Friend WithEvents lblSubjectValue As System.Windows.Forms.Label
         Friend WithEvents lblToCaption As System.Windows.Forms.Label
         Friend WithEvents lblToValue As System.Windows.Forms.Label
-        Friend WithEvents pnlToolbar As System.Windows.Forms.Panel
-        Friend WithEvents btnToggleView As System.Windows.Forms.Button
         Friend WithEvents pnlBody As System.Windows.Forms.Panel
         Friend WithEvents webBrowser As System.Windows.Forms.WebBrowser
         Friend WithEvents txtBodyText As System.Windows.Forms.RichTextBox

@@ -52,6 +52,7 @@ Partial Class MainForm
         Me.lblStatusCount = New System.Windows.Forms.ToolStripStatusLabel()
         Me.lblStatusSep = New System.Windows.Forms.ToolStripStatusLabel()
         Me.lblStatusLastImport = New System.Windows.Forms.ToolStripStatusLabel()
+        Me.btnToggleView = New System.Windows.Forms.Button()
         Me.emailPreview = New OutlookArchiver.Controls.EmailPreviewControl()
         Me.conversationView = New OutlookArchiver.Controls.ConversationViewControl()
         Me.menuStrip.SuspendLayout()
@@ -214,6 +215,7 @@ Partial Class MainForm
         'splitRight.Panel2
         '
         Me.splitRight.Panel2.Controls.Add(Me.tabControl)
+        Me.splitRight.Panel2.Controls.Add(Me.btnToggleView)
         Me.splitRight.Size = New System.Drawing.Size(1117, 668)
         Me.splitRight.SplitterDistance = 260
         Me.splitRight.TabIndex = 0
@@ -313,6 +315,15 @@ Partial Class MainForm
         Me.lblStatusLastImport.Size = New System.Drawing.Size(85, 17)
         Me.lblStatusLastImport.Text = "最終取り込み: -"
         '
+        'btnToggleView
+        '
+        Me.btnToggleView.Name = "btnToggleView"
+        Me.btnToggleView.Text = "テキスト表示"
+        Me.btnToggleView.AutoSize = True
+        Me.btnToggleView.Height = 22
+        Me.btnToggleView.Enabled = False
+        Me.btnToggleView.Anchor = CType(System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right, System.Windows.Forms.AnchorStyles)
+        '
         'emailPreview
         '
         Me.emailPreview.Dock = System.Windows.Forms.DockStyle.Fill
@@ -387,5 +398,6 @@ Partial Class MainForm
     Friend WithEvents lblStatusCount As System.Windows.Forms.ToolStripStatusLabel
     Friend WithEvents lblStatusSep As System.Windows.Forms.ToolStripStatusLabel
     Friend WithEvents lblStatusLastImport As System.Windows.Forms.ToolStripStatusLabel
+    Friend WithEvents btnToggleView As System.Windows.Forms.Button
 
 End Class

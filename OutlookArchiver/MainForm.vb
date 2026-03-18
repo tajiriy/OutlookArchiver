@@ -20,6 +20,7 @@ Public Class MainForm
     Private _isImporting As Boolean
     Private _autoImportEnabled As Boolean
     Private _searchQuery As String        ' 現在の検索クエリ（Nothing = 検索なし）
+    Private _updatingFolderCounts As Boolean ' フォルダ件数更新中のイベント抑制フラグ
 
     ' 列インデックス: 0=添付 1=件名 2=差出人 3=受信日時 4=サイズ
     Private _sortColumn As Integer = 3          ' デフォルト: 受信日時
@@ -41,6 +42,7 @@ Public Class MainForm
         SetupAutoImportTimer()
         SetupEmailListColumns()
         SetupListViewContextMenu()
+        SetupToggleViewButton()
         LoadFolderTree()
         UpdateStatusBar()
 
@@ -149,13 +151,15 @@ Public Class MainForm
         treeViewFolders.BeginUpdate()
         treeViewFolders.Nodes.Clear()
 
-        Dim nodeAll As New TreeNode("すべて")
+        Dim totalCount As Integer = _repo.GetTotalCount()
+        Dim nodeAll As New TreeNode(String.Format("すべて ({0})", totalCount))
         nodeAll.Tag = Nothing
         treeViewFolders.Nodes.Add(nodeAll)
 
         Dim folders As List(Of String) = _repo.GetFolderNames()
         For Each folder As String In folders
-            Dim node As New TreeNode(folder)
+            Dim count As Integer = _repo.GetTotalCount(folder)
+            Dim node As New TreeNode(String.Format("{0} ({1})", folder, count))
             node.Tag = folder
             treeViewFolders.Nodes.Add(node)
         Next
@@ -166,6 +170,7 @@ Public Class MainForm
 
     Private Sub treeViewFolders_AfterSelect(sender As Object, e As TreeViewEventArgs) Handles treeViewFolders.AfterSelect
         If e.Node Is Nothing Then Return
+        If _updatingFolderCounts Then Return
         _currentFolder = TryCast(e.Node.Tag, String)
         ' 検索ボックスと検索クエリをクリアしてフォルダ切り替え
         txtSearch.Text = String.Empty
@@ -191,6 +196,7 @@ Public Class MainForm
         If listViewEmails.SelectedIndices.Count = 0 Then
             emailPreview.ClearPreview()
             conversationView.ClearView()
+            UpdateToggleViewButton()
             Return
         End If
 
@@ -201,6 +207,7 @@ Public Class MainForm
         If email IsNot Nothing Then
             emailPreview.ShowEmail(email, _searchQuery)
             LoadConversationView(email)
+            UpdateToggleViewButton()
         End If
     End Sub
 
@@ -462,6 +469,87 @@ Public Class MainForm
     End Sub
 
     ' ════════════════════════════════════════════════════════════
+    '  テキスト/HTML 切替ボタン
+    ' ════════════════════════════════════════════════════════════
+
+    ''' <summary>テキスト/HTML切替ボタンをタブコントロール右上に配置する。</summary>
+    Private Sub SetupToggleViewButton()
+        btnToggleView.BringToFront()
+        AddHandler btnToggleView.Click, AddressOf OnToggleViewClick
+        AddHandler tabControl.SizeChanged, AddressOf OnTabControlSizeChanged
+        PositionToggleViewButton()
+    End Sub
+
+    Private Sub PositionToggleViewButton()
+        ' タブ行の右端に配置
+        btnToggleView.Top = 1
+        btnToggleView.Left = tabControl.Width - btnToggleView.Width - 4
+    End Sub
+
+    Private Sub OnTabControlSizeChanged(sender As Object, e As EventArgs)
+        PositionToggleViewButton()
+    End Sub
+
+    Private Sub OnToggleViewClick(sender As Object, e As EventArgs)
+        emailPreview.ToggleView()
+        UpdateToggleViewButton()
+    End Sub
+
+    Private Sub UpdateToggleViewButton()
+        btnToggleView.Enabled = emailPreview.CanToggleView
+        If emailPreview.IsHtmlView Then
+            btnToggleView.Text = "テキスト表示"
+        Else
+            btnToggleView.Text = "HTML 表示"
+        End If
+    End Sub
+
+    ' ════════════════════════════════════════════════════════════
+    '  フォルダ件数
+    ' ════════════════════════════════════════════════════════════
+
+    ''' <summary>フォルダツリーの件数表示を更新する。選択中のフォルダは維持する。</summary>
+    Private Sub UpdateFolderCounts()
+        _updatingFolderCounts = True
+        Dim selectedTag As String = _currentFolder
+        treeViewFolders.BeginUpdate()
+        treeViewFolders.Nodes.Clear()
+
+        Try
+            Dim totalCount As Integer = _repo.GetTotalCount()
+            Dim nodeAll As New TreeNode(String.Format("すべて ({0})", totalCount))
+            nodeAll.Tag = Nothing
+            treeViewFolders.Nodes.Add(nodeAll)
+
+            Dim folders As List(Of String) = _repo.GetFolderNames()
+            For Each folder As String In folders
+                Dim count As Integer = _repo.GetTotalCount(folder)
+                Dim node As New TreeNode(String.Format("{0} ({1})", folder, count))
+                node.Tag = folder
+                treeViewFolders.Nodes.Add(node)
+            Next
+
+            ' 選択状態を復元
+            Dim found As Boolean = False
+            If selectedTag IsNot Nothing Then
+                For Each node As TreeNode In treeViewFolders.Nodes
+                    If CStr(node.Tag) = selectedTag Then
+                        treeViewFolders.SelectedNode = node
+                        found = True
+                        Exit For
+                    End If
+                Next
+            End If
+            If Not found Then
+                treeViewFolders.SelectedNode = treeViewFolders.Nodes(0)
+            End If
+        Catch
+        End Try
+        treeViewFolders.EndUpdate()
+        _updatingFolderCounts = False
+    End Sub
+
+    ' ════════════════════════════════════════════════════════════
     '  ステータスバー
     ' ════════════════════════════════════════════════════════════
 
@@ -482,6 +570,7 @@ Public Class MainForm
         Catch
             lblStatusLastImport.Text = "最終取り込み: -"
         End Try
+        UpdateFolderCounts()
     End Sub
 
     ' ════════════════════════════════════════════════════════════
