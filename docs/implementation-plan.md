@@ -221,6 +221,22 @@ ImportService.ImportFolder(folderName)
 
 ---
 
+## 取り込み順序の設定・重複スキップ高速化
+
+### 取り込み順序
+
+- `AppSettings` に `ImportOldestFirst` プロパティを追加（デフォルト: `True` = 古い順）
+- `ImportService.ImportFolder` でループ方向を設定値に応じて切り替え（`1→N` or `N→1`）
+- 設定画面の「自動取り込み」グループにドロップダウン追加（「古い順（推奨）」/「新しい順」）
+
+### 重複スキップ高速化
+
+- **変更前**: 1件ごとに `MessageIdExists()` + `IsMessageIdDeleted()` の2回SQLクエリ（N件で2N回のDB問い合わせ）
+- **変更後**: `ImportFolders` 開始時に `GetAllMessageIds()` / `GetAllDeletedMessageIds()` で全IDを `HashSet(Of String)` に一括ロード。以降はメモリ内 `Contains()` で判定
+- 新規取り込み分は即座にキャッシュに追加し、同一セッション内の重複も防止
+
+---
+
 ## 技術的注意点
 
 | 項目 | 内容 |
