@@ -62,13 +62,17 @@ Namespace Services
 
         ''' <summary>
         ''' 指定フォルダのメールを取り込む。
-        ''' 新着メールを最優先で取り込むため、受信日時の降順（最新から）でイテレートする。
+        ''' 設定の ImportOldestFirst に応じて古い順または新しい順でイテレートする。
         ''' </summary>
         ''' <param name="folderName">取り込み対象フォルダの表示名</param>
         ''' <param name="maxCount">今回の最大取り込み件数</param>
+        ''' <param name="existingIds">取り込み済み MessageID のキャッシュ</param>
+        ''' <param name="deletedIds">削除済み MessageID のキャッシュ</param>
         ''' <param name="progress">進捗通知（Nothing の場合は通知しない）</param>
         Public Function ImportFolder(folderName As String,
                                      maxCount As Integer,
+                                     existingIds As HashSet(Of String),
+                                     deletedIds As HashSet(Of String),
                                      Optional progress As IProgress(Of ImportProgress) = Nothing) As ImportResult
             Dim result As New ImportResult()
 
@@ -88,11 +92,16 @@ Namespace Services
                 IO.Directory.CreateDirectory(attachBaseDir)
             End If
 
-            ' 最新メールから処理するため末尾からイテレート
-            Dim i As Integer = totalCount
-            Do While i >= 1 AndAlso result.ImportedCount < maxCount
+            ' 設定に応じて古い順（1→N）または新しい順（N→1）でイテレート
+            Dim oldestFirst As Boolean = _settings.ImportOldestFirst
+            Dim i As Integer = If(oldestFirst, 1, totalCount)
+            Dim stepDir As Integer = If(oldestFirst, 1, -1)
+            Dim endCond As Func(Of Boolean) = If(oldestFirst,
+                Function() i <= totalCount,
+                Function() i >= 1)
+            Do While endCond() AndAlso result.ImportedCount < maxCount
                 Dim rawItem As Object = items.Item(i)
-                i -= 1
+                i += stepDir
 
                 ' MailItem 以外（予定・タスク等）はスキップ
                 If Not TypeOf rawItem Is Outlook.MailItem Then Continue Do
@@ -101,7 +110,7 @@ Namespace Services
                 Dim subject As String = mailItem.Subject
 
                 Try
-                    Dim imported As Boolean = ProcessMailItem(mailItem, attachBaseDir, result)
+                    Dim imported As Boolean = ProcessMailItem(mailItem, attachBaseDir, existingIds, deletedIds, result)
                     If imported Then
                         result.ImportedCount += 1
                     Else
@@ -131,8 +140,13 @@ Namespace Services
                                       maxCountPerFolder As Integer,
                                       Optional progress As IProgress(Of ImportProgress) = Nothing) As ImportResult
             Dim total As New ImportResult()
+
+            ' 全 MessageID を一括キャッシュ（1件ずつ SQL を発行するより大幅に高速）
+            Dim existingIds As HashSet(Of String) = _repo.GetAllMessageIds()
+            Dim deletedIds As HashSet(Of String) = _repo.GetAllDeletedMessageIds()
+
             For Each name As String In folderNames
-                Dim r As ImportResult = ImportFolder(name, maxCountPerFolder, progress)
+                Dim r As ImportResult = ImportFolder(name, maxCountPerFolder, existingIds, deletedIds, progress)
                 total.ImportedCount += r.ImportedCount
                 total.SkippedCount += r.SkippedCount
                 total.ErrorCount += r.ErrorCount
@@ -151,14 +165,16 @@ Namespace Services
         ''' </summary>
         Private Function ProcessMailItem(mailItem As Outlook.MailItem,
                                          attachBaseDir As String,
+                                         existingIds As HashSet(Of String),
+                                         deletedIds As HashSet(Of String),
                                          importResult As ImportResult) As Boolean
             ' メールデータを抽出
             Dim email As Models.Email = _outlookSvc.ExtractEmailData(mailItem)
 
-            ' 重複チェック（取り込み済み）
+            ' 重複チェック（メモリ内 HashSet で高速判定）
             If Not String.IsNullOrEmpty(email.MessageId) Then
-                If _repo.MessageIdExists(email.MessageId) Then Return False
-                If _repo.IsMessageIdDeleted(email.MessageId) Then Return False
+                If existingIds.Contains(email.MessageId) Then Return False
+                If deletedIds.Contains(email.MessageId) Then Return False
             End If
 
             ' スレッド ID を付与
@@ -166,6 +182,11 @@ Namespace Services
 
             ' DB に挿入
             Dim emailId As Integer = _repo.InsertEmail(email)
+
+            ' キャッシュに追加（同一セッション内の重複防止）
+            If Not String.IsNullOrEmpty(email.MessageId) Then
+                existingIds.Add(email.MessageId)
+            End If
 
             ' 添付ファイルを保存して DB に登録
             If email.HasAttachments Then

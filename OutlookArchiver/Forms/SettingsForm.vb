@@ -39,6 +39,8 @@ Public Class SettingsForm
             End If
         Next
 
+        cboImportOrder.SelectedIndex = If(_settings.ImportOldestFirst, 0, 1)
+
         chkDefaultHtml.Checked = _settings.DefaultHtmlView
         chkSortAscending.Checked = _settings.ConversationSortAscending
     End Sub
@@ -57,6 +59,8 @@ Public Class SettingsForm
             If s IsNot Nothing AndAlso s.Length > 0 Then folders.Add(s)
         Next
         _settings.TargetFolders = folders
+
+        _settings.ImportOldestFirst = (cboImportOrder.SelectedIndex = 0)
 
         _settings.DefaultHtmlView = chkDefaultHtml.Checked
         _settings.ConversationSortAscending = chkSortAscending.Checked

@@ -120,9 +120,11 @@ Partial Class SettingsForm
         Me.grpAutoImport.Controls.Add(Me.numInterval)
         Me.grpAutoImport.Controls.Add(Me.lblMaxCount)
         Me.grpAutoImport.Controls.Add(Me.numMaxCount)
+        Me.grpAutoImport.Controls.Add(Me.lblImportOrder)
+        Me.grpAutoImport.Controls.Add(Me.cboImportOrder)
         Me.grpAutoImport.Location = New System.Drawing.Point(8, 110)
         Me.grpAutoImport.Name = "grpAutoImport"
-        Me.grpAutoImport.Size = New System.Drawing.Size(488, 106)
+        Me.grpAutoImport.Size = New System.Drawing.Size(488, 132)
         Me.grpAutoImport.TabIndex = 1
         Me.grpAutoImport.TabStop = False
         Me.grpAutoImport.Text = "自動取り込み"
@@ -172,12 +174,30 @@ Partial Class SettingsForm
         Me.numMaxCount.TabIndex = 3
         Me.numMaxCount.Value = New Decimal(New Integer() {100, 0, 0, 0})
         '
+        'lblImportOrder
+        '
+        Me.lblImportOrder.AutoSize = True
+        Me.lblImportOrder.Location = New System.Drawing.Point(8, 102)
+        Me.lblImportOrder.Name = "lblImportOrder"
+        Me.lblImportOrder.Size = New System.Drawing.Size(93, 13)
+        Me.lblImportOrder.Text = "取り込み順序:"
+        '
+        'cboImportOrder
+        '
+        Me.cboImportOrder.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.cboImportOrder.FormattingEnabled = True
+        Me.cboImportOrder.Items.AddRange(New Object() {"古い順（推奨）", "新しい順"})
+        Me.cboImportOrder.Location = New System.Drawing.Point(160, 99)
+        Me.cboImportOrder.Name = "cboImportOrder"
+        Me.cboImportOrder.Size = New System.Drawing.Size(140, 21)
+        Me.cboImportOrder.TabIndex = 5
+        '
         'grpFolders
         '
         Me.grpFolders.Controls.Add(Me.lstFolders)
         Me.grpFolders.Controls.Add(Me.btnAddFolder)
         Me.grpFolders.Controls.Add(Me.btnRemoveFolder)
-        Me.grpFolders.Location = New System.Drawing.Point(8, 224)
+        Me.grpFolders.Location = New System.Drawing.Point(8, 250)
         Me.grpFolders.Name = "grpFolders"
         Me.grpFolders.Size = New System.Drawing.Size(488, 130)
         Me.grpFolders.TabIndex = 2
@@ -212,7 +232,7 @@ Partial Class SettingsForm
         '
         Me.grpDisplay.Controls.Add(Me.chkDefaultHtml)
         Me.grpDisplay.Controls.Add(Me.chkSortAscending)
-        Me.grpDisplay.Location = New System.Drawing.Point(8, 362)
+        Me.grpDisplay.Location = New System.Drawing.Point(8, 388)
         Me.grpDisplay.Name = "grpDisplay"
         Me.grpDisplay.Size = New System.Drawing.Size(488, 70)
         Me.grpDisplay.TabIndex = 3
@@ -241,7 +261,7 @@ Partial Class SettingsForm
         '
         Me.pnlButtons.Controls.Add(Me.btnOk)
         Me.pnlButtons.Controls.Add(Me.btnCancel)
-        Me.pnlButtons.Location = New System.Drawing.Point(8, 440)
+        Me.pnlButtons.Location = New System.Drawing.Point(8, 466)
         Me.pnlButtons.Name = "pnlButtons"
         Me.pnlButtons.Size = New System.Drawing.Size(488, 34)
         Me.pnlButtons.TabIndex = 4
@@ -269,7 +289,7 @@ Partial Class SettingsForm
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.btnCancel
-        Me.ClientSize = New System.Drawing.Size(512, 484)
+        Me.ClientSize = New System.Drawing.Size(512, 510)
         Me.Controls.Add(Me.grpPaths)
         Me.Controls.Add(Me.grpAutoImport)
         Me.Controls.Add(Me.grpFolders)
@@ -308,6 +328,8 @@ Partial Class SettingsForm
     Friend WithEvents numInterval As System.Windows.Forms.NumericUpDown
     Friend WithEvents lblMaxCount As System.Windows.Forms.Label
     Friend WithEvents numMaxCount As System.Windows.Forms.NumericUpDown
+    Friend WithEvents lblImportOrder As System.Windows.Forms.Label
+    Friend WithEvents cboImportOrder As System.Windows.Forms.ComboBox
     Friend WithEvents grpFolders As System.Windows.Forms.GroupBox
     Friend WithEvents lstFolders As System.Windows.Forms.ListBox
     Friend WithEvents btnAddFolder As System.Windows.Forms.Button

@@ -93,6 +93,18 @@ Namespace Config
             End Set
         End Property
 
+        ' ── 取り込み順序 ────────────────────────────────────────────
+
+        ''' <summary>取り込み順序を古い順にするか（True: 古い順、False: 新しい順）</summary>
+        Public Property ImportOldestFirst As Boolean
+            Get
+                Return GetBool("ImportOldestFirst", defaultValue:=True)
+            End Get
+            Set(value As Boolean)
+                SaveSetting("ImportOldestFirst", value.ToString())
+            End Set
+        End Property
+
         ' ── 表示設定 ──────────────────────────────────────────────
 
         ''' <summary>会話ビューで古い順（昇順）に表示するか</summary>

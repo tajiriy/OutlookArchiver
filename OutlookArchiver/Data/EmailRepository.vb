@@ -350,6 +350,38 @@ SELECT last_insert_rowid();"
         '  削除・重複チェック
         ' ════════════════════════════════════════════════════════════
 
+        ''' <summary>全メールの MessageID を一括取得する（取り込み時の高速重複チェック用）。</summary>
+        Public Function GetAllMessageIds() As HashSet(Of String)
+            Const sql As String = "SELECT message_id FROM emails WHERE message_id IS NOT NULL"
+            Dim result As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As New SQLiteCommand(sql, conn)
+                    Using reader As SQLiteDataReader = cmd.ExecuteReader()
+                        While reader.Read()
+                            result.Add(reader.GetString(0))
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return result
+        End Function
+
+        ''' <summary>全削除済み MessageID を一括取得する（取り込み時の高速重複チェック用）。</summary>
+        Public Function GetAllDeletedMessageIds() As HashSet(Of String)
+            Const sql As String = "SELECT message_id FROM deleted_message_ids"
+            Dim result As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                Using cmd As New SQLiteCommand(sql, conn)
+                    Using reader As SQLiteDataReader = cmd.ExecuteReader()
+                        While reader.Read()
+                            result.Add(reader.GetString(0))
+                        End While
+                    End Using
+                End Using
+            End Using
+            Return result
+        End Function
+
         ''' <summary>同一 MessageID がすでに DB に存在するか確認する（重複取り込み防止）。</summary>
         Public Function MessageIdExists(messageId As String) As Boolean
             Const sql As String = "SELECT COUNT(1) FROM emails WHERE message_id = @message_id"
