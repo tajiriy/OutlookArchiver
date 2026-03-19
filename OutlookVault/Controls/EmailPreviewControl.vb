@@ -625,20 +625,22 @@ Namespace Controls
             End Try
 
             Dim frm As New System.Windows.Forms.Form()
-            frm.Text = fileName
-            frm.Size = New System.Drawing.Size(800, 600)
-            frm.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
+            Try
+                frm.Text = fileName
+                frm.Size = New System.Drawing.Size(800, 600)
+                frm.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
 
-            Dim pb As New System.Windows.Forms.PictureBox()
-            pb.Dock = System.Windows.Forms.DockStyle.Fill
-            pb.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom
-            pb.Image = img
+                Dim pb As New System.Windows.Forms.PictureBox()
+                pb.Dock = System.Windows.Forms.DockStyle.Fill
+                pb.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom
+                pb.Image = img
 
-            frm.Controls.Add(pb)
-            frm.ShowDialog(Me)
-
-            img.Dispose()
-            frm.Dispose()
+                frm.Controls.Add(pb)
+                frm.ShowDialog(Me)
+            Finally
+                frm.Dispose()
+                img.Dispose()
+            End Try
         End Sub
 
         ''' <summary>指定された拡張子がブロック対象かどうかを返す。</summary>

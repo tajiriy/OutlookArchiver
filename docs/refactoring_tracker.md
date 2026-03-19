@@ -4,9 +4,9 @@
 
 | ステータス | 件数 |
 |-----------|------|
-| open      | 5    |
+| open      | 4    |
 | in-progress | 0  |
-| done      | 28   |
+| done      | 29   |
 | wontfix   | 4    |
 | deferred  | 2    |
 | invalid   | 1    |
@@ -688,7 +688,7 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Medium |
 | カテゴリ | resource-management |
 | ソース | review |
@@ -698,9 +698,9 @@
 
 **内容:** ShowDialog 中に例外が発生した場合 img.Dispose() と frm.Dispose() が呼ばれない。
 
-**対策:** Try...Finally で img と frm の Dispose を保証。
+**対策:** frm を Try...Finally frm.Dispose() で囲み、img は frm の後に Dispose（PictureBox が参照中のため）。
 
-**メモ:** BUG-002
+**メモ:** BUG-002。修正日: 2026-03-19
 
 ---
 
@@ -858,3 +858,4 @@
 | 2026-03-19 | R-033〜R-040 | 3回目の code-reviewer レビューから 8 件を一括登録 |
 | 2026-03-19 | R-033 | done: ループ内 rawItem を Try...Finally ReleaseComObject で解放 |
 | 2026-03-19 | R-037, R-039 | done: worktree 並列実行で Regex Compiled 化と ToLower 除去を同時対応 |
+| 2026-03-19 | R-034 | done: ShowImagePreview の frm/img を Try...Finally Dispose で保証 |
