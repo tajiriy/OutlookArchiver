@@ -295,6 +295,56 @@ Namespace Config
             End Set
         End Property
 
+        ''' <summary>ウィンドウの幅</summary>
+        Public Property WindowWidth As Integer
+            Get
+                Return GetInt("WindowWidth", defaultValue:=0)
+            End Get
+            Set(value As Integer)
+                SaveSetting("WindowWidth", value.ToString())
+            End Set
+        End Property
+
+        ''' <summary>ウィンドウの高さ</summary>
+        Public Property WindowHeight As Integer
+            Get
+                Return GetInt("WindowHeight", defaultValue:=0)
+            End Get
+            Set(value As Integer)
+                SaveSetting("WindowHeight", value.ToString())
+            End Set
+        End Property
+
+        ''' <summary>ウィンドウの X 座標</summary>
+        Public Property WindowLeft As Integer
+            Get
+                Return GetInt("WindowLeft", defaultValue:=Integer.MinValue)
+            End Get
+            Set(value As Integer)
+                SaveSetting("WindowLeft", value.ToString())
+            End Set
+        End Property
+
+        ''' <summary>ウィンドウの Y 座標</summary>
+        Public Property WindowTop As Integer
+            Get
+                Return GetInt("WindowTop", defaultValue:=Integer.MinValue)
+            End Get
+            Set(value As Integer)
+                SaveSetting("WindowTop", value.ToString())
+            End Set
+        End Property
+
+        ''' <summary>ウィンドウが最大化されていたか</summary>
+        Public Property WindowMaximized As Boolean
+            Get
+                Return GetBool("WindowMaximized", defaultValue:=False)
+            End Get
+            Set(value As Boolean)
+                SaveSetting("WindowMaximized", value.ToString())
+            End Set
+        End Property
+
         ' ── メール一覧表示設定 ────────────────────────────────────────
 
         ''' <summary>メール一覧の列幅（列インデックス順にピクセル値をカンマ区切りで格納）</summary>

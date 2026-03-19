@@ -93,6 +93,9 @@ Public Class MainForm
 
         InitializeServices()
 
+        ' ウィンドウサイズ・位置を復元
+        RestoreWindowBounds()
+
         ' フォルダツリーの幅を復元（_settings は InitializeServices で初期化済み）
         Dim savedTreeWidth As Integer = _settings.FolderTreeWidth
         If savedTreeWidth > 0 AndAlso savedTreeWidth < splitMain.Width Then
@@ -1471,7 +1474,7 @@ Public Class MainForm
         End If
 
         SaveColumnSettings()
-        _settings.FolderTreeWidth = splitMain.SplitterDistance
+        SaveWindowBounds()
         notifyIcon.Visible = False
 
         ' EmailRepository のバルクリソースを確実に解放
@@ -1480,6 +1483,60 @@ Public Class MainForm
         End If
 
         Services.Logger.Info("アプリケーションを終了します")
+    End Sub
+
+    ''' <summary>保存済みのウィンドウサイズ・位置を復元する。</summary>
+    Private Sub RestoreWindowBounds()
+        Dim w As Integer = _settings.WindowWidth
+        Dim h As Integer = _settings.WindowHeight
+        Dim x As Integer = _settings.WindowLeft
+        Dim y As Integer = _settings.WindowTop
+
+        ' サイズが保存されていれば復元
+        If w > 0 AndAlso h > 0 Then
+            Me.Size = New Drawing.Size(w, h)
+        End If
+
+        ' 位置が保存されていて、画面内に収まる場合のみ復元
+        If x > Integer.MinValue AndAlso y > Integer.MinValue Then
+            Dim bounds As New Drawing.Rectangle(x, y, Me.Width, Me.Height)
+            Dim onScreen As Boolean = False
+            For Each scr As System.Windows.Forms.Screen In System.Windows.Forms.Screen.AllScreens
+                If scr.WorkingArea.IntersectsWith(bounds) Then
+                    onScreen = True
+                    Exit For
+                End If
+            Next
+            If onScreen Then
+                Me.StartPosition = FormStartPosition.Manual
+                Me.Location = New Drawing.Point(x, y)
+            End If
+        End If
+
+        ' 最大化状態を復元（サイズ・位置の後に設定）
+        If _settings.WindowMaximized Then
+            Me.WindowState = FormWindowState.Maximized
+        End If
+    End Sub
+
+    ''' <summary>ウィンドウサイズ・位置・状態を保存する。</summary>
+    Private Sub SaveWindowBounds()
+        _settings.WindowMaximized = (Me.WindowState = FormWindowState.Maximized)
+
+        ' 最大化・最小化時は RestoreBounds（通常状態のサイズ・位置）を保存
+        If Me.WindowState = FormWindowState.Normal Then
+            _settings.WindowWidth = Me.Size.Width
+            _settings.WindowHeight = Me.Size.Height
+            _settings.WindowLeft = Me.Location.X
+            _settings.WindowTop = Me.Location.Y
+        Else
+            _settings.WindowWidth = Me.RestoreBounds.Width
+            _settings.WindowHeight = Me.RestoreBounds.Height
+            _settings.WindowLeft = Me.RestoreBounds.X
+            _settings.WindowTop = Me.RestoreBounds.Y
+        End If
+
+        _settings.FolderTreeWidth = splitMain.SplitterDistance
     End Sub
 
     ' ════════════════════════════════════════════════════════════
