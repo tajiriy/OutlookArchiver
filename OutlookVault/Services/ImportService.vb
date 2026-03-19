@@ -135,6 +135,14 @@ Namespace Services
             Dim items As Outlook.Items = Nothing
             BuildItemsCollection(folder, folderName, useDiffScan, items)
 
+            ' R-041: BuildItemsCollection が例外等で items を設定できなかった場合の防衛チェック
+            If items Is Nothing Then
+                Logger.Error(String.Format("フォルダ '{0}' のアイテムコレクション取得に失敗しました", folderName))
+                result.Errors.Add(New ImportErrorEntry(folderName, "", "", "アイテムコレクションの取得に失敗しました"))
+                result.ErrorCount += 1
+                Return result
+            End If
+
             Dim totalCount As Integer = items.Count
             Logger.Info(String.Format("フォルダ '{0}' の取り込みを開始します（{1}件）", folderName, totalCount))
             result.TotalOutlookCount += totalCount
@@ -155,7 +163,8 @@ Namespace Services
             Dim perfConn As System.Data.SQLite.SQLiteConnection = _dbManager.GetConnection()
             Try
                 _dbManager.SetSynchronousMode(perfConn, Data.SynchronousMode.Off)
-            Catch
+            Catch ex As Exception
+                Logger.Warn("PRAGMA synchronous=OFF の設定に失敗しました: " & ex.Message)
                 perfConn.Dispose()
                 Throw
             End Try
@@ -292,14 +301,16 @@ Namespace Services
             Dim errMsgId As String = ""
             Try
                 errMsgId = _outlookSvc.ExtractMessageId(mailItem)
-            Catch
+            Catch ex2 As Exception
+                ' COM エラーは無視して続行（MessageID なしでもエラー記録は可能）
             End Try
             Dim errReceivedDate As DateTime? = Nothing
             Dim errSenderName As String = ""
             Try
                 errReceivedDate = mailItem.ReceivedTime
                 errSenderName = mailItem.SenderName
-            Catch
+            Catch ex2 As Exception
+                ' COM エラーは無視して続行（日時・送信者なしでもエラー記録は可能）
             End Try
             result.Errors.Add(New ImportErrorEntry(folderName, errMsgId, subject, ex.Message, errReceivedDate, errSenderName))
             Logger.Error(String.Format("メール取り込みエラー — フォルダ: {0}, 件名: {1}", folderName, subject), ex)
@@ -308,7 +319,8 @@ Namespace Services
                 Try
                     _repo.InsertErrorMessageId(errMsgId, folderName, subject, ex.Message, errReceivedDate, errSenderName)
                     errorIds.Add(errMsgId)
-                Catch
+                Catch ex2 As Exception
+                    Logger.Warn("エラー記録の保存に失敗しました: " & ex2.Message)
                 End Try
             End If
         End Sub

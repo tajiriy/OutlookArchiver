@@ -92,6 +92,11 @@ Namespace Forms
             End Sub
         End Structure
 
+        Private Sub AttachmentStatsForm_FormClosed(sender As Object, e As FormClosedEventArgs) Handles Me.FormClosed
+            If _bindingSource IsNot Nothing Then _bindingSource.Dispose()
+            If _dataTable IsNot Nothing Then _dataTable.Dispose()
+        End Sub
+
     End Class
 
 End Namespace

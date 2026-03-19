@@ -11,6 +11,14 @@ Namespace Services
 
         Private ReadOnly _repo As Data.EmailRepository
 
+        ' ── NormalizeSubject で使用するプレフィックス配列 ────────
+        Private Shared ReadOnly SubjectPrefixes As String() = {
+            "re:", "re :", "re. ",
+            "fw:", "fw :", "fw. ",
+            "fwd:", "fwd :", "fwd. ",
+            "返信:", "転送:", "回复:", "转发:"
+        }
+
         ' ── インメモリキャッシュ（取り込みセッション中のみ有効）────────
         Private _messageIdCache As Dictionary(Of String, String) = Nothing
         Private _subjectCache As Dictionary(Of String, String) = Nothing
@@ -161,17 +169,10 @@ Namespace Services
             If String.IsNullOrWhiteSpace(subject) Then Return String.Empty
 
             Dim result As String = subject.Trim()
-            Dim prefixes As String() = {
-                "re:", "re :", "re. ",
-                "fw:", "fw :", "fw. ",
-                "fwd:", "fwd :", "fwd. ",
-                "返信:", "転送:", "回复:", "转发:"
-            }
-
             Dim changed As Boolean = True
             Do While changed
                 changed = False
-                For Each prefix As String In prefixes
+                For Each prefix As String In SubjectPrefixes
                     If result.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) Then
                         result = result.Substring(prefix.Length).TrimStart()
                         changed = True

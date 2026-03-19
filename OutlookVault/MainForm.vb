@@ -306,9 +306,12 @@ Public Class MainForm
         ' ウィンドウを辞書に登録し、閉じたときに削除する
         _openEmailWindows(emailId) = frm
         Dim capturedId As Integer = emailId
-        AddHandler frm.FormClosed, Sub(s As Object, ev As FormClosedEventArgs)
-                                       _openEmailWindows.Remove(capturedId)
-                                   End Sub
+        Dim handler As FormClosedEventHandler = Nothing
+        handler = Sub(s As Object, ev As FormClosedEventArgs)
+                      _openEmailWindows.Remove(capturedId)
+                      RemoveHandler frm.FormClosed, handler
+                  End Sub
+        AddHandler frm.FormClosed, handler
         frm.Show()
     End Sub
 
@@ -883,7 +886,7 @@ Public Class MainForm
         Dim found As Boolean = False
         If selectedTag IsNot Nothing Then
             For Each node As TreeNode In treeViewFolders.Nodes
-                If CStr(node.Tag) = selectedTag Then
+                If node.Tag IsNot Nothing AndAlso CStr(node.Tag) = selectedTag Then
                     treeViewFolders.SelectedNode = node
                     found = True
                     Exit For
