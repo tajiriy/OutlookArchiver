@@ -86,13 +86,16 @@ Namespace Forms
             Me.colCount.HeaderText = "件数"
             Me.colCount.Name = "colCount"
             Me.colCount.FillWeight = 20
+            Me.colCount.ValueType = GetType(Long)
             Me.colCount.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight
+            Me.colCount.DefaultCellStyle.Format = "#,##0"
             '
             ' colTotalSize
             '
             Me.colTotalSize.HeaderText = "合計サイズ"
             Me.colTotalSize.Name = "colTotalSize"
             Me.colTotalSize.FillWeight = 25
+            Me.colTotalSize.ValueType = GetType(Long)
             Me.colTotalSize.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight
             '
             ' colPercent
@@ -100,7 +103,9 @@ Namespace Forms
             Me.colPercent.HeaderText = "割合 (%)"
             Me.colPercent.Name = "colPercent"
             Me.colPercent.FillWeight = 25
+            Me.colPercent.ValueType = GetType(Double)
             Me.colPercent.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight
+            Me.colPercent.DefaultCellStyle.Format = "0.0"
             '
             ' AttachmentStatsForm
             '

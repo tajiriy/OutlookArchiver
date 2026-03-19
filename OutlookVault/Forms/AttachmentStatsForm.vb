@@ -21,6 +21,7 @@ Namespace Forms
             _dbManager = dbManager
             _bindingSource = New BindingSource()
             InitializeComponent()
+            AddHandler dgv.CellFormatting, AddressOf Dgv_CellFormatting
             LoadData()
         End Sub
 
@@ -57,11 +58,19 @@ Namespace Forms
             dgv.Rows.Clear()
             For Each row As ExtensionRow In rows
                 Dim pct As Double = If(totalCount > 0, row.Count * 100.0 / CDbl(totalCount), 0.0)
-                dgv.Rows.Add(row.Extension, row.Count.ToString("#,##0"), FormatFileSize(row.TotalSize), pct.ToString("0.0"))
+                dgv.Rows.Add(row.Extension, row.Count, row.TotalSize, pct)
             Next
 
             lblSummary.Text = String.Format("合計: {0:#,##0} 件 / {1}  ({2} 種類)",
                                             totalCount, FormatFileSize(totalSize), rows.Count)
+        End Sub
+
+        Private Sub Dgv_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs)
+            If e.ColumnIndex = colTotalSize.Index AndAlso e.Value IsNot Nothing Then
+                Dim bytes As Long = CLng(e.Value)
+                e.Value = FormatFileSize(bytes)
+                e.FormattingApplied = True
+            End If
         End Sub
 
         Private Shared Function FormatFileSize(bytes As Long) As String
