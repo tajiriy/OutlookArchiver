@@ -2,9 +2,36 @@ Option Explicit On
 Option Strict On
 Option Infer Off
 
+Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
 
 Public Class MainForm
+
+    ' ════════════════════════════════════════════════════════════
+    '  Win32 API (ListView 全選択用)
+    ' ════════════════════════════════════════════════════════════
+    <DllImport("user32.dll", CharSet:=CharSet.Auto)>
+    Private Shared Function SendMessage(ByVal hWnd As IntPtr, ByVal msg As Integer, ByVal wParam As IntPtr, ByRef lParam As LVITEM) As IntPtr
+    End Function
+
+    Private Const LVM_FIRST As Integer = &H1000
+    Private Const LVM_SETITEMSTATE As Integer = LVM_FIRST + 43
+
+    <StructLayout(LayoutKind.Sequential)>
+    Private Structure LVITEM
+        Public mask As Integer
+        Public iItem As Integer
+        Public iSubItem As Integer
+        Public state As Integer
+        Public stateMask As Integer
+        Public pszText As IntPtr
+        Public cchTextMax As Integer
+        Public iImage As Integer
+        Public lParam As IntPtr
+    End Structure
+
+    Private Const LVIS_SELECTED As Integer = &H2
+    Private Const LVIF_STATE As Integer = &H8
 
     ' ════════════════════════════════════════════════════════════
     '  フィールド
@@ -757,12 +784,13 @@ Public Class MainForm
             DeleteSelectedEmails()
             e.Handled = True
         ElseIf e.Control AndAlso e.KeyCode = Keys.A Then
-            ' VirtualMode では Ctrl+A が自動で動作しないため手動で全選択
-            listViewEmails.BeginUpdate()
-            For i As Integer = 0 To listViewEmails.VirtualListSize - 1
-                listViewEmails.Items(i).Selected = True
-            Next
-            listViewEmails.EndUpdate()
+            ' VirtualMode では Ctrl+A が自動で動作しないため Win32 API で一括全選択
+            Dim lvi As New LVITEM()
+            lvi.mask = LVIF_STATE
+            lvi.state = LVIS_SELECTED
+            lvi.stateMask = LVIS_SELECTED
+            ' iItem = -1 で全アイテムに適用
+            SendMessage(listViewEmails.Handle, LVM_SETITEMSTATE, New IntPtr(-1), lvi)
             e.Handled = True
         End If
     End Sub
