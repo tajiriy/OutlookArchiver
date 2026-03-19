@@ -41,6 +41,8 @@ model: sonnet
 - **早期 Return + Finally の二重解放パターン**: メソッド途中で Return する際に COM オブジェクトを解放し、さらに Finally でも同じオブジェクトを解放していないか。COM 解放は原則 Finally に一本化し、解放済みの変数は `Nothing` に設定する
 - **メソッドチェーンの中間 COM オブジェクト**: `folder.Items.Restrict(filter)` のように中間で生成される COM オブジェクトが解放されているか。一時変数に受けて解放する
 - **メソッド抽出後のリソース管理**: メソッドを分割した際、抽出先で取得した COM オブジェクトの解放責任が呼び出し元・呼び出し先で明確か
+- **ループ内の COM オブジェクト解放**: `items.Item(i)` 等でループ内に取得した COM オブジェクトが、スキップ時（`Continue Do/For`）も含めて確実に解放されているか。`Try...Finally` で囲めば `Continue` でも Finally が実行される
+- **FindFolder 等の戻り値の解放責任**: メソッドが COM オブジェクトを返す場合、呼び出し元が `Marshal.ReleaseComObject` で解放する責任を持つ。使い終わった後に `Finally` で解放しているか
 
 ### 3. SQLite / データベース
 - SQL 文字列にパラメータが直接連結されていないか（SQLインジェクション）
