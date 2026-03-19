@@ -4,9 +4,9 @@
 
 | ステータス | 件数 |
 |-----------|------|
-| open      | 8    |
+| open      | 7    |
 | in-progress | 0  |
-| done      | 8    |
+| done      | 9    |
 | wontfix   | 0    |
 
 ## カテゴリ
@@ -228,17 +228,17 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Medium |
 | カテゴリ | readability |
 | ソース | review |
 | 対象ファイル | OutlookVault/MainForm.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `SortEmailCache` で `Case 0`〜`Case 4` でソート列を判定。列インデックスの意味がコメントのみ。`listViewEmails_ColumnClick` の `e.Column <> 3` も受信日時を意味するが読み取りにくい。列追加時に 3 箇所を同期させる必要あり。
 
-**対策:** `Enum EmailListColumn` を定義（`Attachment = 0`、`Subject = 1` 等）し、`_sortColumn`・設定値・`Select Case` をすべて Enum 参照に統一。
+**対策:** `Enum EmailListColumn` (Attachment=0, Subject=1, Sender=2, ReceivedAt=3, Size=4) を定義。`_sortColumn` の型を `Integer` → `EmailListColumn` に変更。`SortEmailCache` の `Select Case`、`ColumnClick` の比較、`AppSettings` のデフォルト値をすべて Enum 参照に統一。設定ファイルとの互換性は `CInt`/`CType` 変換で維持。
 
 **メモ:** MainForm.vb 行 1001〜1040、行 953
 
@@ -354,3 +354,4 @@
 | 2026-03-19 | R-001, R-007 | done: OutlookService 全14メソッドの COM オブジェクト解放を一括対応 |
 | 2026-03-19 | R-005 | done: GetFolderCounts で N+1 を 1 クエリに集約 |
 | 2026-03-19 | R-008, R-009 | done: 空 Catch を COMException 限定+コメント明示+Logger.Warn に修正 |
+| 2026-03-19 | R-011 | done: Enum EmailListColumn でソート列のマジックナンバーを排除 |
