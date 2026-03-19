@@ -4,9 +4,9 @@
 
 | ステータス | 件数 |
 |-----------|------|
-| open      | 7    |
+| open      | 5    |
 | in-progress | 0  |
-| done      | 9    |
+| done      | 11   |
 | wontfix   | 0    |
 
 ## カテゴリ
@@ -248,17 +248,17 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Low |
 | カテゴリ | performance |
 | ソース | review |
 | 対象ファイル | OutlookVault/Services/ThreadingService.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `Do While changed` ループ内で `result.ToLower().StartsWith(prefix)` を毎回呼び、ループごと・プレフィックスごとに `ToLower()` が実行される。
 
-**対策:** `StartsWith(prefix, StringComparison.OrdinalIgnoreCase)` に変更。
+**対策:** `result.ToLower().StartsWith(prefix)` → `result.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)` に変更。不要な文字列アロケーションを排除。
 
 **メモ:** ThreadingService.vb 行 174〜178
 
@@ -268,17 +268,17 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Low |
 | カテゴリ | performance |
 | ソース | review |
 | 対象ファイル | OutlookVault/Controls/EmailPreviewControl.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** メール選択のたびに呼ばれる `FormatRecipientsJson` 内で毎回 `New Regex(...)` を生成。Regex コンパイルコストが蓄積する。
 
-**対策:** パターンを `Private Shared ReadOnly` フィールド（`RegexOptions.Compiled` 付き）に昇格。
+**対策:** `New Regex(...)` を `Private Shared ReadOnly RecipientJsonPattern` フィールド（`RegexOptions.Compiled` 付き）に昇格。メソッド内ではフィールド参照のみ。
 
 **メモ:** EmailPreviewControl.vb 行 276
 
@@ -355,3 +355,4 @@
 | 2026-03-19 | R-005 | done: GetFolderCounts で N+1 を 1 クエリに集約 |
 | 2026-03-19 | R-008, R-009 | done: 空 Catch を COMException 限定+コメント明示+Logger.Warn に修正 |
 | 2026-03-19 | R-011 | done: Enum EmailListColumn でソート列のマジックナンバーを排除 |
+| 2026-03-19 | R-012, R-013 | done: StringComparison.OrdinalIgnoreCase 使用、Regex を Shared Compiled に昇格 |
