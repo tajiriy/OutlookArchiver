@@ -4,9 +4,9 @@
 
 | ステータス | 件数 |
 |-----------|------|
-| open      | 11   |
+| open      | 10   |
 | in-progress | 0  |
-| done      | 5    |
+| done      | 6    |
 | wontfix   | 0    |
 
 ## カテゴリ
@@ -108,17 +108,17 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Medium |
 | カテゴリ | performance |
 | ソース | review |
 | 対象ファイル | OutlookVault/MainForm.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `GetFolderNames()` で N 件取得後、フォルダごとに `GetTotalCount(folder)` を呼ぶループで N 回の SELECT を発行。`LoadFolderTree` でも同様のパターン。
 
-**対策:** `SELECT folder_name, COUNT(1) FROM emails WHERE folder_name IS NOT NULL GROUP BY folder_name` の 1 クエリで取得する `GetFolderCounts() As Dictionary(Of String, Integer)` を `EmailRepository` に追加。
+**対策:** `GetFolderCounts() As Dictionary(Of String, Integer)` を `EmailRepository` に追加（GROUP BY で1クエリ取得 + NULL件数加算）。`LoadFolderTree` と `UpdateFolderCountsAsync` の `GetFolderNames` + `GetTotalCount` ループを `GetFolderCounts` 1回の呼び出しに置き換え。
 
 **メモ:** MainForm.vb 行 848〜855、行 185〜187
 
@@ -352,3 +352,4 @@
 | 2026-03-19 | R-003 | done: IDisposable 実装、MainForm.Dispose で解放 |
 | 2026-03-19 | R-004 | done: DeleteSelectedEmails を DeleteEmailsByIds に置き換え |
 | 2026-03-19 | R-001, R-007 | done: OutlookService 全14メソッドの COM オブジェクト解放を一括対応 |
+| 2026-03-19 | R-005 | done: GetFolderCounts で N+1 を 1 クエリに集約 |
