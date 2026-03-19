@@ -11,7 +11,9 @@ Namespace Data
     ''' emails / attachments / deleted_message_ids テーブルへのアクセスを担当するリポジトリクラス。
     ''' </summary>
     Public Class EmailRepository
+        Implements IDisposable
 
+        Private _disposed As Boolean = False
         Private ReadOnly _dbManager As DatabaseManager
 
         ' ── バルク書き込み用（トランザクション共有） ──────────────────
@@ -950,6 +952,24 @@ SELECT last_insert_rowid();"
                     cmd.ExecuteNonQuery()
                 End Using
             End Using
+        End Sub
+
+        ' ════════════════════════════════════════════════════════════
+        '  IDisposable
+        ' ════════════════════════════════════════════════════════════
+
+        Protected Overridable Sub Dispose(disposing As Boolean)
+            If _disposed Then Return
+            If disposing Then
+                ' バルクモードが残っていればロールバックしてリソース解放
+                RollbackBulk()
+            End If
+            _disposed = True
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Dispose(True)
+            GC.SuppressFinalize(Me)
         End Sub
 
     End Class
