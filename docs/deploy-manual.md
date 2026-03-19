@@ -1,4 +1,4 @@
-# OutlookArchiver デプロイマニュアル
+# OutlookVault デプロイマニュアル
 
 ## 目次
 
@@ -14,7 +14,7 @@
 
 ## 概要
 
-OutlookArchiver を開発環境から任意のフォルダ（例: `C:\Tools\OutlookArchiver`）にデプロイする手順を説明します。
+OutlookVault を開発環境から任意のフォルダ（例: `C:\Tools\OutlookVault`）にデプロイする手順を説明します。
 
 ### 前提条件
 
@@ -25,9 +25,9 @@ OutlookArchiver を開発環境から任意のフォルダ（例: `C:\Tools\Outl
 ### デプロイ先のフォルダ構成
 
 ```
-C:\Tools\OutlookArchiver\
-├── OutlookArchiver.exe          # 実行ファイル
-├── OutlookArchiver.exe.Config   # アプリケーション設定
+C:\Tools\OutlookVault\
+├── OutlookVault.exe          # 実行ファイル
+├── OutlookVault.exe.Config   # アプリケーション設定
 ├── EntityFramework.dll          # 依存ライブラリ
 ├── EntityFramework.SqlServer.dll
 ├── Microsoft.Office.Interop.Outlook.dll
@@ -49,7 +49,7 @@ C:\Tools\OutlookArchiver\
 
 プロジェクトルートの `deploy.ps1` を使用するのが最も簡単な方法です。
 
-### デフォルトのデプロイ先（`C:\Tools\OutlookArchiver`）
+### デフォルトのデプロイ先（`C:\Tools\OutlookVault`）
 
 ```powershell
 .\deploy.ps1
@@ -58,7 +58,7 @@ C:\Tools\OutlookArchiver\
 ### デプロイ先を指定する場合
 
 ```powershell
-.\deploy.ps1 -DeployDir "D:\MyApp\OutlookArchiver"
+.\deploy.ps1 -DeployDir "D:\MyApp\OutlookVault"
 ```
 
 スクリプトは以下を自動で行います:
@@ -83,20 +83,20 @@ C:\Tools\OutlookArchiver\
 または MSBuild を直接実行:
 
 ```powershell
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" OutlookArchiver\OutlookArchiver.vbproj /t:Restore /p:Configuration=Release
-& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" OutlookArchiver\OutlookArchiver.vbproj /p:Configuration=Release
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" OutlookVault\OutlookVault.vbproj /t:Restore /p:Configuration=Release
+& "C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" OutlookVault\OutlookVault.vbproj /p:Configuration=Release
 ```
 
-ビルド成果物は `OutlookArchiver/bin/Release/` に出力されます。
+ビルド成果物は `OutlookVault/bin/Release/` に出力されます。
 
 ### 2. ファイルのコピー
 
-`OutlookArchiver/bin/Release/` から以下のファイルをデプロイ先にコピーします:
+`OutlookVault/bin/Release/` から以下のファイルをデプロイ先にコピーします:
 
 | ファイル | 必須 | 説明 |
 |---------|:----:|------|
-| `OutlookArchiver.exe` | Yes | 実行ファイル |
-| `OutlookArchiver.exe.Config` | Yes | アプリケーション設定 |
+| `OutlookVault.exe` | Yes | 実行ファイル |
+| `OutlookVault.exe.Config` | Yes | アプリケーション設定 |
 | `EntityFramework.dll` | Yes | Entity Framework |
 | `EntityFramework.SqlServer.dll` | Yes | Entity Framework SQL Server |
 | `Microsoft.Office.Interop.Outlook.dll` | Yes | Outlook COM 相互運用 |
@@ -105,8 +105,8 @@ C:\Tools\OutlookArchiver\
 | `System.Data.SQLite.Linq.dll` | Yes | SQLite LINQ サポート |
 | `x64/SQLite.Interop.dll` | Yes | SQLite ネイティブ (64bit) |
 | `x86/SQLite.Interop.dll` | Yes | SQLite ネイティブ (32bit) |
-| `OutlookArchiver.pdb` | No | デバッグシンボル |
-| `OutlookArchiver.xml` | No | XML ドキュメント |
+| `OutlookVault.pdb` | No | デバッグシンボル |
+| `OutlookVault.xml` | No | XML ドキュメント |
 
 ---
 
@@ -121,7 +121,7 @@ C:\Tools\OutlookArchiver\
 2. **data フォルダをコピー**
    ```
    コピー元: <旧環境>\data\
-   コピー先: C:\Tools\OutlookArchiver\data\
+   コピー先: C:\Tools\OutlookVault\data\
    ```
 
 3. **コピー対象の確認**
@@ -140,13 +140,13 @@ C:\Tools\OutlookArchiver\
 
 - `archive.db-wal` と `archive.db-shm` はアプリ稼働中に存在するファイルです。アプリを正常終了してからコピーしてください。
 - 添付ファイルのパスはデータベース内に相対パスで保存されているため、`data` フォルダの構造を変えなければそのまま動作します。
-- `data` フォルダの名前や配置を変更したい場合は、`OutlookArchiver.exe.Config` の `DbFilePath` と `AttachmentDirectory` を編集してください。
+- `data` フォルダの名前や配置を変更したい場合は、`OutlookVault.exe.Config` の `DbFilePath` と `AttachmentDirectory` を編集してください。
 
 ---
 
 ## デプロイ後の確認
 
-1. `OutlookArchiver.exe` をダブルクリックで起動
+1. `OutlookVault.exe` をダブルクリックで起動
 2. データを移行した場合、メール一覧にデータが表示されることを確認
 3. 添付ファイル付きメールを開き、添付ファイルが正しく表示されることを確認
 4. 新規にメールを取り込み、正常に動作することを確認
@@ -176,7 +176,7 @@ C:\Tools\OutlookArchiver\
 ### データが表示されない
 
 - `data` フォルダが正しい場所にあるか確認してください
-- `OutlookArchiver.exe.Config` のパス設定が正しいか確認してください
+- `OutlookVault.exe.Config` のパス設定が正しいか確認してください
 
 ### 添付ファイルが開けない
 

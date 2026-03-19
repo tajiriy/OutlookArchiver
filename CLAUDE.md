@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## プロジェクト概要
 
-OutlookArchiver は .NET Framework 4.6.2 / VB.NET の Windows Forms デスクトップアプリケーション。Outlook のメール保管操作を提供する。
+OutlookVault は .NET Framework 4.6.2 / VB.NET の Windows Forms デスクトップアプリケーション。Outlook のメール保管操作を提供する。
 
 ## ビルド・実行コマンド
 
@@ -31,7 +31,7 @@ OutlookArchiver は .NET Framework 4.6.2 / VB.NET の Windows Forms デスクト
 
 ## アーキテクチャ
 
-- ソリューション (`OutlookArchiver.sln`) に `OutlookArchiver/`（本体）と `OutlookArchiver.Tests/`（テスト）を含む構成
+- ソリューション (`OutlookVault.sln`) に `OutlookVault/`（本体）と `OutlookVault.Tests/`（テスト）を含む構成
 - エントリポイント: `My.MyApplication` → `MainForm`
 - `MainForm.Designer.vb` はデザイナー自動生成ファイル。手動編集しないこと
 
@@ -48,7 +48,7 @@ OutlookArchiver は .NET Framework 4.6.2 / VB.NET の Windows Forms デスクト
 
 ## コミット前の確認事項
 
-- コミット前に必ず `msbuild OutlookArchiver/OutlookArchiver.vbproj` でビルドが通ることを確認する
+- コミット前に必ず `msbuild OutlookVault/OutlookVault.vbproj` でビルドが通ることを確認する
 - ビルドエラーがある状態ではコミットしない
 
 ## 注意事項

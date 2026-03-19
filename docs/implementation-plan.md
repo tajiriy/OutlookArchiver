@@ -1,4 +1,4 @@
-# OutlookArchiver 実装プラン
+# OutlookVault 実装プラン
 
 ## 全体方針
 
