@@ -30,23 +30,26 @@ Namespace Forms
             Dim totalSize As Long = 0
             Dim extMap As New System.Collections.Generic.Dictionary(Of String, ExtensionRow)()
 
+            ' SQL 側で拡張子ごとに集計（全行転送を回避）
+            Const sql As String =
+                "SELECT " &
+                "  CASE WHEN INSTR(file_name, '.') > 0 " &
+                "    THEN LOWER(SUBSTR(file_name, LENGTH(file_name) - LENGTH(SUBSTR(file_name, INSTR(file_name, '.'))) + 1)) " &
+                "    ELSE '' END AS ext, " &
+                "  COUNT(*) AS cnt, " &
+                "  SUM(COALESCE(file_size, 0)) AS total_size " &
+                "FROM attachments GROUP BY ext ORDER BY cnt DESC"
             Using conn As SQLiteConnection = _dbManager.GetConnection()
-                Using cmd As New SQLiteCommand("SELECT file_name, COALESCE(file_size, 0) FROM attachments", conn)
+                Using cmd As New SQLiteCommand(sql, conn)
                     Using reader As SQLiteDataReader = cmd.ExecuteReader()
                         While reader.Read()
-                            Dim fileName As String = reader.GetString(0)
-                            Dim fileSize As Long = reader.GetInt64(1)
-                            Dim ext As String = IO.Path.GetExtension(fileName).ToLowerInvariant()
+                            Dim ext As String = reader.GetString(0)
                             If String.IsNullOrEmpty(ext) Then ext = "(なし)"
-
-                            Dim existing As ExtensionRow = Nothing
-                            If extMap.TryGetValue(ext, existing) Then
-                                extMap(ext) = New ExtensionRow(ext, existing.Count + 1L, existing.TotalSize + fileSize)
-                            Else
-                                extMap(ext) = New ExtensionRow(ext, 1L, fileSize)
-                            End If
-                            totalCount += 1L
-                            totalSize += fileSize
+                            Dim cnt As Long = reader.GetInt64(1)
+                            Dim size As Long = reader.GetInt64(2)
+                            extMap(ext) = New ExtensionRow(ext, cnt, size)
+                            totalCount += cnt
+                            totalSize += size
                         End While
                     End Using
                 End Using

@@ -664,11 +664,20 @@ Namespace Services
 
         Private Shared Function JsonStr(s As String) As String
             If s Is Nothing Then Return "null"
-            Return """" & s.Replace("\", "\\").
-                           Replace("""", "\""").
-                           Replace(vbCr, "\r").
-                           Replace(vbLf, "\n").
-                           Replace(vbTab, "\t") & """"
+            Dim escaped As String = s.Replace("\", "\\").
+                                      Replace("""", "\""").
+                                      Replace(vbCr, "\r").
+                                      Replace(vbLf, "\n").
+                                      Replace(vbTab, "\t").
+                                      Replace(Chr(8), "\b").
+                                      Replace(Chr(12), "\f")
+            ' 残りの制御文字（U+0000〜U+001F）を除去
+            Dim sb As New System.Text.StringBuilder(escaped.Length)
+            For Each c As Char In escaped
+                If Char.IsControl(c) Then Continue For
+                sb.Append(c)
+            Next
+            Return """" & sb.ToString() & """"
         End Function
 
         ' ════════════════════════════════════════════════════════════
