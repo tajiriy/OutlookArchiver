@@ -4,6 +4,7 @@ Option Infer Off
 
 Imports System.Data
 Imports System.Data.SQLite
+Imports System.Text
 Imports System.Windows.Forms
 
 Namespace Forms
@@ -132,6 +133,89 @@ Namespace Forms
             lblRowCount.Location = New Drawing.Point(
                 pnlTop.ClientSize.Width - lblRowCount.Width - 10, 10)
         End Sub
+
+        Private Sub tsmiCopy_Click(sender As Object, e As EventArgs) Handles tsmiCopy.Click
+            CopySelectedCells()
+        End Sub
+
+        Private Sub dgv_KeyDown(sender As Object, e As KeyEventArgs) Handles dgv.KeyDown
+            If e.Control AndAlso e.KeyCode = Keys.C Then
+                CopySelectedCells()
+                e.Handled = True
+            End If
+        End Sub
+
+        Private Sub CopySelectedCells()
+            If dgv.SelectedCells.Count = 0 Then Return
+            Dim text As String = BuildCopyText(dgv.SelectedCells)
+            If text.Length > 0 Then
+                Clipboard.SetText(text)
+            End If
+        End Sub
+
+        ''' <summary>
+        ''' 選択セルからコピー用テキストを生成する。
+        ''' 矩形選択（連続した行×列）の場合は横タブ・縦改行。
+        ''' とびとびの選択の場合はタブ区切りのフラット出力。
+        ''' </summary>
+        Public Shared Function BuildCopyText(cells As DataGridViewSelectedCellCollection) As String
+            If cells.Count = 0 Then Return ""
+            If cells.Count = 1 Then
+                Return If(cells(0).Value IsNot Nothing, cells(0).Value.ToString(), "")
+            End If
+
+            ' 選択セルの行・列インデックスを収集
+            Dim rows As New SortedSet(Of Integer)()
+            Dim cols As New SortedSet(Of Integer)()
+            Dim cellMap As New Dictionary(Of Long, DataGridViewCell)()
+            For Each cell As DataGridViewCell In cells
+                rows.Add(cell.RowIndex)
+                cols.Add(cell.ColumnIndex)
+                Dim key As Long = CLng(cell.RowIndex) * 100000L + CLng(cell.ColumnIndex)
+                cellMap(key) = cell
+            Next
+
+            ' 矩形判定: 行数×列数 = 選択セル数
+            Dim isRectangular As Boolean = (rows.Count * cols.Count = cells.Count)
+
+            If isRectangular AndAlso rows.Count > 1 Then
+                ' 矩形選択: 横タブ・縦改行
+                Dim sb As New StringBuilder()
+                Dim firstRow As Boolean = True
+                For Each r As Integer In rows
+                    If Not firstRow Then sb.Append(vbCrLf)
+                    firstRow = False
+                    Dim firstCol As Boolean = True
+                    For Each c As Integer In cols
+                        If Not firstCol Then sb.Append(vbTab)
+                        firstCol = False
+                        Dim key As Long = CLng(r) * 100000L + CLng(c)
+                        Dim cell As DataGridViewCell = Nothing
+                        If cellMap.TryGetValue(key, cell) Then
+                            sb.Append(If(cell.Value IsNot Nothing, cell.Value.ToString(), ""))
+                        End If
+                    Next
+                Next
+                Return sb.ToString()
+            Else
+                ' とびとび選択 or 単一行: タブ区切りフラット
+                ' 行→列の順にソートして出力
+                Dim sb As New StringBuilder()
+                Dim first As Boolean = True
+                For Each r As Integer In rows
+                    For Each c As Integer In cols
+                        Dim key As Long = CLng(r) * 100000L + CLng(c)
+                        Dim cell As DataGridViewCell = Nothing
+                        If cellMap.TryGetValue(key, cell) Then
+                            If Not first Then sb.Append(vbTab)
+                            first = False
+                            sb.Append(If(cell.Value IsNot Nothing, cell.Value.ToString(), ""))
+                        End If
+                    Next
+                Next
+                Return sb.ToString()
+            End If
+        End Function
 
         Private Sub dgv_ColumnHeaderMouseClick(sender As Object, e As DataGridViewCellMouseEventArgs) Handles dgv.ColumnHeaderMouseClick
             Dim colName As String = dgv.Columns(e.ColumnIndex).DataPropertyName

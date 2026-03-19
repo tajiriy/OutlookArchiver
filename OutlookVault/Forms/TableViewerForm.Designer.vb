@@ -14,6 +14,7 @@ Namespace Forms
                     If _filterTimer IsNot Nothing Then _filterTimer.Dispose()
                     If _bindingSource IsNot Nothing Then _bindingSource.Dispose()
                     If _dataTable IsNot Nothing Then _dataTable.Dispose()
+                    If cmsGrid IsNot Nothing Then cmsGrid.Dispose()
                     If components IsNot Nothing Then components.Dispose()
                 End If
             Finally
@@ -33,6 +34,8 @@ Namespace Forms
             Me.lblRowCount = New System.Windows.Forms.Label()
             Me._filterTimer = New System.Windows.Forms.Timer()
             Me.dgv = New OutlookVault.Forms.TableViewerForm.BufferedDataGridView()
+            Me.cmsGrid = New System.Windows.Forms.ContextMenuStrip()
+            Me.tsmiCopy = New System.Windows.Forms.ToolStripMenuItem()
             Me.pnlTop.SuspendLayout()
             CType(Me.dgv, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.SuspendLayout()
@@ -87,6 +90,18 @@ Namespace Forms
             '
             Me._filterTimer.Interval = 800
             '
+            ' cmsGrid
+            '
+            Me.cmsGrid.Items.Add(Me.tsmiCopy)
+            Me.cmsGrid.Name = "cmsGrid"
+            '
+            ' tsmiCopy
+            '
+            Me.tsmiCopy.Name = "tsmiCopy"
+            Me.tsmiCopy.Text = "コピー(&C)"
+            Me.tsmiCopy.ShortcutKeys = CType(System.Windows.Forms.Keys.Control Or System.Windows.Forms.Keys.C, System.Windows.Forms.Keys)
+            Me.tsmiCopy.ShowShortcutKeys = True
+            '
             ' dgv
             '
             Me.dgv.AllowUserToAddRows = False
@@ -94,11 +109,12 @@ Namespace Forms
             Me.dgv.AllowUserToOrderColumns = True
             Me.dgv.AllowUserToResizeColumns = True
             Me.dgv.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.None
-            Me.dgv.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithAutoHeaderText
+            Me.dgv.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.Disable
             Me.dgv.Dock = System.Windows.Forms.DockStyle.Fill
             Me.dgv.Name = "dgv"
             Me.dgv.ReadOnly = True
-            Me.dgv.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
+            Me.dgv.ContextMenuStrip = Me.cmsGrid
+            Me.dgv.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect
             '
             ' TableViewerForm
             '
@@ -123,6 +139,8 @@ Namespace Forms
         Friend pnlTop As System.Windows.Forms.Panel
         Friend WithEvents dgv As System.Windows.Forms.DataGridView
         Friend _filterTimer As System.Windows.Forms.Timer
+        Friend cmsGrid As System.Windows.Forms.ContextMenuStrip
+        Friend WithEvents tsmiCopy As System.Windows.Forms.ToolStripMenuItem
 
     End Class
 
