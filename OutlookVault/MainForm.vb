@@ -176,16 +176,18 @@ Public Class MainForm
         treeViewFolders.BeginUpdate()
         treeViewFolders.Nodes.Clear()
 
-        Dim totalCount As Integer = _repo.GetTotalCount()
+        Dim folderCounts As Dictionary(Of String, Integer) = _repo.GetFolderCounts()
+
+        Dim totalCount As Integer = 0
+        If folderCounts.ContainsKey(Nothing) Then totalCount = folderCounts(Nothing)
         Dim nodeAll As New TreeNode(String.Format("すべて ({0:N0})", totalCount))
         nodeAll.Tag = Nothing
         treeViewFolders.Nodes.Add(nodeAll)
 
-        Dim folders As List(Of String) = _repo.GetFolderNames()
-        For Each folder As String In folders
-            Dim count As Integer = _repo.GetTotalCount(folder)
-            Dim node As New TreeNode(String.Format("{0} ({1:N0})", folder, count))
-            node.Tag = folder
+        For Each kvp As KeyValuePair(Of String, Integer) In folderCounts
+            If kvp.Key Is Nothing Then Continue For
+            Dim node As New TreeNode(String.Format("{0} ({1:N0})", kvp.Key, kvp.Value))
+            node.Tag = kvp.Key
             treeViewFolders.Nodes.Add(node)
         Next
 
@@ -836,18 +838,19 @@ Public Class MainForm
     Private Async Function UpdateFolderCountsAsync() As Task
         Dim repo As Data.EmailRepository = _repo
 
-        ' DBクエリをバックグラウンドスレッドで実行
+        ' DBクエリをバックグラウンドスレッドで実行（1クエリで全フォルダ件数を取得）
         Dim folderData As List(Of Tuple(Of String, Integer)) = Await Task.Run(
             Function() As List(Of Tuple(Of String, Integer))
                 Dim result As New List(Of Tuple(Of String, Integer))()
                 Try
-                    Dim totalCount As Integer = repo.GetTotalCount()
+                    Dim folderCounts As Dictionary(Of String, Integer) = repo.GetFolderCounts()
+                    ' 「すべて」(Nothing キー) を先頭に配置
+                    Dim totalCount As Integer = 0
+                    If folderCounts.ContainsKey(Nothing) Then totalCount = folderCounts(Nothing)
                     result.Add(Tuple.Create(CType(Nothing, String), totalCount))
-
-                    Dim folders As List(Of String) = repo.GetFolderNames()
-                    For Each folder As String In folders
-                        Dim count As Integer = repo.GetTotalCount(folder)
-                        result.Add(Tuple.Create(folder, count))
+                    For Each kvp As KeyValuePair(Of String, Integer) In folderCounts
+                        If kvp.Key Is Nothing Then Continue For
+                        result.Add(Tuple.Create(kvp.Key, kvp.Value))
                     Next
                 Catch
                 End Try
