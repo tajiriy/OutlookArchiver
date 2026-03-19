@@ -758,9 +758,11 @@ Public Class MainForm
             e.Handled = True
         ElseIf e.Control AndAlso e.KeyCode = Keys.A Then
             ' VirtualMode では Ctrl+A が自動で動作しないため手動で全選択
+            listViewEmails.BeginUpdate()
             For i As Integer = 0 To listViewEmails.VirtualListSize - 1
                 listViewEmails.Items(i).Selected = True
             Next
+            listViewEmails.EndUpdate()
             e.Handled = True
         End If
     End Sub
