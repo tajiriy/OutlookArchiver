@@ -295,6 +295,16 @@ Namespace Config
             End Set
         End Property
 
+        ''' <summary>会話ビューのスレッド一覧の高さ（SplitContainer の SplitterDistance）</summary>
+        Public Property ConversationSplitterDistance As Integer
+            Get
+                Return GetInt("ConversationSplitterDistance", defaultValue:=0)
+            End Get
+            Set(value As Integer)
+                SaveSetting("ConversationSplitterDistance", value.ToString())
+            End Set
+        End Property
+
         ''' <summary>ウィンドウの幅</summary>
         Public Property WindowWidth As Integer
             Get

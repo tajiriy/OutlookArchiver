@@ -1517,6 +1517,12 @@ Public Class MainForm
         If _settings.WindowMaximized Then
             Me.WindowState = FormWindowState.Maximized
         End If
+
+        ' 会話ビューの分割位置を復元
+        Dim convSplit As Integer = _settings.ConversationSplitterDistance
+        If convSplit > 0 Then
+            conversationView.SplitterDistance = convSplit
+        End If
     End Sub
 
     ''' <summary>ウィンドウサイズ・位置・状態を保存する。</summary>
@@ -1537,6 +1543,7 @@ Public Class MainForm
         End If
 
         _settings.FolderTreeWidth = splitMain.SplitterDistance
+        _settings.ConversationSplitterDistance = conversationView.SplitterDistance
     End Sub
 
     ' ════════════════════════════════════════════════════════════

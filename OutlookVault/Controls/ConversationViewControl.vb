@@ -25,8 +25,20 @@ Namespace Controls
         End Sub
 
         ' ════════════════════════════════════════════════════════════
-        '  公開メソッド
+        '  公開プロパティ・メソッド
         ' ════════════════════════════════════════════════════════════
+
+        ''' <summary>スレッド一覧とメッセージ本文の分割位置（ピクセル）。</summary>
+        Public Property SplitterDistance As Integer
+            Get
+                Return splitConversation.SplitterDistance
+            End Get
+            Set(value As Integer)
+                If value > 0 AndAlso value < splitConversation.Height Then
+                    splitConversation.SplitterDistance = value
+                End If
+            End Set
+        End Property
 
         ''' <summary>スレッド内のメール一覧を表示し、指定IDのメールを選択状態にする。</summary>
         Public Sub ShowThread(emails As List(Of Models.Email), selectedId As Integer)
