@@ -4,9 +4,9 @@
 
 | ステータス | 件数 |
 |-----------|------|
-| open      | 5    |
+| open      | 3    |
 | in-progress | 0  |
-| done      | 11   |
+| done      | 13   |
 | wontfix   | 0    |
 
 ## カテゴリ
@@ -288,17 +288,17 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Low |
 | カテゴリ | readability |
 | ソース | review |
 | 対象ファイル | OutlookVault/Services/OutlookService.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `JsonStr` メソッドは `\` と `"` のみエスケープ。制御文字（`\t`、`\n`、`\r`）のエスケープがない。受信者名に改行が含まれると不正な JSON になる。
 
-**対策:** `vbCrLf`・`vbCr`・`vbLf`・タブを JSON エスケープシーケンスに置換する処理を追加。
+**対策:** `Replace(vbCr, "\r").Replace(vbLf, "\n").Replace(vbTab, "\t")` を追加。
 
 **メモ:** OutlookService.vb 行 520〜523。現状は DB→UI の内部利用のみで実害は出にくい。
 
@@ -328,17 +328,17 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Low |
 | カテゴリ | error-handling |
 | ソース | review |
 | 対象ファイル | OutlookVault/Config/AppSettings.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `StartWithWindows` の Set プロパティで空 Catch。レジストリアクセス失敗（権限不足等）が無言で失敗し、ユーザーは設定が有効にならない原因が分からない。
 
-**対策:** `Catch ex As UnauthorizedAccessException` 等で具体的例外を捕捉し、`Logger.Warn` でログ出力。呼び出し元の `SettingsForm` でユーザー通知を検討。
+**対策:** `Catch ex As SecurityException` と `Catch ex As UnauthorizedAccessException` で例外型を限定し、`Services.Logger.Warn` でログ出力。Get 側も `Catch ex As Exception` にコメント追加。
 
 **メモ:** AppSettings.vb 行 211
 
@@ -356,3 +356,4 @@
 | 2026-03-19 | R-008, R-009 | done: 空 Catch を COMException 限定+コメント明示+Logger.Warn に修正 |
 | 2026-03-19 | R-011 | done: Enum EmailListColumn でソート列のマジックナンバーを排除 |
 | 2026-03-19 | R-012, R-013 | done: StringComparison.OrdinalIgnoreCase 使用、Regex を Shared Compiled に昇格 |
+| 2026-03-19 | R-014, R-016 | done: JSON エスケープに制御文字追加、レジストリ Catch を例外型限定+Logger.Warn |
