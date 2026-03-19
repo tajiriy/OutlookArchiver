@@ -4,9 +4,9 @@
 
 | ステータス | 件数 |
 |-----------|------|
-| open      | 1    |
+| open      | 0    |
 | in-progress | 0  |
-| done      | 32   |
+| done      | 33   |
 | wontfix   | 4    |
 | deferred  | 2    |
 | invalid   | 1    |
@@ -808,19 +808,19 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Medium |
 | カテゴリ | performance |
 | ソース | review |
 | 対象ファイル | OutlookVault/Data/EmailRepository.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** 削除件数分の個別 SELECT で添付パスを収集。100件削除で100回 SELECT。
 
-**対策:** IN 句による一括 SELECT に変更。
+**対策:** 個別 SELECT ループを IN 句による一括 SELECT に変更。SQLite のバインドパラメータ上限（999）を考慮し、999件ずつバッチ分割して処理。
 
-**メモ:** BUG-008
+**メモ:** BUG-008。修正日: 2026-03-19
 
 ---
 
@@ -861,3 +861,4 @@
 | 2026-03-19 | R-034 | done: ShowImagePreview の frm/img を Try...Finally Dispose で保証 |
 | 2026-03-19 | R-036 | done: DateTime.Parse を TryParse に変更、パース失敗時 Logger.Warn |
 | 2026-03-19 | R-035, R-038 | done: SyncDeletions の folder.Items 2回取得を解消（GetFolderMessageIds に itemCount 追加）、ImportFolder/SyncDeletions の FindFolder 結果を Try...Finally で COM 解放 |
+| 2026-03-19 | R-040 | done: DeleteEmailsByIds の添付パス収集を IN 句一括 SELECT に変更（999件バッチ分割） |
