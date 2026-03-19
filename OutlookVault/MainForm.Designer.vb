@@ -91,7 +91,7 @@ Partial Class MainForm
         '
         'menuStrip
         '
-        Me.menuStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemFile, Me.menuItemImport, Me.menuItemSettings, Me.menuItemHelp})
+        Me.menuStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemFile, Me.menuItemImport, Me.menuItemHelp})
         Me.menuStrip.Location = New System.Drawing.Point(0, 0)
         Me.menuStrip.Name = "menuStrip"
         Me.menuStrip.Size = New System.Drawing.Size(1397, 24)
@@ -99,7 +99,8 @@ Partial Class MainForm
         '
         'menuItemFile
         '
-        Me.menuItemFile.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemFileExit})
+        Me.menuItemFileSeparator1 = New System.Windows.Forms.ToolStripSeparator()
+        Me.menuItemFile.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemSettings, Me.menuItemFileSeparator1, Me.menuItemFileExit})
         Me.menuItemFile.Name = "menuItemFile"
         Me.menuItemFile.Size = New System.Drawing.Size(67, 20)
         Me.menuItemFile.Text = "ファイル(&F)"
@@ -142,8 +143,8 @@ Partial Class MainForm
         'menuItemSettings
         '
         Me.menuItemSettings.Name = "menuItemSettings"
-        Me.menuItemSettings.Size = New System.Drawing.Size(57, 20)
-        Me.menuItemSettings.Text = "設定(&T)"
+        Me.menuItemSettings.Size = New System.Drawing.Size(155, 22)
+        Me.menuItemSettings.Text = "設定(&T)..."
         '
         'menuItemHelp
         '
@@ -490,6 +491,7 @@ Partial Class MainForm
     Friend WithEvents menuStrip As System.Windows.Forms.MenuStrip
     Friend WithEvents menuItemFile As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemFileExit As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuItemFileSeparator1 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents menuItemImport As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemImportNow As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemImportCancel As System.Windows.Forms.ToolStripMenuItem
