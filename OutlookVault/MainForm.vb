@@ -31,6 +31,7 @@ Public Class MainForm
     End Structure
 
     Private Const LVIS_SELECTED As Integer = &H2
+    Private Const LVIS_FOCUSED As Integer = &H1
     Private Const LVIF_STATE As Integer = &H8
 
     ' ════════════════════════════════════════════════════════════
@@ -952,7 +953,47 @@ Public Class MainForm
             _sortAscending = (e.Column <> 3)
         End If
         UpdateColumnSortIndicator()
+
+        ' ソート前に選択中メールのIDを保存
+        Dim selectedIds As New HashSet(Of Integer)()
+        For Each idx As Integer In listViewEmails.SelectedIndices
+            If idx >= 0 AndAlso idx < _emailCache.Count Then
+                selectedIds.Add(_emailCache(idx).Id)
+            End If
+        Next
+
         SortEmailCache()
+
+        ' ソート後: 選択をクリアし、保存したIDの新位置に再設定
+        If selectedIds.Count > 0 Then
+            ' Win32 API で全選択解除（VirtualMode で高速）
+            Dim lviClear As LVITEM
+            lviClear.state = 0
+            lviClear.stateMask = LVIS_SELECTED Or LVIS_FOCUSED
+            SendMessage(listViewEmails.Handle, LVM_SETITEMSTATE, New IntPtr(-1), lviClear)
+
+            Dim firstNewIdx As Integer = -1
+            For i As Integer = 0 To _emailCache.Count - 1
+                If selectedIds.Contains(_emailCache(i).Id) Then
+                    ' Win32 API で個別選択
+                    Dim lviSet As LVITEM
+                    lviSet.state = LVIS_SELECTED
+                    lviSet.stateMask = LVIS_SELECTED
+                    SendMessage(listViewEmails.Handle, LVM_SETITEMSTATE, New IntPtr(i), lviSet)
+                    If firstNewIdx = -1 Then firstNewIdx = i
+                End If
+            Next
+
+            ' 最初の選択アイテムにフォーカスを設定しスクロール
+            If firstNewIdx >= 0 Then
+                Dim lviFocus As LVITEM
+                lviFocus.state = LVIS_FOCUSED
+                lviFocus.stateMask = LVIS_FOCUSED
+                SendMessage(listViewEmails.Handle, LVM_SETITEMSTATE, New IntPtr(firstNewIdx), lviFocus)
+                listViewEmails.EnsureVisible(firstNewIdx)
+            End If
+        End If
+
         listViewEmails.Invalidate()
     End Sub
 
