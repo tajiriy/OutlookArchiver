@@ -4,9 +4,9 @@
 
 | ステータス | 件数 |
 |-----------|------|
-| open      | 10   |
+| open      | 0    |
 | in-progress | 0  |
-| done      | 33   |
+| done      | 43   |
 | wontfix   | 4    |
 | deferred  | 2    |
 | invalid   | 1    |
@@ -316,7 +316,7 @@
 | ソース | review |
 | 対象ファイル | OutlookVault/Services/ImportService.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `ProcessMailItem` はアプリのコアロジック（重複チェック・スレッド付与・DB 挿入・添付保存の統合）だが、`Outlook.MailItem` への直接依存でテストから除外されている。`errorIds` 追加・`skipReason` 分岐等の結合動作が未検証。
 
@@ -494,7 +494,7 @@
 | ソース | review |
 | 対象ファイル | OutlookVault/Config/AppSettings.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `TargetFolders` ゲッターが呼び出しのたびに ConfigurationManager を読み込み new List を生成。
 
@@ -534,7 +534,7 @@
 | ソース | review |
 | 対象ファイル | OutlookVault/Controls/EmailPreviewControl.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `att.FilePath` が DB の相対パスのまま `File.Exists` に渡されており、正しく動作しない可能性。
 
@@ -574,7 +574,7 @@
 | ソース | review |
 | 対象ファイル | OutlookVault.Tests/AppSettingsTests.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** テスト名が「デフォルト値が False」と主張しているが、型チェックのみで実際の値を検証していない。
 
@@ -594,7 +594,7 @@
 | ソース | review |
 | 対象ファイル | OutlookVault/Services/ImportService.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `UpdateSyncState`/`LogImportResult` 等の純ロジック部分がテスト可能だがテストファイルがない。
 
@@ -614,7 +614,7 @@
 | ソース | review |
 | 対象ファイル | OutlookVault/MainForm.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** スピンウェイトループで `Application.DoEvents()` を使っており、リエントラント問題のリスクがある。
 
@@ -634,7 +634,7 @@
 | ソース | review |
 | 対象ファイル | OutlookVault/Data/DatabaseManager.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `attachments` 等のテーブルで `SELECT *` 全件取得。大量件数でメモリ消費。
 
@@ -828,19 +828,19 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | High |
 | カテゴリ | resource-management |
 | ソース | review |
 | 対象ファイル | OutlookVault/Services/ImportService.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `ImportFolder` の入れ子 Try...Finally 構造が複雑で、`BuildItemsCollection` が例外を投げた場合に `items` が Nothing のまま `items.Count`（行138）に到達する経路がある。
 
-**対策:** `BuildItemsCollection` 呼び出し直後に `items Is Nothing` チェックを追加し、Nothing の場合はエラー記録して早期 Return する。
+**対策:** `BuildItemsCollection` 呼び出し直後に `If items Is Nothing` チェックを追加。Nothing の場合は Logger.Error でログ記録、エラーエントリ追加、早期 Return。
 
-**メモ:** なし
+**メモ:** 修正日: 2026-03-19
 
 ---
 
@@ -848,19 +848,19 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | High |
 | カテゴリ | resource-management |
 | ソース | review |
 | 対象ファイル | OutlookVault/Services/OutlookService.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `SerializeRecipients` で `addrEntry` をラムダ `Function() addrEntry` で `ResolveExchangeAddress` に渡した後、Finally でも `Marshal.ReleaseComObject(addrEntry)` を呼んでおり、`ResolveExchangeAddress` 内（行622）と合わせて二重解放になる経路がある。
 
-**対策:** `ResolveExchangeAddress` に `AddressEntry` を直接渡すオーバーロードを追加し、解放責任を呼び出し元の Finally に一本化する。
+**対策:** `ResolveExchangeAddress` に `AddressEntry` を直接受け取るオーバーロードを追加。新オーバーロードが解放責任を担い、`SerializeRecipients` では EX タイプなら新オーバーロードに委譲、それ以外は呼び出し元で解放する構造に整理。
 
-**メモ:** なし
+**メモ:** 修正日: 2026-03-19
 
 ---
 
@@ -868,13 +868,13 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Medium |
 | カテゴリ | error-handling |
 | ソース | review |
 | 対象ファイル | OutlookVault/Services/ImportService.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `HandleMailItemError` 内の3箇所の空 Catch（行295, 302, 311）で、ExtractMessageId・ReceivedTime/SenderName 取得・InsertErrorMessageId の失敗が握りつぶされている。特に InsertErrorMessageId（DB書き込み）の失敗は重要な情報が失われる。
 
@@ -888,13 +888,13 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Medium |
 | カテゴリ | error-handling |
 | ソース | review |
 | 対象ファイル | OutlookVault/Services/OutlookService.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `GetFolderMessageIds` 内（行300-303）で `ExtractMessageId` の例外を空 Catch で握りつぶしており、どのメールで何の例外が発生したか記録されない。
 
@@ -908,13 +908,13 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Medium |
 | カテゴリ | resource-management |
 | ソース | review |
 | 対象ファイル | OutlookVault/MainForm.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `ReinitializeApp`（行1202-1222）で `InitializeServices()` を呼び出して `_repo` を新たに生成しているが、既存の `_repo`（IDisposable 実装済み）を Dispose せずに上書きしている。SQLite 接続のリーク可能性あり。
 
@@ -928,13 +928,13 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Medium |
 | カテゴリ | resource-management |
 | ソース | review |
 | 対象ファイル | OutlookVault/Forms/AttachmentStatsForm.vb, OutlookVault/Forms/TableViewerForm.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `_dataTable` と `_bindingSource`（IDisposable）がフォーム終了時に解放されていない。Designer.vb の Dispose でコードビハインドのフィールドを触れない制約のため、FormClosed イベントで解放が必要。
 
@@ -948,13 +948,13 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Low |
 | カテゴリ | winforms |
 | ソース | review |
 | 対象ファイル | OutlookVault/MainForm.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `listViewEmails_DoubleClick`（行309-311）で `AddHandler frm.FormClosed` にラムダを登録しているが RemoveHandler を呼んでいない。GC で解放されるが明示的な解除がなく規約上好ましくない。
 
@@ -968,13 +968,13 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Low |
 | カテゴリ | error-handling |
 | ソース | review |
 | 対象ファイル | OutlookVault/Services/ImportService.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `ImportFolder` 内（行155-161）で `SetSynchronousMode` が失敗した場合の Catch が空（コメントなし）で `Throw` のみ。例外型が不明確でログが残らない。
 
@@ -988,13 +988,13 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Low |
 | カテゴリ | performance |
 | ソース | review |
 | 対象ファイル | OutlookVault/Services/ThreadingService.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `NormalizeSubject` 内のプレフィックス配列がメソッドローカルに定義されており、呼び出しのたびにアロケーションが発生する。大量メール取り込み時に不要な負荷。
 
@@ -1008,13 +1008,13 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Low |
 | カテゴリ | winforms |
 | ソース | review |
 | 対象ファイル | OutlookVault/MainForm.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `UpdateFolderCountsAsync`（行884-891）のフォルダ選択状態復元ループで `CStr(node.Tag)` が Nothing の場合に空文字を返すため、`selectedTag = ""` のケースで誤マッチする可能性がある。
 
@@ -1063,3 +1063,4 @@
 | 2026-03-19 | R-035, R-038 | done: SyncDeletions の folder.Items 2回取得を解消（GetFolderMessageIds に itemCount 追加）、ImportFolder/SyncDeletions の FindFolder 結果を Try...Finally で COM 解放 |
 | 2026-03-19 | R-040 | done: DeleteEmailsByIds の添付パス収集を IN 句一括 SELECT に変更（999件バッチ分割） |
 | 2026-03-19 | R-041〜R-050 | 4回目の code-reviewer レビューから 10 件を一括登録 |
+| 2026-03-19 | R-041〜R-050 | done: 5並列 refactor-worker で全10件を一括対応 |
