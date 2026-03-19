@@ -49,6 +49,7 @@ Namespace Services
         Public Property ErrorSkipCount As Integer
         Public Property TotalOutlookCount As Integer
         Public Property DeletedCount As Integer
+        Public Property AutoDeletedCount As Integer
         Public Property Errors As List(Of ImportErrorEntry)
 
         Public Sub New()
@@ -79,17 +80,20 @@ Namespace Services
         Private ReadOnly _threadingSvc As ThreadingService
         Private ReadOnly _settings As Config.AppSettings
         Private ReadOnly _dbManager As Data.DatabaseManager
+        Private ReadOnly _autoDeleteSvc As AutoDeleteService
 
         Public Sub New(outlookSvc As OutlookService,
                        repo As Data.EmailRepository,
                        threadingSvc As ThreadingService,
                        settings As Config.AppSettings,
-                       dbManager As Data.DatabaseManager)
+                       dbManager As Data.DatabaseManager,
+                       Optional autoDeleteSvc As AutoDeleteService = Nothing)
             _outlookSvc = outlookSvc
             _repo = repo
             _threadingSvc = threadingSvc
             _settings = settings
             _dbManager = dbManager
+            _autoDeleteSvc = autoDeleteSvc
         End Sub
 
         ' ════════════════════════════════════════════════════════════
@@ -172,6 +176,7 @@ Namespace Services
             ' ── DB バルク書き込みモード開始 ───────────────────────────
             _repo.BeginBulk()
             Dim sinceLastCommit As Integer = 0
+            Dim importedIds As New List(Of Integer)()
 
             Try
                 ' 設定に応じて古い順（1→N）または新しい順（N→1）でイテレート
@@ -196,10 +201,12 @@ Namespace Services
 
                         Try
                             Dim skipReason As Integer = 0
-                            Dim imported As Boolean = ProcessMailItem(mailItem, attachBaseDir, existingIds, deletedIds, errorIds, result, folderName, skipReason)
+                            Dim insertedId As Integer = -1
+                            Dim imported As Boolean = ProcessMailItem(mailItem, attachBaseDir, existingIds, deletedIds, errorIds, result, folderName, skipReason, insertedId)
                             If imported Then
                                 result.ImportedCount += 1
                                 sinceLastCommit += 1
+                                If insertedId > 0 Then importedIds.Add(insertedId)
                                 ' N 件ごとに中間コミット（クラッシュ時のデータロスを軽減）
                                 If sinceLastCommit >= BulkCommitInterval Then
                                     _repo.CommitBulk()
@@ -238,6 +245,16 @@ Namespace Services
 
                 ' 残分をコミット
                 _repo.CommitBulk()
+
+                ' 自動削除ルールを適用
+                If _autoDeleteSvc IsNot Nothing AndAlso importedIds.Count > 0 Then
+                    Try
+                        Dim autoDeleted As Integer = _autoDeleteSvc.ApplyRulesToNewEmails(importedIds)
+                        result.AutoDeletedCount += autoDeleted
+                    Catch ex As Exception
+                        Logger.Warn("自動削除ルールの適用に失敗しました: " & ex.Message)
+                    End Try
+                End If
 
                 UpdateSyncState(folderName, useDiffScan, result.ImportedCount >= maxCount)
                 LogImportResult(folderName, result)
@@ -372,6 +389,7 @@ Namespace Services
                 total.ErrorCount += r.ErrorCount
                 total.ErrorSkipCount += r.ErrorSkipCount
                 total.TotalOutlookCount += r.TotalOutlookCount
+                total.AutoDeletedCount += r.AutoDeletedCount
                 total.Errors.AddRange(r.Errors)
             Next
 
@@ -472,6 +490,9 @@ Namespace Services
         ''' 1件の MailItem を処理する。
         ''' 重複・削除済み・エラー除外の場合は False を返す。新規保存した場合は True を返す。
         ''' </summary>
+        ''' <summary>
+        ''' 個別メールを処理し、取り込めた場合は DB 上の ID を insertedId に返す。
+        ''' </summary>
         Private Function ProcessMailItem(mailItem As Outlook.MailItem,
                                          attachBaseDir As String,
                                          existingIds As HashSet(Of String),
@@ -479,8 +500,10 @@ Namespace Services
                                          errorIds As HashSet(Of String),
                                          importResult As ImportResult,
                                          folderName As String,
-                                         ByRef skipReason As Integer) As Boolean
+                                         ByRef skipReason As Integer,
+                                         ByRef insertedId As Integer) As Boolean
             skipReason = SkipReasonNormal
+            insertedId = -1
             ' 軽量に MessageID だけ取得して重複チェック（本文・受信者等の重いCOM操作を回避）
             Dim messageId As String = _outlookSvc.ExtractMessageId(mailItem)
             If Not String.IsNullOrEmpty(messageId) Then
@@ -500,6 +523,7 @@ Namespace Services
 
             ' DB に挿入
             Dim emailId As Integer = _repo.InsertEmail(email)
+            insertedId = emailId
 
             ' キャッシュに追加（同一セッション内の重複防止）
             If Not String.IsNullOrEmpty(email.MessageId) Then

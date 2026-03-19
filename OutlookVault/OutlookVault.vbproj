@@ -91,6 +91,8 @@
     </Compile>
     <Compile Include="Data\DatabaseManager.vb" />
     <Compile Include="Data\EmailRepository.vb" />
+    <Compile Include="Data\AutoDeleteRuleRepository.vb" />
+    <Compile Include="Services\AutoDeleteService.vb" />
     <Compile Include="Services\FileHelper.vb" />
     <Compile Include="Services\Logger.vb" />
     <Compile Include="Services\ImportLogWriter.vb" />
@@ -148,6 +150,20 @@
       <DependentUpon>ErrorExclusionForm.vb</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Forms\AutoDeleteRuleForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\AutoDeleteRuleForm.Designer.vb">
+      <DependentUpon>AutoDeleteRuleForm.vb</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\AutoDeleteRuleEditDialog.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\AutoDeleteRuleEditDialog.Designer.vb">
+      <DependentUpon>AutoDeleteRuleEditDialog.vb</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\AboutForm.vb">
       <SubType>Form</SubType>
     </Compile>
@@ -170,6 +186,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Models\Attachment.vb" />
+    <Compile Include="Models\AutoDeleteRule.vb" />
     <Compile Include="Models\Email.vb" />
     <Compile Include="Models\FolderSyncState.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />

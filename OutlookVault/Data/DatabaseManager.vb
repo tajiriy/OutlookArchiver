@@ -120,6 +120,16 @@ CREATE TABLE IF NOT EXISTS folder_sync_state (
     last_sync_time TEXT NOT NULL,
     full_sync_done INTEGER DEFAULT 0,
     updated_at     TEXT DEFAULT (datetime('now', 'localtime'))
+);
+
+CREATE TABLE IF NOT EXISTS auto_delete_rules (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    name              TEXT NOT NULL,
+    filter_expression TEXT NOT NULL,
+    enabled           INTEGER DEFAULT 1,
+    sort_order        INTEGER DEFAULT 0,
+    created_at        TEXT DEFAULT (datetime('now', 'localtime')),
+    updated_at        TEXT DEFAULT (datetime('now', 'localtime'))
 );"
             ExecuteNonQuery(conn, sql)
         End Sub
@@ -179,7 +189,7 @@ CREATE INDEX IF NOT EXISTS idx_emails_deleted_at         ON emails(deleted_at);"
         ''' <summary>指定テーブルの全行を DataTable で返す。長文列は先頭100文字に切り詰める。</summary>
         Public Function GetTableData(tableName As String) As System.Data.DataTable
             ' テーブル名をホワイトリストで検証（SQLインジェクション防止）
-            Dim allowed() As String = {"emails", "attachments", "deleted_message_ids", "exchange_address_cache", "error_message_ids", "folder_sync_state"}
+            Dim allowed() As String = {"emails", "attachments", "deleted_message_ids", "exchange_address_cache", "error_message_ids", "folder_sync_state", "auto_delete_rules"}
             If Array.IndexOf(allowed, tableName) < 0 Then
                 Throw New ArgumentException("無効なテーブル名: " & tableName)
             End If

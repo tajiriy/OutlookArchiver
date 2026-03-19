@@ -448,7 +448,9 @@ Public Class MainForm
                     Try
                         Using outlookSvc As Services.OutlookService = Services.OutlookService.Connect()
                             Dim threadingSvc As New Services.ThreadingService(repo)
-                            Dim importSvc As New Services.ImportService(outlookSvc, repo, threadingSvc, settings, dbManager)
+                            Dim ruleRepo As New Data.AutoDeleteRuleRepository(dbManager)
+                            Dim autoDeleteSvc As New Services.AutoDeleteService(ruleRepo, repo)
+                            Dim importSvc As New Services.ImportService(outlookSvc, repo, threadingSvc, settings, dbManager, autoDeleteSvc)
                             Dim importResult As Services.ImportResult = importSvc.ImportFolders(targetFolders, maxCount, progress, ct, fullSync)
 
                             ' 削除同期
@@ -492,6 +494,9 @@ Public Class MainForm
                 vbCrLf, result.ImportedCount, result.SkippedCount, result.ErrorCount)
             If result.ErrorSkipCount > 0 Then
                 msg &= String.Format(" / エラー除外: {0}件", result.ErrorSkipCount)
+            End If
+            If result.AutoDeletedCount > 0 Then
+                msg &= String.Format(" / 自動削除: {0}件", result.AutoDeletedCount)
             End If
             If result.DeletedCount > 0 Then
                 msg &= String.Format("{0}削除同期: {1}件", vbCrLf, result.DeletedCount)
@@ -1435,6 +1440,18 @@ Public Class MainForm
         Using frm As New Forms.ErrorExclusionForm(_repo)
             frm.ShowDialog(Me)
         End Using
+    End Sub
+
+    ' ── 自動削除ルール ──────────────────────────────────────
+
+    Private Sub menuItemAutoDeleteRule_Click(sender As Object, e As EventArgs) Handles menuItemAutoDeleteRule.Click
+        Dim ruleRepo As New Data.AutoDeleteRuleRepository(_dbManager)
+        Dim autoDeleteSvc As New Services.AutoDeleteService(ruleRepo, _repo)
+        Using frm As New Forms.AutoDeleteRuleForm(ruleRepo, _repo, autoDeleteSvc)
+            frm.ShowDialog(Me)
+        End Using
+        ' ルール再適用でメールがゴミ箱に移動した可能性があるため更新
+        LoadFolderTree()
     End Sub
 
     ' ── テーブルビューア ──────────────────────────────────────

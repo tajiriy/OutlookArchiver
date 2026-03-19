@@ -33,6 +33,7 @@ Partial Class MainForm
         Me.menuItemImportNow = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemImportCancel = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemErrorExclusion = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuItemAutoDeleteRule = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemDev = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemDevTableViewer = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemDevAttachmentStats = New System.Windows.Forms.ToolStripMenuItem()
@@ -138,7 +139,7 @@ Partial Class MainForm
         '
         'menuItemImport
         '
-        Me.menuItemImport.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemImportNow, Me.menuItemImportCancel, Me.menuItemErrorExclusion})
+        Me.menuItemImport.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemImportNow, Me.menuItemImportCancel, Me.menuItemErrorExclusion, Me.menuItemAutoDeleteRule})
         Me.menuItemImport.Name = "menuItemImport"
         Me.menuItemImport.Size = New System.Drawing.Size(73, 20)
         Me.menuItemImport.Text = "取り込み(&I)"
@@ -162,6 +163,12 @@ Partial Class MainForm
         Me.menuItemErrorExclusion.Name = "menuItemErrorExclusion"
         Me.menuItemErrorExclusion.Size = New System.Drawing.Size(183, 22)
         Me.menuItemErrorExclusion.Text = "エラー除外リスト(&E)..."
+        '
+        'menuItemAutoDeleteRule
+        '
+        Me.menuItemAutoDeleteRule.Name = "menuItemAutoDeleteRule"
+        Me.menuItemAutoDeleteRule.Size = New System.Drawing.Size(200, 22)
+        Me.menuItemAutoDeleteRule.Text = "自動削除ルール(&R)..."
         '
         'menuItemDev
         '
@@ -577,6 +584,7 @@ Partial Class MainForm
     Friend WithEvents menuItemImportNow As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemImportCancel As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemErrorExclusion As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuItemAutoDeleteRule As System.Windows.Forms.ToolStripMenuItem
 
     Friend WithEvents menuItemSettings As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemDev As System.Windows.Forms.ToolStripMenuItem
