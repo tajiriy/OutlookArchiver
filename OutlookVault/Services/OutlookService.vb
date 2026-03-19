@@ -660,7 +660,11 @@ Namespace Services
 
         Private Shared Function JsonStr(s As String) As String
             If s Is Nothing Then Return "null"
-            Return """" & s.Replace("\", "\\").Replace("""", "\""") & """"
+            Return """" & s.Replace("\", "\\").
+                           Replace("""", "\""").
+                           Replace(vbCr, "\r").
+                           Replace(vbLf, "\n").
+                           Replace(vbTab, "\t") & """"
         End Function
 
         ' ════════════════════════════════════════════════════════════

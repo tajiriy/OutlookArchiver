@@ -192,7 +192,8 @@ Namespace Config
                         Dim val As Object = key.GetValue("OutlookVault")
                         Return val IsNot Nothing
                     End Using
-                Catch
+                Catch ex As Exception
+                    ' レジストリアクセス失敗（権限不足等）は False を返す
                     Return False
                 End Try
             End Get
@@ -208,7 +209,10 @@ Namespace Config
                             key.DeleteValue("OutlookVault", throwOnMissingValue:=False)
                         End If
                     End Using
-                Catch
+                Catch ex As Security.SecurityException
+                    Services.Logger.Warn("Windows スタートアップ登録に失敗しました（権限不足）: " & ex.Message)
+                Catch ex As UnauthorizedAccessException
+                    Services.Logger.Warn("Windows スタートアップ登録に失敗しました（アクセス拒否）: " & ex.Message)
                 End Try
             End Set
         End Property
