@@ -12,8 +12,7 @@ Namespace Forms
     ''' データベーステーブルの内容を DataGridView で表示するフォーム。
     ''' 列ヘッダクリックでソート、テキストボックスで行フィルタ、プルダウンでテーブル切替が可能。
     ''' </summary>
-    Public Class TableViewerForm
-        Inherits Form
+    Partial Public Class TableViewerForm
 
         Private Shared ReadOnly TableNames() As String = {"emails", "attachments", "deleted_message_ids", "exchange_address_cache", "error_message_ids", "folder_sync_state"}
         Private Const MaxColumnWidth As Integer = 200
@@ -22,90 +21,20 @@ Namespace Forms
 
         Private Const FilterDelayMs As Integer = 800
 
-        Private WithEvents dgv As DataGridView
-        Private WithEvents cboTable As ComboBox
-        Private txtFilter As TextBox
-        Private lblFilter As Label
-        Private lblRowCount As Label
-        Private pnlTop As Panel
         Private _dataTable As DataTable
         Private _bindingSource As BindingSource
-        Private _filterTimer As Timer
 
         Public Sub New(dbManager As Data.DatabaseManager, tableName As String)
             _dbManager = dbManager
             Me.DoubleBuffered = True
-            InitializeComponents()
+            _bindingSource = New BindingSource()
+            InitializeComponent()
+            cboTable.Items.AddRange(DirectCast(TableNames, Object()))
+            dgv.DataSource = _bindingSource
+            AddHandler txtFilter.TextChanged, AddressOf TxtFilter_TextChanged
+            AddHandler _filterTimer.Tick, AddressOf FilterTimer_Tick
             ' 初期テーブルを選択（イベント経由で LoadData が走る）
             cboTable.SelectedItem = tableName
-        End Sub
-
-        Private Sub InitializeComponents()
-            Me.Text = "テーブルビューア"
-            Me.Size = New Drawing.Size(1000, 600)
-            Me.StartPosition = FormStartPosition.CenterParent
-            Me.MinimumSize = New Drawing.Size(600, 400)
-
-            ' ── 上部パネル（テーブル選択 + フィルタ） ──
-            pnlTop = New Panel()
-            pnlTop.Dock = DockStyle.Top
-            pnlTop.Height = 36
-            pnlTop.Padding = New Padding(6, 6, 6, 4)
-
-            Dim lblTable As New Label()
-            lblTable.Text = "テーブル:"
-            lblTable.AutoSize = True
-            lblTable.Location = New Drawing.Point(8, 10)
-
-            cboTable = New ComboBox()
-            cboTable.DropDownStyle = ComboBoxStyle.DropDownList
-            cboTable.Location = New Drawing.Point(66, 7)
-            cboTable.Width = 180
-            cboTable.Items.AddRange(DirectCast(TableNames, Object()))
-
-            lblFilter = New Label()
-            lblFilter.Text = "フィルタ:"
-            lblFilter.AutoSize = True
-            lblFilter.Location = New Drawing.Point(260, 10)
-
-            txtFilter = New TextBox()
-            txtFilter.Location = New Drawing.Point(312, 7)
-            txtFilter.Width = 300
-            AddHandler txtFilter.TextChanged, AddressOf TxtFilter_TextChanged
-
-            ' フィルタ遅延用タイマー（キー入力のたびにリセット）
-            _filterTimer = New Timer()
-            _filterTimer.Interval = FilterDelayMs
-            AddHandler _filterTimer.Tick, AddressOf FilterTimer_Tick
-
-            lblRowCount = New Label()
-            lblRowCount.AutoSize = True
-            lblRowCount.Anchor = CType(AnchorStyles.Top Or AnchorStyles.Right, AnchorStyles)
-            lblRowCount.Text = ""
-
-            pnlTop.Controls.Add(lblTable)
-            pnlTop.Controls.Add(cboTable)
-            pnlTop.Controls.Add(lblFilter)
-            pnlTop.Controls.Add(txtFilter)
-            pnlTop.Controls.Add(lblRowCount)
-
-            ' ── DataGridView ──
-            dgv = New BufferedDataGridView()
-            dgv.Dock = DockStyle.Fill
-            dgv.ReadOnly = True
-            dgv.AllowUserToAddRows = False
-            dgv.AllowUserToDeleteRows = False
-            dgv.AllowUserToOrderColumns = True
-            dgv.AllowUserToResizeColumns = True
-            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None
-            dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-            dgv.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithAutoHeaderText
-
-            _bindingSource = New BindingSource()
-            dgv.DataSource = _bindingSource
-
-            Me.Controls.Add(dgv)
-            Me.Controls.Add(pnlTop)
         End Sub
 
         ''' <summary>
@@ -214,15 +143,6 @@ Namespace Forms
             Else
                 _dataTable.DefaultView.Sort = String.Format("[{0}] ASC", colName)
             End If
-        End Sub
-
-        Protected Overrides Sub Dispose(disposing As Boolean)
-            If disposing Then
-                If _filterTimer IsNot Nothing Then _filterTimer.Dispose()
-                If _bindingSource IsNot Nothing Then _bindingSource.Dispose()
-                If _dataTable IsNot Nothing Then _dataTable.Dispose()
-            End If
-            MyBase.Dispose(disposing)
         End Sub
 
     End Class

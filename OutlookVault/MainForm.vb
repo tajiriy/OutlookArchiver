@@ -13,8 +13,7 @@ Public Class MainForm
     Private _settings As Config.AppSettings
     Private _dbManager As Data.DatabaseManager
     Private _repo As Data.EmailRepository
-    Private _autoImportTimer As System.Windows.Forms.Timer
-    Private _scheduledImportTimer As System.Windows.Forms.Timer
+    ' _autoImportTimer, _scheduledImportTimer は Designer.vb で宣言・生成
     Private _lastScheduledRunDate As DateTime = DateTime.MinValue
 
     Private _emailCache As List(Of Models.Email)
@@ -56,7 +55,6 @@ Public Class MainForm
         SetupAutoImportTimer()
         SetupNotifyIcon()
         SetupEmailListColumns()
-        SetupListViewContextMenu()
         SetupToggleViewButton()
         LoadFolderTree()
         Await UpdateStatusBarAsync()
@@ -86,31 +84,12 @@ Public Class MainForm
         _emailCache = New List(Of Models.Email)()
     End Sub
 
-    ''' <summary>メール一覧の列を設定し、列順・ソート設定を復元する。</summary>
+    ''' <summary>メール一覧の列設定を復元し、添付アイコンを登録する。</summary>
+    ''' <remarks>列定義・ImageList・ContextMenu は Designer.vb で生成済み。</remarks>
     Private Sub SetupEmailListColumns()
-        ' ── 添付列（index 0 に挿入 → SmallImageList アイコンが添付列に表示される）──
-        Dim colAttach As New ColumnHeader()
-        colAttach.Text = "添付"
-        colAttach.Width = 30
-        listViewEmails.Columns.Insert(0, colAttach)
-
-        ' ── サイズ列（末尾に追加、index 4）─────────────────────────
-        Dim colSize As New ColumnHeader()
-        colSize.Text = "サイズ"
-        colSize.Width = 80
-        colSize.TextAlign = HorizontalAlignment.Right
-        listViewEmails.Columns.Add(colSize)
-
-        ' ── SmallImageList（添付アイコン）──────────────────────────
-        Dim imgList As New ImageList()
-        imgList.ImageSize = New Drawing.Size(16, 16)
-        imgList.ColorDepth = ColorDepth.Depth32Bit
-        imgList.Images.Add(New Drawing.Bitmap(16, 16))  ' index 0: 空白（添付なし）
-        imgList.Images.Add(CreatePaperclipIcon())       ' index 1: ペーパークリップ
-        listViewEmails.SmallImageList = imgList
-
-        ' ── 列の並び替えを許可 ────────────────────────────────────
-        listViewEmails.AllowColumnReorder = True
+        ' ── 添付アイコンを ImageList に登録 ───────────────────────
+        emailImageList.Images.Add(New Drawing.Bitmap(16, 16))  ' index 0: 空白（添付なし）
+        emailImageList.Images.Add(CreatePaperclipIcon())       ' index 1: ペーパークリップ
 
         ' ── ソート設定を復元 ──────────────────────────────────────
         _sortColumn = _settings.EmailListSortColumn
@@ -153,27 +132,13 @@ Public Class MainForm
         Return String.Format("{0} KB", Math.Max(1L, kb))
     End Function
 
+    ''' <summary>タイマーの間隔を設定から反映する。</summary>
+    ''' <remarks>タイマーのインスタンス生成は Designer.vb で実施済み。</remarks>
     Private Sub SetupAutoImportTimer()
-        _autoImportTimer = New System.Windows.Forms.Timer()
         _autoImportTimer.Interval = _settings.AutoImportIntervalMinutes * 60 * 1000
-        AddHandler _autoImportTimer.Tick, AddressOf AutoImportTimer_Tick
-
-        ' 定時取り込み用タイマー（1分間隔で時刻をチェック）
-        _scheduledImportTimer = New System.Windows.Forms.Timer()
-        _scheduledImportTimer.Interval = 60 * 1000
-        AddHandler _scheduledImportTimer.Tick, AddressOf ScheduledImportTimer_Tick
     End Sub
 
-    ''' <summary>メール一覧の複数選択・コンテキストメニューをコードで設定する。</summary>
-    Private Sub SetupListViewContextMenu()
-        listViewEmails.MultiSelect = True
-
-        Dim ctxMenu As New System.Windows.Forms.ContextMenuStrip()
-        Dim deleteItem As New System.Windows.Forms.ToolStripMenuItem("削除(&D)")
-        AddHandler deleteItem.Click, AddressOf OnDeleteEmailMenuClick
-        ctxMenu.Items.Add(CType(deleteItem, System.Windows.Forms.ToolStripItem))
-        listViewEmails.ContextMenuStrip = ctxMenu
-    End Sub
+    ' SetupListViewContextMenu は不要（Designer.vb で設定済み）
 
     ' ════════════════════════════════════════════════════════════
     '  フォルダツリー
@@ -630,12 +595,12 @@ Public Class MainForm
         End If
     End Sub
 
-    Private Async Sub AutoImportTimer_Tick(sender As Object, e As EventArgs)
+    Private Async Sub AutoImportTimer_Tick(sender As Object, e As EventArgs) Handles _autoImportTimer.Tick
         Await RunImportAsync()
     End Sub
 
     ''' <summary>定時取り込み: 1分間隔で現在時刻と設定時刻を比較し、一致したら完全同期を実行する。</summary>
-    Private Async Sub ScheduledImportTimer_Tick(sender As Object, e As EventArgs)
+    Private Async Sub ScheduledImportTimer_Tick(sender As Object, e As EventArgs) Handles _scheduledImportTimer.Tick
         Dim nowTime As String = DateTime.Now.ToString("HH:mm")
         If nowTime <> _settings.ScheduledImportTime Then Return
 
@@ -781,7 +746,7 @@ Public Class MainForm
     End Sub
 
     ''' <summary>コンテキストメニュー「削除」クリック。</summary>
-    Private Sub OnDeleteEmailMenuClick(sender As Object, e As EventArgs)
+    Private Sub OnDeleteEmailMenuClick(sender As Object, e As EventArgs) Handles deleteMenuItem.Click
         DeleteSelectedEmails()
     End Sub
 
@@ -800,8 +765,6 @@ Public Class MainForm
     ''' <summary>テキスト/HTML切替ボタンをタブコントロール右上に配置する。</summary>
     Private Sub SetupToggleViewButton()
         btnToggleView.BringToFront()
-        AddHandler btnToggleView.Click, AddressOf OnToggleViewClick
-        AddHandler tabControl.SizeChanged, AddressOf OnTabControlSizeChanged
         PositionToggleViewButton()
     End Sub
 
@@ -811,11 +774,11 @@ Public Class MainForm
         btnToggleView.Left = tabControl.Width - btnToggleView.Width - 4
     End Sub
 
-    Private Sub OnTabControlSizeChanged(sender As Object, e As EventArgs)
+    Private Sub OnTabControlSizeChanged(sender As Object, e As EventArgs) Handles tabControl.SizeChanged
         PositionToggleViewButton()
     End Sub
 
-    Private Sub OnToggleViewClick(sender As Object, e As EventArgs)
+    Private Sub OnToggleViewClick(sender As Object, e As EventArgs) Handles btnToggleView.Click
         emailPreview.ToggleView()
         UpdateToggleViewButton()
     End Sub

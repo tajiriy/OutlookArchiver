@@ -12,72 +12,18 @@ Namespace Forms
     ''' エラーで取り込みに失敗し、次回以降スキップ対象になったメールの一覧を表示する。
     ''' 個別または全件の除外解除が可能。
     ''' </summary>
-    Public Class ErrorExclusionForm
-        Inherits Form
+    Partial Public Class ErrorExclusionForm
 
         Private ReadOnly _repo As Data.EmailRepository
-        Private WithEvents dgv As DataGridView
-        Private pnlBottom As Panel
-        Private WithEvents btnRemoveSelected As Button
-        Private WithEvents btnClearAll As Button
-        Private lblCount As Label
         Private _dataTable As DataTable
         Private _bindingSource As BindingSource
 
         Public Sub New(repo As Data.EmailRepository)
             _repo = repo
-            InitializeComponents()
-            LoadData()
-        End Sub
-
-        Private Sub InitializeComponents()
-            Me.Text = "エラー除外リスト"
-            Me.Size = New Drawing.Size(900, 500)
-            Me.StartPosition = FormStartPosition.CenterParent
-            Me.MinimumSize = New Drawing.Size(600, 300)
-
-            ' ── 下部パネル（ボタン） ──
-            pnlBottom = New Panel()
-            pnlBottom.Dock = DockStyle.Bottom
-            pnlBottom.Height = 44
-            pnlBottom.Padding = New Padding(6, 6, 6, 6)
-
-            btnRemoveSelected = New Button()
-            btnRemoveSelected.Text = "選択した項目の除外を解除(&R)"
-            btnRemoveSelected.AutoSize = True
-            btnRemoveSelected.Location = New Drawing.Point(8, 10)
-
-            btnClearAll = New Button()
-            btnClearAll.Text = "すべての除外を解除(&A)"
-            btnClearAll.AutoSize = True
-            btnClearAll.Location = New Drawing.Point(220, 10)
-
-            lblCount = New Label()
-            lblCount.AutoSize = True
-            lblCount.Anchor = CType(AnchorStyles.Top Or AnchorStyles.Right, AnchorStyles)
-            lblCount.Location = New Drawing.Point(Me.ClientSize.Width - 100, 14)
-            lblCount.Text = ""
-
-            pnlBottom.Controls.Add(btnRemoveSelected)
-            pnlBottom.Controls.Add(btnClearAll)
-            pnlBottom.Controls.Add(lblCount)
-
-            ' ── DataGridView ──
-            dgv = New DataGridView()
-            dgv.Dock = DockStyle.Fill
-            dgv.ReadOnly = True
-            dgv.AllowUserToAddRows = False
-            dgv.AllowUserToDeleteRows = False
-            dgv.AllowUserToOrderColumns = True
-            dgv.AllowUserToResizeColumns = True
-            dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect
-            dgv.MultiSelect = True
-            dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None
             _bindingSource = New BindingSource()
+            InitializeComponent()
             dgv.DataSource = _bindingSource
-
-            Me.Controls.Add(dgv)
-            Me.Controls.Add(pnlBottom)
+            LoadData()
         End Sub
 
         Private Sub LoadData()
@@ -169,14 +115,6 @@ Namespace Forms
 
             _repo.ClearAllErrorMessageIds()
             LoadData()
-        End Sub
-
-        Protected Overrides Sub Dispose(disposing As Boolean)
-            If disposing Then
-                If _bindingSource IsNot Nothing Then _bindingSource.Dispose()
-                If _dataTable IsNot Nothing Then _dataTable.Dispose()
-            End If
-            MyBase.Dispose(disposing)
         End Sub
 
     End Class

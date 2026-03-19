@@ -22,8 +22,6 @@ Namespace Controls
 
         Public Sub New()
             InitializeComponent()
-            ' WebBrowser のリンククリック制御
-            AddHandler webBrowserMsg.Navigating, AddressOf WebBrowserMsg_Navigating
         End Sub
 
         ' ════════════════════════════════════════════════════════════
@@ -155,7 +153,7 @@ Namespace Controls
         ''' WebBrowser のナビゲーションを制御する。
         ''' about:blank 以外のナビゲーションをブロックし、外部 URL は確認後にデフォルトブラウザで開く。
         ''' </summary>
-        Private Sub WebBrowserMsg_Navigating(sender As Object, e As System.Windows.Forms.WebBrowserNavigatingEventArgs)
+        Private Sub WebBrowserMsg_Navigating(sender As Object, e As System.Windows.Forms.WebBrowserNavigatingEventArgs) Handles webBrowserMsg.Navigating
             Dim url As String = e.Url.ToString()
             If url.Equals("about:blank", StringComparison.OrdinalIgnoreCase) Then Return
             e.Cancel = True

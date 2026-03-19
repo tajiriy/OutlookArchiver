@@ -5,18 +5,10 @@ Option Infer Off
 ''' <summary>
 ''' Outlook のフォルダ一覧を表示し、対象フォルダをチェックボックスで選択するダイアログ。
 ''' </summary>
-Public Class FolderSelectForm
-    Inherits System.Windows.Forms.Form
+Partial Public Class FolderSelectForm
 
     Private ReadOnly _allFolders As List(Of String)
     Private ReadOnly _selectedFolders As HashSet(Of String)
-
-    Private WithEvents txtFilter As System.Windows.Forms.TextBox
-    Private lblFilter As System.Windows.Forms.Label
-    Private clbFolders As System.Windows.Forms.CheckedListBox
-    Private WithEvents btnOk As System.Windows.Forms.Button
-    Private WithEvents btnCancel As System.Windows.Forms.Button
-    Private lblStatus As System.Windows.Forms.Label
 
     ''' <summary>ダイアログ確定後に選択されたフォルダ名のリストを返す。</summary>
     Public ReadOnly Property SelectedFolderNames As List(Of String)
@@ -57,72 +49,8 @@ Public Class FolderSelectForm
         _allFolders = availableFolders
         _selectedFolders = New HashSet(Of String)(If(currentSelection, New List(Of String)()),
                                                    StringComparer.OrdinalIgnoreCase)
-        InitializeFormComponents()
+        InitializeComponent()
         PopulateFolderList(String.Empty)
-    End Sub
-
-    Private Sub InitializeFormComponents()
-        Me.SuspendLayout()
-
-        ' ── フィルタ ──
-        lblFilter = New System.Windows.Forms.Label()
-        lblFilter.Text = "フィルタ:"
-        lblFilter.AutoSize = True
-        lblFilter.Location = New System.Drawing.Point(8, 12)
-
-        txtFilter = New System.Windows.Forms.TextBox()
-        txtFilter.Location = New System.Drawing.Point(68, 9)
-        txtFilter.Size = New System.Drawing.Size(304, 22)
-        txtFilter.TabIndex = 0
-
-        ' ── フォルダ一覧 ──
-        clbFolders = New System.Windows.Forms.CheckedListBox()
-        clbFolders.Location = New System.Drawing.Point(8, 38)
-        clbFolders.Size = New System.Drawing.Size(364, 310)
-        clbFolders.CheckOnClick = True
-        clbFolders.TabIndex = 1
-
-        ' ── ステータス ──
-        lblStatus = New System.Windows.Forms.Label()
-        lblStatus.AutoSize = True
-        lblStatus.Location = New System.Drawing.Point(8, 354)
-
-        ' ── OK ──
-        btnOk = New System.Windows.Forms.Button()
-        btnOk.Text = "OK"
-        btnOk.Location = New System.Drawing.Point(212, 354)
-        btnOk.Size = New System.Drawing.Size(72, 26)
-        btnOk.TabIndex = 2
-
-        ' ── キャンセル ──
-        btnCancel = New System.Windows.Forms.Button()
-        btnCancel.Text = "キャンセル"
-        btnCancel.Location = New System.Drawing.Point(292, 354)
-        btnCancel.Size = New System.Drawing.Size(80, 26)
-        btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        btnCancel.TabIndex = 3
-
-        ' ── フォーム ──
-        Me.Text = "対象フォルダの選択"
-        Me.ClientSize = New System.Drawing.Size(384, 390)
-        Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog
-        Me.MaximizeBox = False
-        Me.MinimizeBox = False
-        Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent
-        Me.AcceptButton = btnOk
-        Me.CancelButton = btnCancel
-        Me.Font = New System.Drawing.Font("Meiryo UI", 9.0!, System.Drawing.FontStyle.Regular,
-                                           System.Drawing.GraphicsUnit.Point, CType(128, Byte))
-
-        Me.Controls.Add(lblFilter)
-        Me.Controls.Add(txtFilter)
-        Me.Controls.Add(clbFolders)
-        Me.Controls.Add(lblStatus)
-        Me.Controls.Add(btnOk)
-        Me.Controls.Add(btnCancel)
-
-        Me.ResumeLayout(False)
-        Me.PerformLayout()
     End Sub
 
     ''' <summary>フィルタ文字列に基づいてフォルダ一覧を更新する。</summary>

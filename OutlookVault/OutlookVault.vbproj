@@ -115,6 +115,10 @@
     <Compile Include="Forms\FolderSelectForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Forms\FolderSelectForm.Designer.vb">
+      <DependentUpon>FolderSelectForm.vb</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\SettingsForm.vb">
       <SubType>Form</SubType>
     </Compile>
@@ -125,13 +129,29 @@
     <Compile Include="Forms\TableViewerForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Forms\TableViewerForm.Designer.vb">
+      <DependentUpon>TableViewerForm.vb</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\ErrorExclusionForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\ErrorExclusionForm.Designer.vb">
+      <DependentUpon>ErrorExclusionForm.vb</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\AboutForm.vb">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Forms\AboutForm.Designer.vb">
+      <DependentUpon>AboutForm.vb</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\HelpForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\HelpForm.Designer.vb">
+      <DependentUpon>HelpForm.vb</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="MainForm.vb">
@@ -162,6 +182,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Forms\HelpForm.resx">
+      <DependentUpon>HelpForm.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.vb</DependentUpon>
     </EmbeddedResource>

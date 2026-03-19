@@ -26,13 +26,13 @@ Partial Class MainForm
         Me.components = New System.ComponentModel.Container()
         Me.menuStrip = New System.Windows.Forms.MenuStrip()
         Me.menuItemFile = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuItemSettings = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuItemFileSeparator1 = New System.Windows.Forms.ToolStripSeparator()
         Me.menuItemFileExit = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemImport = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemImportNow = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemImportCancel = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemErrorExclusion = New System.Windows.Forms.ToolStripMenuItem()
-
-        Me.menuItemSettings = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemDev = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemDevTableViewer = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemHelp = New System.Windows.Forms.ToolStripMenuItem()
@@ -50,12 +50,19 @@ Partial Class MainForm
         Me.treeViewFolders = New System.Windows.Forms.TreeView()
         Me.splitRight = New System.Windows.Forms.SplitContainer()
         Me.listViewEmails = New System.Windows.Forms.ListView()
+        Me.colAttach = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.colSubject = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.colSender = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.colReceivedAt = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.colSize = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
+        Me.listViewContextMenu = New System.Windows.Forms.ContextMenuStrip(Me.components)
+        Me.deleteMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.emailImageList = New System.Windows.Forms.ImageList(Me.components)
         Me.tabControl = New System.Windows.Forms.TabControl()
         Me.tabPageNormal = New System.Windows.Forms.TabPage()
+        Me.emailPreview = New OutlookVault.Controls.EmailPreviewControl()
         Me.tabPageThread = New System.Windows.Forms.TabPage()
+        Me.conversationView = New OutlookVault.Controls.ConversationViewControl()
         Me.btnToggleView = New System.Windows.Forms.Button()
         Me.statusStrip = New System.Windows.Forms.StatusStrip()
         Me.lblStatusCount = New System.Windows.Forms.ToolStripStatusLabel()
@@ -67,8 +74,8 @@ Partial Class MainForm
         Me.trayMenuImportNow = New System.Windows.Forms.ToolStripMenuItem()
         Me.trayMenuSep1 = New System.Windows.Forms.ToolStripSeparator()
         Me.trayMenuExit = New System.Windows.Forms.ToolStripMenuItem()
-        Me.emailPreview = New OutlookVault.Controls.EmailPreviewControl()
-        Me.conversationView = New OutlookVault.Controls.ConversationViewControl()
+        Me._autoImportTimer = New System.Windows.Forms.Timer(Me.components)
+        Me._scheduledImportTimer = New System.Windows.Forms.Timer(Me.components)
         Me.menuStrip.SuspendLayout()
         Me.toolStrip.SuspendLayout()
         CType(Me.splitMain, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -79,6 +86,7 @@ Partial Class MainForm
         Me.splitRight.Panel1.SuspendLayout()
         Me.splitRight.Panel2.SuspendLayout()
         Me.splitRight.SuspendLayout()
+        Me.listViewContextMenu.SuspendLayout()
         Me.tabControl.SuspendLayout()
         Me.tabPageNormal.SuspendLayout()
         Me.tabPageThread.SuspendLayout()
@@ -96,11 +104,21 @@ Partial Class MainForm
         '
         'menuItemFile
         '
-        Me.menuItemFileSeparator1 = New System.Windows.Forms.ToolStripSeparator()
         Me.menuItemFile.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemSettings, Me.menuItemFileSeparator1, Me.menuItemFileExit})
         Me.menuItemFile.Name = "menuItemFile"
         Me.menuItemFile.Size = New System.Drawing.Size(67, 20)
         Me.menuItemFile.Text = "ファイル(&F)"
+        '
+        'menuItemSettings
+        '
+        Me.menuItemSettings.Name = "menuItemSettings"
+        Me.menuItemSettings.Size = New System.Drawing.Size(155, 22)
+        Me.menuItemSettings.Text = "設定(&T)..."
+        '
+        'menuItemFileSeparator1
+        '
+        Me.menuItemFileSeparator1.Name = "menuItemFileSeparator1"
+        Me.menuItemFileSeparator1.Size = New System.Drawing.Size(152, 6)
         '
         'menuItemFileExit
         '
@@ -135,25 +153,18 @@ Partial Class MainForm
         Me.menuItemErrorExclusion.Name = "menuItemErrorExclusion"
         Me.menuItemErrorExclusion.Size = New System.Drawing.Size(183, 22)
         Me.menuItemErrorExclusion.Text = "エラー除外リスト(&E)..."
-
-        '
-        'menuItemSettings
-        '
-        Me.menuItemSettings.Name = "menuItemSettings"
-        Me.menuItemSettings.Size = New System.Drawing.Size(155, 22)
-        Me.menuItemSettings.Text = "設定(&T)..."
         '
         'menuItemDev
         '
         Me.menuItemDev.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemDevTableViewer})
         Me.menuItemDev.Name = "menuItemDev"
-        Me.menuItemDev.Size = New System.Drawing.Size(55, 20)
+        Me.menuItemDev.Size = New System.Drawing.Size(59, 20)
         Me.menuItemDev.Text = "開発(&D)"
         '
         'menuItemDevTableViewer
         '
         Me.menuItemDevTableViewer.Name = "menuItemDevTableViewer"
-        Me.menuItemDevTableViewer.Size = New System.Drawing.Size(193, 22)
+        Me.menuItemDevTableViewer.Size = New System.Drawing.Size(155, 22)
         Me.menuItemDevTableViewer.Text = "テーブルビューア(&T)"
         '
         'menuItemHelp
@@ -248,7 +259,7 @@ Partial Class MainForm
         '
         Me.splitMain.Panel2.Controls.Add(Me.splitRight)
         Me.splitMain.Size = New System.Drawing.Size(1397, 726)
-        Me.splitMain.SplitterDistance = 240
+        Me.splitMain.SplitterDistance = 233
         Me.splitMain.TabIndex = 0
         '
         'treeViewFolders
@@ -257,7 +268,7 @@ Partial Class MainForm
         Me.treeViewFolders.HideSelection = False
         Me.treeViewFolders.Location = New System.Drawing.Point(0, 0)
         Me.treeViewFolders.Name = "treeViewFolders"
-        Me.treeViewFolders.Size = New System.Drawing.Size(240, 726)
+        Me.treeViewFolders.Size = New System.Drawing.Size(233, 726)
         Me.treeViewFolders.TabIndex = 0
         '
         'splitRight
@@ -275,24 +286,31 @@ Partial Class MainForm
         '
         Me.splitRight.Panel2.Controls.Add(Me.tabControl)
         Me.splitRight.Panel2.Controls.Add(Me.btnToggleView)
-        Me.splitRight.Size = New System.Drawing.Size(1153, 726)
+        Me.splitRight.Size = New System.Drawing.Size(1160, 726)
         Me.splitRight.SplitterDistance = 282
         Me.splitRight.TabIndex = 0
         '
         'listViewEmails
         '
-        Me.listViewEmails.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.colSubject, Me.colSender, Me.colReceivedAt})
+        Me.listViewEmails.AllowColumnReorder = True
+        Me.listViewEmails.Columns.AddRange(New System.Windows.Forms.ColumnHeader() {Me.colAttach, Me.colSubject, Me.colSender, Me.colReceivedAt, Me.colSize})
+        Me.listViewEmails.ContextMenuStrip = Me.listViewContextMenu
         Me.listViewEmails.Dock = System.Windows.Forms.DockStyle.Fill
         Me.listViewEmails.FullRowSelect = True
         Me.listViewEmails.HideSelection = False
         Me.listViewEmails.Location = New System.Drawing.Point(0, 0)
-        Me.listViewEmails.MultiSelect = False
         Me.listViewEmails.Name = "listViewEmails"
-        Me.listViewEmails.Size = New System.Drawing.Size(1153, 282)
+        Me.listViewEmails.Size = New System.Drawing.Size(1160, 282)
+        Me.listViewEmails.SmallImageList = Me.emailImageList
         Me.listViewEmails.TabIndex = 0
         Me.listViewEmails.UseCompatibleStateImageBehavior = False
         Me.listViewEmails.View = System.Windows.Forms.View.Details
         Me.listViewEmails.VirtualMode = True
+        '
+        'colAttach
+        '
+        Me.colAttach.Text = "添付"
+        Me.colAttach.Width = 30
         '
         'colSubject
         '
@@ -309,6 +327,30 @@ Partial Class MainForm
         Me.colReceivedAt.Text = "受信日時"
         Me.colReceivedAt.Width = 140
         '
+        'colSize
+        '
+        Me.colSize.Text = "サイズ"
+        Me.colSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
+        Me.colSize.Width = 80
+        '
+        'listViewContextMenu
+        '
+        Me.listViewContextMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.deleteMenuItem})
+        Me.listViewContextMenu.Name = "listViewContextMenu"
+        Me.listViewContextMenu.Size = New System.Drawing.Size(115, 26)
+        '
+        'deleteMenuItem
+        '
+        Me.deleteMenuItem.Name = "deleteMenuItem"
+        Me.deleteMenuItem.Size = New System.Drawing.Size(114, 22)
+        Me.deleteMenuItem.Text = "削除(&D)"
+        '
+        'emailImageList
+        '
+        Me.emailImageList.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit
+        Me.emailImageList.ImageSize = New System.Drawing.Size(16, 16)
+        Me.emailImageList.TransparentColor = System.Drawing.Color.Transparent
+        '
         'tabControl
         '
         Me.tabControl.Controls.Add(Me.tabPageNormal)
@@ -317,7 +359,7 @@ Partial Class MainForm
         Me.tabControl.Location = New System.Drawing.Point(0, 0)
         Me.tabControl.Name = "tabControl"
         Me.tabControl.SelectedIndex = 0
-        Me.tabControl.Size = New System.Drawing.Size(1153, 440)
+        Me.tabControl.Size = New System.Drawing.Size(1160, 440)
         Me.tabControl.TabIndex = 0
         '
         'tabPageNormal
@@ -325,27 +367,43 @@ Partial Class MainForm
         Me.tabPageNormal.Controls.Add(Me.emailPreview)
         Me.tabPageNormal.Location = New System.Drawing.Point(4, 24)
         Me.tabPageNormal.Name = "tabPageNormal"
-        Me.tabPageNormal.Size = New System.Drawing.Size(1145, 412)
+        Me.tabPageNormal.Size = New System.Drawing.Size(1152, 412)
         Me.tabPageNormal.TabIndex = 0
         Me.tabPageNormal.Text = "通常表示"
         Me.tabPageNormal.UseVisualStyleBackColor = True
         '
+        'emailPreview
+        '
+        Me.emailPreview.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.emailPreview.Location = New System.Drawing.Point(0, 0)
+        Me.emailPreview.Name = "emailPreview"
+        Me.emailPreview.Size = New System.Drawing.Size(1152, 412)
+        Me.emailPreview.TabIndex = 0
+        '
         'tabPageThread
         '
         Me.tabPageThread.Controls.Add(Me.conversationView)
-        Me.tabPageThread.Location = New System.Drawing.Point(4, 24)
+        Me.tabPageThread.Location = New System.Drawing.Point(4, 22)
         Me.tabPageThread.Name = "tabPageThread"
-        Me.tabPageThread.Size = New System.Drawing.Size(1056, 412)
+        Me.tabPageThread.Size = New System.Drawing.Size(1146, 414)
         Me.tabPageThread.TabIndex = 1
         Me.tabPageThread.Text = "会話ビュー"
         Me.tabPageThread.UseVisualStyleBackColor = True
+        '
+        'conversationView
+        '
+        Me.conversationView.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.conversationView.Location = New System.Drawing.Point(0, 0)
+        Me.conversationView.Name = "conversationView"
+        Me.conversationView.Size = New System.Drawing.Size(1146, 414)
+        Me.conversationView.TabIndex = 0
         '
         'btnToggleView
         '
         Me.btnToggleView.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
         Me.btnToggleView.AutoSize = True
         Me.btnToggleView.Enabled = False
-        Me.btnToggleView.Location = New System.Drawing.Point(34, 0)
+        Me.btnToggleView.Location = New System.Drawing.Point(41, 0)
         Me.btnToggleView.Name = "btnToggleView"
         Me.btnToggleView.Size = New System.Drawing.Size(77, 25)
         Me.btnToggleView.TabIndex = 1
@@ -412,21 +470,13 @@ Partial Class MainForm
         Me.trayMenuExit.Size = New System.Drawing.Size(158, 22)
         Me.trayMenuExit.Text = "終了(&X)"
         '
-        'emailPreview
+        '_autoImportTimer
         '
-        Me.emailPreview.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.emailPreview.Location = New System.Drawing.Point(0, 0)
-        Me.emailPreview.Name = "emailPreview"
-        Me.emailPreview.Size = New System.Drawing.Size(1145, 412)
-        Me.emailPreview.TabIndex = 0
+        Me._autoImportTimer.Interval = 600000
         '
-        'conversationView
+        '_scheduledImportTimer
         '
-        Me.conversationView.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.conversationView.Location = New System.Drawing.Point(0, 0)
-        Me.conversationView.Name = "conversationView"
-        Me.conversationView.Size = New System.Drawing.Size(1056, 414)
-        Me.conversationView.TabIndex = 0
+        Me._scheduledImportTimer.Interval = 60000
         '
         'MainForm
         '
@@ -455,6 +505,7 @@ Partial Class MainForm
         Me.splitRight.Panel2.PerformLayout()
         CType(Me.splitRight, System.ComponentModel.ISupportInitialize).EndInit()
         Me.splitRight.ResumeLayout(False)
+        Me.listViewContextMenu.ResumeLayout(False)
         Me.tabControl.ResumeLayout(False)
         Me.tabPageNormal.ResumeLayout(False)
         Me.tabPageThread.ResumeLayout(False)
@@ -494,9 +545,14 @@ Partial Class MainForm
     Friend WithEvents splitRight As System.Windows.Forms.SplitContainer
     Friend WithEvents treeViewFolders As System.Windows.Forms.TreeView
     Friend WithEvents listViewEmails As System.Windows.Forms.ListView
+    Friend colAttach As System.Windows.Forms.ColumnHeader
     Friend WithEvents colSubject As System.Windows.Forms.ColumnHeader
     Friend WithEvents colSender As System.Windows.Forms.ColumnHeader
     Friend WithEvents colReceivedAt As System.Windows.Forms.ColumnHeader
+    Friend colSize As System.Windows.Forms.ColumnHeader
+    Friend emailImageList As System.Windows.Forms.ImageList
+    Friend WithEvents listViewContextMenu As System.Windows.Forms.ContextMenuStrip
+    Friend WithEvents deleteMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents tabControl As System.Windows.Forms.TabControl
     Friend WithEvents tabPageNormal As System.Windows.Forms.TabPage
     Friend WithEvents tabPageThread As System.Windows.Forms.TabPage
@@ -513,5 +569,7 @@ Partial Class MainForm
     Friend WithEvents trayMenuImportNow As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents trayMenuSep1 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents trayMenuExit As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents _autoImportTimer As System.Windows.Forms.Timer
+    Friend WithEvents _scheduledImportTimer As System.Windows.Forms.Timer
 
 End Class

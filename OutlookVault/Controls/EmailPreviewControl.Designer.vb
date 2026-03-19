@@ -24,6 +24,11 @@ Namespace Controls
             Me.components = New System.ComponentModel.Container()
 
             ' ── コントロール生成 ────────────────────────────────────────
+            Me._attachImageList = New System.Windows.Forms.ImageList(Me.components)
+            Me._attachLargeImageList = New System.Windows.Forms.ImageList(Me.components)
+            Me._attachToolTip = New System.Windows.Forms.ToolTip(Me.components)
+            Me._attachContextMenu = New System.Windows.Forms.ContextMenuStrip(Me.components)
+            Me.menuSaveAs = New System.Windows.Forms.ToolStripMenuItem()
             Me.pnlHeader = New System.Windows.Forms.Panel()
             Me.tlpHeader = New System.Windows.Forms.TableLayoutPanel()
             Me.lblFromCaption = New System.Windows.Forms.Label()
@@ -176,6 +181,29 @@ Namespace Controls
             Me.txtBodyText.BackColor = System.Drawing.SystemColors.Window
             Me.txtBodyText.Visible = False
 
+            ' ── _attachImageList (小: 16×16) ──────────────────────────────
+            Me._attachImageList.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit
+            Me._attachImageList.ImageSize = New System.Drawing.Size(16, 16)
+            '
+            ' ── _attachLargeImageList (大: 40×40) ────────────────────────
+            Me._attachLargeImageList.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit
+            Me._attachLargeImageList.ImageSize = New System.Drawing.Size(40, 40)
+            '
+            ' ── _attachToolTip ───────────────────────────────────────────
+            Me._attachToolTip.AutoPopDelay = 10000
+            Me._attachToolTip.InitialDelay = 300
+            Me._attachToolTip.ReshowDelay = 100
+            Me._attachToolTip.ShowAlways = True
+            '
+            ' ── _attachContextMenu ───────────────────────────────────────
+            Me._attachContextMenu.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuSaveAs})
+            Me._attachContextMenu.Name = "_attachContextMenu"
+            '
+            ' menuSaveAs
+            '
+            Me.menuSaveAs.Name = "menuSaveAs"
+            Me.menuSaveAs.Text = "名前を付けて保存..."
+            '
             ' ── UserControl 設定 ─────────────────────────────────────────
             ' 追加順序: pnlBody → pnlAttachments → pnlHeader
             '  (後から追加したものが先にDock処理される)
@@ -209,6 +237,11 @@ Namespace Controls
         Friend WithEvents pnlAttachments As System.Windows.Forms.Panel
         Friend WithEvents lblAttachTitle As System.Windows.Forms.Label
         Friend WithEvents flowAttachments As System.Windows.Forms.FlowLayoutPanel
+        Friend _attachImageList As System.Windows.Forms.ImageList
+        Friend _attachLargeImageList As System.Windows.Forms.ImageList
+        Friend _attachToolTip As System.Windows.Forms.ToolTip
+        Friend WithEvents _attachContextMenu As System.Windows.Forms.ContextMenuStrip
+        Friend WithEvents menuSaveAs As System.Windows.Forms.ToolStripMenuItem
 
     End Class
 

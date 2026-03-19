@@ -20,10 +20,7 @@ Namespace Controls
         Private _showHtml As Boolean
         Private _canToggle As Boolean
         Private _highlightQuery As String
-        Private _attachImageList As System.Windows.Forms.ImageList
-        Private _attachLargeImageList As System.Windows.Forms.ImageList
-        Private _attachContextMenu As System.Windows.Forms.ContextMenuStrip
-        Private _attachToolTip As System.Windows.Forms.ToolTip
+        ' _attachImageList, _attachLargeImageList, _attachContextMenu, _attachToolTip は Designer.vb で宣言・生成
         Private ReadOnly _htmlSanitizer As New Services.HtmlSanitizerService()
 
         ''' <summary>ダブルクリックで開くことをブロックする危険な拡張子。</summary>
@@ -50,33 +47,9 @@ Namespace Controls
             lblSubjectCaption.Font = boldFont
             lblToCaption.Font = boldFont
 
-            ' 添付ファイルアイコン用 ImageList（小: 16×16）
-            _attachImageList = New System.Windows.Forms.ImageList()
-            _attachImageList.ImageSize = New Size(16, 16)
-            _attachImageList.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit
+            ' 添付ファイルアイコンを ImageList に登録
             BuildAttachmentIcons(_attachImageList, 16)
-
-            ' 添付ファイルアイコン用 ImageList（大: 40×40）
-            _attachLargeImageList = New System.Windows.Forms.ImageList()
-            _attachLargeImageList.ImageSize = New Size(40, 40)
-            _attachLargeImageList.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit
             BuildAttachmentIcons(_attachLargeImageList, 40)
-
-            ' ToolTip
-            _attachToolTip = New System.Windows.Forms.ToolTip()
-            _attachToolTip.AutoPopDelay = 10000
-            _attachToolTip.InitialDelay = 300
-            _attachToolTip.ReshowDelay = 100
-            _attachToolTip.ShowAlways = True
-
-            ' 添付ファイル右クリックメニュー
-            _attachContextMenu = New System.Windows.Forms.ContextMenuStrip()
-            Dim menuSaveAs As New System.Windows.Forms.ToolStripMenuItem("名前を付けて保存...")
-            AddHandler menuSaveAs.Click, AddressOf AttachmentSaveAs_Click
-            _attachContextMenu.Items.Add(menuSaveAs)
-
-            ' WebBrowser のリンククリック制御
-            AddHandler webBrowser.Navigating, AddressOf WebBrowser_Navigating
         End Sub
 
         ' ════════════════════════════════════════════════════════════
@@ -505,7 +478,7 @@ Namespace Controls
         '  イベントハンドラ
         ' ════════════════════════════════════════════════════════════
 
-        Private Sub AttachmentSaveAs_Click(sender As Object, e As EventArgs)
+        Private Sub AttachmentSaveAs_Click(sender As Object, e As EventArgs) Handles menuSaveAs.Click
             ' コンテキストメニューの親コントロールから Attachment を取得
             Dim menuItem As System.Windows.Forms.ToolStripMenuItem =
                 TryCast(sender, System.Windows.Forms.ToolStripMenuItem)
@@ -663,7 +636,7 @@ Namespace Controls
         ''' about:blank（初期表示・DocumentText セット）以外のナビゲーションをブロックし、
         ''' 外部 URL の場合はデフォルトブラウザで開くか確認する。
         ''' </summary>
-        Private Sub WebBrowser_Navigating(sender As Object, e As System.Windows.Forms.WebBrowserNavigatingEventArgs)
+        Private Sub WebBrowser_Navigating(sender As Object, e As System.Windows.Forms.WebBrowserNavigatingEventArgs) Handles webBrowser.Navigating
             Dim url As String = e.Url.ToString()
 
             ' about:blank は DocumentText の設定時に発生するため許可
