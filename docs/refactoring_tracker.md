@@ -4,7 +4,7 @@
 
 | ステータス | 件数 |
 |-----------|------|
-| open      | 0    |
+| open      | 16   |
 | in-progress | 0  |
 | done      | 15   |
 | wontfix   | 1    |
@@ -342,6 +342,326 @@
 
 **メモ:** AppSettings.vb 行 211
 
+### R-017: FindFolder での COM オブジェクト二重解放リスク
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | High |
+| カテゴリ | resource-management |
+| ソース | review |
+| 対象ファイル | OutlookVault/Services/OutlookService.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** `FindFolder` で早期 Return パスと Finally ブロックの両方で `stores`/`root` の `Marshal.ReleaseComObject` が呼ばれ、二重解放が発生する。
+
+**対策:** 早期 Return パスの `Marshal.ReleaseComObject(stores)` を削除し Finally に一本化する。
+
+**メモ:** R-001 対応時に導入されたエッジケース。
+
+---
+
+### R-018: BuildItemsCollection 内の folder.Items COM オブジェクト解放漏れ
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | High |
+| カテゴリ | resource-management |
+| ソース | review |
+| 対象ファイル | OutlookVault/Services/ImportService.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** 差分スキャン時に `folder.Items` で取得した中間 Items COM オブジェクトが `Restrict` 後に解放されない。呼び出し元 `ImportFolder` でも返された `items` に対して `Marshal.ReleaseComObject` を呼んでいない。
+
+**対策:** 差分スキャン時は `Dim tmpItems = folder.Items` → `items = tmpItems.Restrict(filter)` → `ReleaseComObject(tmpItems)`。`ImportFolder` の Finally でも `items` を解放。
+
+**メモ:** R-010 でメソッド抽出した際に漏れた箇所。
+
+---
+
+### R-019: ImportFolder でのバルクモード不整合（中間 BeginBulk 例外時）
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | High |
+| カテゴリ | resource-management |
+| ソース | review |
+| 対象ファイル | OutlookVault/Services/ImportService.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** 中間コミット後の再 `BeginBulk()` が例外を投げた場合、`RollbackBulk` が呼ばれないケースがある。
+
+**対策:** 中間コミット後の `BeginBulk` を Try/Catch で囲むか、`CommitBulk` + `BeginBulk` をアトミックなヘルパーメソッドに統合する。
+
+**メモ:** なし
+
+---
+
+### R-020: SyncDeletions 内の folder.Items.Count で Items 未解放
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | Medium |
+| カテゴリ | resource-management |
+| ソース | review |
+| 対象ファイル | OutlookVault/Services/ImportService.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** `folder.Items.Count` のメソッドチェーンで一時的に生成された `Outlook.Items` COM オブジェクトが解放されない。
+
+**対策:** `Dim tmpItems = folder.Items` / `Dim count = tmpItems.Count` / `ReleaseComObject(tmpItems)` に分離。
+
+**メモ:** なし
+
+---
+
+### R-021: HtmlSanitizerService の正規表現が都度コンパイルされている
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | Medium |
+| カテゴリ | performance |
+| ソース | review |
+| 対象ファイル | OutlookVault/Services/HtmlSanitizerService.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** `Sanitize` メソッド内の全 `Regex.Replace` 呼び出し（7箇所）が静的メソッドで呼び出しのたびにコンパイルされる。
+
+**対策:** 全パターンを `Private Shared ReadOnly` フィールドとして `RegexOptions.Compiled` でキャッシュ。
+
+**メモ:** R-013 と同パターンの改善。
+
+---
+
+### R-022: BuildCopyText のセルキー計算にマジックナンバー 100000
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | Medium |
+| カテゴリ | readability |
+| ソース | review |
+| 対象ファイル | OutlookVault/Forms/TableViewerForm.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** `CLng(cell.RowIndex) * 100000L + CLng(cell.ColumnIndex)` のマジックナンバーに根拠がなく、将来の保守リスク。
+
+**対策:** ビットシフト（`<< 16`）またはタプルキーの Dictionary に変更。
+
+**メモ:** 初回レビューでも指摘あり。
+
+---
+
+### R-023: Logger.Error がスタックトレースを記録しない
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | Medium |
+| カテゴリ | error-handling |
+| ソース | review |
+| 対象ファイル | OutlookVault/Services/Logger.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** `Error(message, ex)` が `ex.Message` のみ記録し、スタックトレースや InnerException が記録されない。
+
+**対策:** `ex.ToString()` を使用してスタックトレースも含める。
+
+**メモ:** なし
+
+---
+
+### R-024: AppSettings.TargetFolders が毎回 new List を生成
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | Medium |
+| カテゴリ | performance |
+| ソース | review |
+| 対象ファイル | OutlookVault/Config/AppSettings.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** `TargetFolders` ゲッターが呼び出しのたびに ConfigurationManager を読み込み new List を生成。
+
+**対策:** キャッシュするか、呼び出し側でローカル変数に保持するパターンの徹底をコメントで明示。
+
+**メモ:** 現状は主要呼び出し箇所で1回取得しているが、他箇所の注意喚起が必要。
+
+---
+
+### R-025: AttachmentStatsForm.LoadData がアプリ側で全件集計
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | Medium |
+| カテゴリ | performance |
+| ソース | review |
+| 対象ファイル | OutlookVault/Forms/AttachmentStatsForm.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** 全添付ファイルを SELECT して VB.NET 側で拡張子ごとに集計。大量件数で不要なデータ転送。
+
+**対策:** SQL 側で GROUP BY + COUNT/SUM で集計し結果のみ返す。
+
+**メモ:** なし
+
+---
+
+### R-026: ReplaceCidReferences の att.FilePath が相対パスのまま
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | Medium |
+| カテゴリ | error-handling |
+| ソース | review |
+| 対象ファイル | OutlookVault/Controls/EmailPreviewControl.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** `att.FilePath` が DB の相対パスのまま `File.Exists` に渡されており、正しく動作しない可能性。
+
+**対策:** `AttachmentDirectory` と結合して絶対パスに変換してから使用。
+
+**メモ:** AttachmentSaveAs_Click でも同様。
+
+---
+
+### R-027: JsonStr の制御文字エスケープが不完全（U+0000〜U+001F）
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | Medium |
+| カテゴリ | error-handling |
+| ソース | review |
+| 対象ファイル | OutlookVault/Services/OutlookService.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** `\r`/`\n`/`\t` 以外の制御文字（`\b`/`\f` 等）が未エスケープ。
+
+**対策:** `System.Text.Json` か制御文字を `\uXXXX` に変換するループを追加。
+
+**メモ:** R-014 で `\r`/`\n`/`\t` は対応済みだが、残りの制御文字が未対応。
+
+---
+
+### R-028: AppSettingsTests がデフォルト値を検証していない
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | Medium |
+| カテゴリ | test-coverage |
+| ソース | review |
+| 対象ファイル | OutlookVault.Tests/AppSettingsTests.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** テスト名が「デフォルト値が False」と主張しているが、型チェックのみで実際の値を検証していない。
+
+**対策:** デフォルト値を返すテスト用コンストラクタか IAppSettings インターフェースを導入。
+
+**メモ:** なし
+
+---
+
+### R-029: ImportService のテストが存在しない
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | Medium |
+| カテゴリ | test-coverage |
+| ソース | review |
+| 対象ファイル | OutlookVault/Services/ImportService.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** `UpdateSyncState`/`LogImportResult` 等の純ロジック部分がテスト可能だがテストファイルがない。
+
+**対策:** `UpdateSyncState`/`LogImportResult` を `Friend` 公開してテスト追加。
+
+**メモ:** R-015 (wontfix) はインターフェース抽出が必要だったが、抽出済みのサブメソッドは直接テスト可能。
+
+---
+
+### R-030: MainForm_FormClosing で Application.DoEvents を使用
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | Low |
+| カテゴリ | winforms |
+| ソース | review |
+| 対象ファイル | OutlookVault/MainForm.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** スピンウェイトループで `Application.DoEvents()` を使っており、リエントラント問題のリスクがある。
+
+**対策:** `async/await` パターンまたは `Task.Delay` ポーリングに変更。
+
+**メモ:** なし
+
+---
+
+### R-031: GetTableData で全件を DataTable にロード
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | Low |
+| カテゴリ | performance |
+| ソース | review |
+| 対象ファイル | OutlookVault/Data/DatabaseManager.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** `attachments` 等のテーブルで `SELECT *` 全件取得。大量件数でメモリ消費。
+
+**対策:** ページングまたは件数上限を導入。
+
+**メモ:** なし
+
+---
+
+### R-032: FormatEmailSize / FormatFileSize の重複実装
+
+| 項目 | 値 |
+|------|-----|
+| ステータス | open |
+| 優先度 | Low |
+| カテゴリ | readability |
+| ソース | review |
+| 対象ファイル | OutlookVault/MainForm.vb, OutlookVault/Controls/EmailPreviewControl.vb, OutlookVault/Forms/AttachmentStatsForm.vb |
+| 登録日 | 2026-03-19 |
+| 修正日 | - |
+
+**内容:** バイト数→人間可読文字列の変換が3箇所に重複実装。
+
+**対策:** 共通ヘルパークラスに統合。
+
+**メモ:** なし
+
+---
+
 ## 変更履歴
 
 | 日付 | 項目 | 変更内容 |
@@ -360,3 +680,4 @@
 | 2026-03-19 | R-006 | done: 動的コントロールの RemoveHandler+Dispose、Font フィールド昇格 |
 | 2026-03-19 | R-010 | done: ImportFolder を 4 サブメソッドに分割（180行→80行） |
 | 2026-03-19 | R-015 | wontfix: COM 密結合で分離コスト高、既存テスト 215 件で十分カバー |
+| 2026-03-19 | R-017〜R-032 | 2回目の code-reviewer レビューから 16 件を一括登録 |
