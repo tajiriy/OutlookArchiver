@@ -4,9 +4,9 @@
 
 | ステータス | 件数 |
 |-----------|------|
-| open      | 7    |
+| open      | 5    |
 | in-progress | 0  |
-| done      | 26   |
+| done      | 28   |
 | wontfix   | 4    |
 | deferred  | 2    |
 | invalid   | 1    |
@@ -748,7 +748,7 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Medium |
 | カテゴリ | performance |
 | ソース | review |
@@ -758,9 +758,9 @@
 
 **内容:** StripQuotesFromHtml 内の4つの Regex.Replace が静的呼び出しで毎回コンパイル。
 
-**対策:** Shared ReadOnly Compiled パターンに昇格（R-021 と同パターン）。
+**対策:** 4パターンを Private Shared ReadOnly フィールド（RegexOptions.Compiled）に昇格。worktree 並列実行で対応。
 
-**メモ:** BUG-005
+**メモ:** BUG-005。修正日: 2026-03-19
 
 ---
 
@@ -788,7 +788,7 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Low |
 | カテゴリ | performance |
 | ソース | review |
@@ -798,9 +798,9 @@
 
 **内容:** line.ToLower() を毎行生成。StringComparison.OrdinalIgnoreCase に変更可能。
 
-**対策:** StartsWith + StringComparison に変更、searchFor の ToLower() 除去。
+**対策:** searchFor から ToLower() 削除、line.StartsWith を StringComparison.OrdinalIgnoreCase に変更。worktree 並列実行で対応。
 
-**メモ:** BUG-007
+**メモ:** BUG-007。修正日: 2026-03-19
 
 ---
 
@@ -857,3 +857,4 @@
 | 2026-03-19 | R-024,R-026,R-028〜R-031 | ステータスを wontfix/deferred/invalid に再分類 |
 | 2026-03-19 | R-033〜R-040 | 3回目の code-reviewer レビューから 8 件を一括登録 |
 | 2026-03-19 | R-033 | done: ループ内 rawItem を Try...Finally ReleaseComObject で解放 |
+| 2026-03-19 | R-037, R-039 | done: worktree 並列実行で Regex Compiled 化と ToLower 除去を同時対応 |
