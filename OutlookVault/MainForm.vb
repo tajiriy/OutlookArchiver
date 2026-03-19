@@ -39,6 +39,12 @@ Public Class MainForm
     ' ════════════════════════════════════════════════════════════
 
     Private Async Sub MainForm_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        ' アプリケーションアイコンを設定
+        Dim icoPath As String = System.IO.Path.Combine(Application.StartupPath, "app.ico")
+        If System.IO.File.Exists(icoPath) Then
+            Me.Icon = New Drawing.Icon(icoPath)
+        End If
+
         ' メール一覧高さ: コンテンツ領域の約 40%（splitMain はデザイナー値をそのまま使用）
         Dim contentHeight As Integer = Me.ClientSize.Height - menuStrip.Height - toolStrip.Height - statusStrip.Height
         splitRight.SplitterDistance = CInt(contentHeight * 0.4)
