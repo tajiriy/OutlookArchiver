@@ -4,9 +4,9 @@
 
 | ステータス | 件数 |
 |-----------|------|
-| open      | 16   |
+| open      | 15   |
 | in-progress | 0  |
-| done      | 0    |
+| done      | 1    |
 | wontfix   | 0    |
 
 ## カテゴリ
@@ -48,17 +48,17 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | High |
 | カテゴリ | sql-safety |
 | ソース | review |
 | 対象ファイル | OutlookVault/Data/DatabaseManager.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** `ExecuteNonQuery(conn, "PRAGMA synchronous=" & mode & ";")` で文字列を直接連結している。現状は固定文字列 `"OFF"` / `"NORMAL"` のみだが、PRAGMA はパラメータ化クエリが使えないためホワイトリスト検証が必要。
 
-**対策:** 呼び出し元を `Enum SynchronousMode` に変更し、メソッド内で Enum→文字列変換する。または許可値 `{"OFF", "NORMAL", "FULL", "EXTRA"}` でホワイトリスト検証。
+**対策:** `Enum SynchronousMode` (Off/Normal/Full) を `Data` 名前空間に追加。`SetSynchronousMode` のパラメータを `String` → `SynchronousMode` に変更し、内部で `mode.ToString().ToUpperInvariant()` で安全に文字列変換。呼び出し元 (ImportService) とテストも Enum 使用に更新。Full モードのテストを追加。
 
 **メモ:** ImportService.vb 行 171, 288 から呼び出されている。
 
@@ -348,3 +348,4 @@
 |------|------|---------|
 | 2026-03-19 | - | トラッカー新規作成 |
 | 2026-03-19 | R-001〜R-016 | code-reviewer による初回全体レビューから 16 件を一括登録 |
+| 2026-03-19 | R-002 | done: String→Enum SynchronousMode に変更、テスト追加 |
