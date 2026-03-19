@@ -31,7 +31,7 @@ Partial Class MainForm
         Me.menuItemImportNow = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemImportCancel = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemErrorExclusion = New System.Windows.Forms.ToolStripMenuItem()
-        Me.menuItemSearch = New System.Windows.Forms.ToolStripMenuItem()
+
         Me.menuItemSettings = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemHelp = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemHelpManual = New System.Windows.Forms.ToolStripMenuItem()
@@ -91,7 +91,7 @@ Partial Class MainForm
         '
         'menuStrip
         '
-        Me.menuStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemFile, Me.menuItemImport, Me.menuItemSearch, Me.menuItemSettings, Me.menuItemHelp})
+        Me.menuStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemFile, Me.menuItemImport, Me.menuItemSettings, Me.menuItemHelp})
         Me.menuStrip.Location = New System.Drawing.Point(0, 0)
         Me.menuStrip.Name = "menuStrip"
         Me.menuStrip.Size = New System.Drawing.Size(1397, 24)
@@ -137,12 +137,7 @@ Partial Class MainForm
         Me.menuItemErrorExclusion.Name = "menuItemErrorExclusion"
         Me.menuItemErrorExclusion.Size = New System.Drawing.Size(183, 22)
         Me.menuItemErrorExclusion.Text = "エラー除外リスト(&E)..."
-        '
-        'menuItemSearch
-        '
-        Me.menuItemSearch.Name = "menuItemSearch"
-        Me.menuItemSearch.Size = New System.Drawing.Size(57, 20)
-        Me.menuItemSearch.Text = "検索(&S)"
+
         '
         'menuItemSettings
         '
@@ -463,6 +458,7 @@ Partial Class MainForm
         Me.Controls.Add(Me.menuStrip)
         Me.Controls.Add(Me.statusStrip)
         Me.Font = New System.Drawing.Font("Meiryo UI", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(128, Byte))
+        Me.KeyPreview = True
         Me.MainMenuStrip = Me.menuStrip
         Me.Name = "MainForm"
         Me.Text = "OutlookVault"
@@ -498,7 +494,7 @@ Partial Class MainForm
     Friend WithEvents menuItemImportNow As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemImportCancel As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemErrorExclusion As System.Windows.Forms.ToolStripMenuItem
-    Friend WithEvents menuItemSearch As System.Windows.Forms.ToolStripMenuItem
+
     Friend WithEvents menuItemSettings As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemHelp As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemHelpTables As System.Windows.Forms.ToolStripMenuItem

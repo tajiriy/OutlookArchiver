@@ -627,15 +627,19 @@ Public Class MainForm
     '  検索
     ' ════════════════════════════════════════════════════════════
 
+    Private Sub MainForm_KeyDown(sender As Object, e As KeyEventArgs) Handles Me.KeyDown
+        If e.Control AndAlso e.KeyCode = Keys.F Then
+            txtSearch.Focus()
+            txtSearch.SelectAll()
+            e.Handled = True
+            e.SuppressKeyPress = True
+        End If
+    End Sub
+
     Private Sub btnSearch_Click(sender As Object, e As EventArgs) Handles btnSearch.Click
         RunSearch()
     End Sub
 
-    Private Sub menuItemSearch_Click(sender As Object, e As EventArgs) Handles menuItemSearch.Click
-        ' 検索ボックスにフォーカスを移してユーザーが入力できる状態にする
-        txtSearch.Focus()
-        txtSearch.SelectAll()
-    End Sub
 
     Private Sub btnClearSearch_Click(sender As Object, e As EventArgs) Handles btnClearSearch.Click
         txtSearch.Text = String.Empty
