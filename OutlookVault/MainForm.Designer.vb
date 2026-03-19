@@ -35,6 +35,7 @@ Partial Class MainForm
         Me.menuItemErrorExclusion = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemDev = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemDevTableViewer = New System.Windows.Forms.ToolStripMenuItem()
+        Me.menuItemDevAttachmentStats = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemHelp = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemHelpManual = New System.Windows.Forms.ToolStripMenuItem()
         Me.menuItemHelpAbout = New System.Windows.Forms.ToolStripMenuItem()
@@ -159,7 +160,7 @@ Partial Class MainForm
         '
         'menuItemDev
         '
-        Me.menuItemDev.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemDevTableViewer})
+        Me.menuItemDev.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.menuItemDevTableViewer, Me.menuItemDevAttachmentStats})
         Me.menuItemDev.Name = "menuItemDev"
         Me.menuItemDev.Size = New System.Drawing.Size(59, 20)
         Me.menuItemDev.Text = "開発(&D)"
@@ -167,8 +168,14 @@ Partial Class MainForm
         'menuItemDevTableViewer
         '
         Me.menuItemDevTableViewer.Name = "menuItemDevTableViewer"
-        Me.menuItemDevTableViewer.Size = New System.Drawing.Size(155, 22)
+        Me.menuItemDevTableViewer.Size = New System.Drawing.Size(199, 22)
         Me.menuItemDevTableViewer.Text = "テーブルビューア(&T)"
+        '
+        'menuItemDevAttachmentStats
+        '
+        Me.menuItemDevAttachmentStats.Name = "menuItemDevAttachmentStats"
+        Me.menuItemDevAttachmentStats.Size = New System.Drawing.Size(199, 22)
+        Me.menuItemDevAttachmentStats.Text = "添付ファイル拡張子統計(&A)..."
         '
         'menuItemHelp
         '
@@ -543,6 +550,7 @@ Partial Class MainForm
     Friend WithEvents menuItemSettings As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemDev As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemDevTableViewer As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents menuItemDevAttachmentStats As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemHelp As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemHelpManual As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents menuItemHelpAbout As System.Windows.Forms.ToolStripMenuItem

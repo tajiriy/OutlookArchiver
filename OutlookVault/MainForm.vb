@@ -1166,6 +1166,14 @@ Public Class MainForm
         End Using
     End Sub
 
+    ' ── 添付ファイル拡張子統計 ────────────────────────────────
+
+    Private Sub menuItemDevAttachmentStats_Click(sender As Object, e As EventArgs) Handles menuItemDevAttachmentStats.Click
+        Using frm As New Forms.AttachmentStatsForm(_dbManager)
+            frm.ShowDialog(Me)
+        End Using
+    End Sub
+
     Private Sub menuItemHelpManual_Click(sender As Object, e As EventArgs) Handles menuItemHelpManual.Click
         Dim frm As New Forms.HelpForm()
         frm.Show(Me)

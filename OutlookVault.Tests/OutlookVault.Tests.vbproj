@@ -47,6 +47,8 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -81,6 +83,7 @@
     <Compile Include="ImportLogWriterTests.vb" />
     <Compile Include="LoggerTests.vb" />
     <Compile Include="AppSettingsTests.vb" />
+    <Compile Include="AttachmentStatsFormTests.vb" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
 </Project>

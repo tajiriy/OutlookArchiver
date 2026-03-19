@@ -133,6 +133,13 @@
       <DependentUpon>TableViewerForm.vb</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Forms\AttachmentStatsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\AttachmentStatsForm.Designer.vb">
+      <DependentUpon>AttachmentStatsForm.vb</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\ErrorExclusionForm.vb">
       <SubType>Form</SubType>
     </Compile>
