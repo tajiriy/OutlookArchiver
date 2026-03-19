@@ -1,4 +1,4 @@
-# OutlookArchiver テスト実行スクリプト
+# OutlookVault テスト実行スクリプト
 # 使い方:
 #   .\test.ps1          # 全テスト実行（Debug）
 #   .\test.ps1 Release  # Release ビルドのテスト実行
@@ -10,7 +10,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$TestDll = Join-Path $ProjectRoot "OutlookArchiver.Tests\bin\$Config\OutlookArchiver.Tests.dll"
+$TestDll = Join-Path $ProjectRoot "OutlookVault.Tests\bin\$Config\OutlookVault.Tests.dll"
 
 # vswhere で最新の Visual Studio から vstest.console.exe を検出
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"

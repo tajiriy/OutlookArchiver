@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# OutlookArchiver ビルドスクリプト
+# OutlookVault ビルドスクリプト
 # 使い方:
 #   ./build.sh          # Debug ビルド（デフォルト）
 #   ./build.sh Release  # Release ビルド
@@ -14,8 +14,9 @@ if [ -z "$VS_PATH" ]; then
     exit 1
 fi
 MSBUILD="${VS_PATH}\\MSBuild\\Current\\Bin\\MSBuild.exe"
-PROJECT="d:\\Development\\VisualStudioProjects\\OutlookArchiver\\OutlookArchiver\\OutlookArchiver.vbproj"
-TEST_PROJECT="d:\\Development\\VisualStudioProjects\\OutlookArchiver\\OutlookArchiver.Tests\\OutlookArchiver.Tests.vbproj"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -W | sed 's|/|\\\\|g')"
+PROJECT="${SCRIPT_DIR}\\OutlookVault\\OutlookVault.vbproj"
+TEST_PROJECT="${SCRIPT_DIR}\\OutlookVault.Tests\\OutlookVault.Tests.vbproj"
 CONFIG="${1:-Debug}"
 
 echo "=== NuGet パッケージ復元 ==="

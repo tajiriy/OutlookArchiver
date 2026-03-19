@@ -1,16 +1,16 @@
-﻿# OutlookArchiver デプロイスクリプト
+﻿# OutlookVault デプロイスクリプト
 # 使い方:
-#   .\deploy.ps1                              # デフォルト: C:\Tools\OutlookArchiver にデプロイ
+#   .\deploy.ps1                              # デフォルト: C:\Tools\OutlookVault にデプロイ
 #   .\deploy.ps1 -DeployDir "D:\MyApp\OA"     # デプロイ先を指定
 
 param(
-    [string]$DeployDir = "C:\Tools\OutlookArchiver"
+    [string]$DeployDir = "C:\Tools\OutlookVault"
 )
 
 $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$BuildDir = Join-Path $ProjectRoot "OutlookArchiver\bin\Release"
+$BuildDir = Join-Path $ProjectRoot "OutlookVault\bin\Release"
 # vswhere で最新の Visual Studio から MSBuild.exe を検出
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 if (-not (Test-Path $vswhere)) {
@@ -24,9 +24,9 @@ $MSBuild = Join-Path $vsPath "MSBuild\Current\Bin\MSBuild.exe"
 if (-not (Test-Path $MSBuild)) {
     throw "MSBuild.exe が見つかりません: $MSBuild"
 }
-$Project = Join-Path $ProjectRoot "OutlookArchiver\OutlookArchiver.vbproj"
+$Project = Join-Path $ProjectRoot "OutlookVault\OutlookVault.vbproj"
 
-Write-Host "=== OutlookArchiver デプロイ ==="
+Write-Host "=== OutlookVault デプロイ ==="
 Write-Host "デプロイ先: $DeployDir"
 Write-Host ""
 
@@ -41,7 +41,7 @@ Write-Host "=== Release ビルド ==="
 if ($LASTEXITCODE -ne 0) { throw "ビルドに失敗しました" }
 
 # ビルド成果物の存在確認
-$exePath = Join-Path $BuildDir "OutlookArchiver.exe"
+$exePath = Join-Path $BuildDir "OutlookVault.exe"
 if (-not (Test-Path $exePath)) {
     throw "エラー: Release ビルドの成果物が見つかりません: $exePath"
 }
@@ -55,8 +55,8 @@ if (-not (Test-Path $DeployDir)) {
 Write-Host ""
 Write-Host "=== ファイルコピー ==="
 $files = @(
-    "OutlookArchiver.exe"
-    "OutlookArchiver.exe.config"
+    "OutlookVault.exe"
+    "OutlookVault.exe.config"
     "EntityFramework.dll"
     "EntityFramework.SqlServer.dll"
     "Microsoft.Office.Interop.Outlook.dll"
@@ -102,4 +102,4 @@ if (Test-Path $dataDir) {
 
 Write-Host ""
 Write-Host "=== デプロイ完了 ==="
-Write-Host "実行: $DeployDir\OutlookArchiver.exe"
+Write-Host "実行: $DeployDir\OutlookVault.exe"

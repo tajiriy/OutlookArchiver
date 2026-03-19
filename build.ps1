@@ -1,4 +1,4 @@
-# OutlookArchiver ビルドスクリプト
+# OutlookVault ビルドスクリプト
 # 使い方:
 #   .\build.ps1          # Debug ビルド（デフォルト）
 #   .\build.ps1 Release  # Release ビルド
@@ -10,8 +10,8 @@ param(
 $ErrorActionPreference = "Stop"
 
 $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$Project = Join-Path $ProjectRoot "OutlookArchiver\OutlookArchiver.vbproj"
-$TestProject = Join-Path $ProjectRoot "OutlookArchiver.Tests\OutlookArchiver.Tests.vbproj"
+$Project = Join-Path $ProjectRoot "OutlookVault\OutlookVault.vbproj"
+$TestProject = Join-Path $ProjectRoot "OutlookVault.Tests\OutlookVault.Tests.vbproj"
 
 # vswhere で最新の Visual Studio から MSBuild.exe を検出
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"

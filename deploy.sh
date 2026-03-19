@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-# OutlookArchiver デプロイスクリプト
+# OutlookVault デプロイスクリプト
 # 使い方:
-#   ./deploy.sh                        # デフォルト: C:\Tools\OutlookArchiver にデプロイ
-#   ./deploy.sh /c/MyApp/OutlookArchiver  # デプロイ先を指定
+#   ./deploy.sh                        # デフォルト: C:\Tools\OutlookVault にデプロイ
+#   ./deploy.sh /c/MyApp/OutlookVault  # デプロイ先を指定
 
 set -euo pipefail
 
-DEPLOY_DIR="${1:-/c/Tools/OutlookArchiver}"
-BUILD_DIR="d:/Development/VisualStudioProjects/OutlookArchiver/OutlookArchiver/bin/Release"
+DEPLOY_DIR="${1:-/c/Tools/OutlookVault}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BUILD_DIR="${SCRIPT_DIR}/OutlookVault/bin/Release"
 
-echo "=== OutlookArchiver デプロイ ==="
+echo "=== OutlookVault デプロイ ==="
 echo "デプロイ先: ${DEPLOY_DIR}"
 echo ""
 
@@ -18,8 +19,8 @@ echo "=== Release ビルド ==="
 ./build.sh Release
 
 # ビルド成果物の存在確認
-if [ ! -f "${BUILD_DIR}/OutlookArchiver.exe" ]; then
-    echo "エラー: Release ビルドの成果物が見つかりません: ${BUILD_DIR}/OutlookArchiver.exe"
+if [ ! -f "${BUILD_DIR}/OutlookVault.exe" ]; then
+    echo "エラー: Release ビルドの成果物が見つかりません: ${BUILD_DIR}/OutlookVault.exe"
     exit 1
 fi
 
@@ -30,8 +31,8 @@ mkdir -p "${DEPLOY_DIR}"
 echo ""
 echo "=== ファイルコピー ==="
 FILES=(
-    "OutlookArchiver.exe"
-    "OutlookArchiver.exe.config"
+    "OutlookVault.exe"
+    "OutlookVault.exe.config"
     "EntityFramework.dll"
     "EntityFramework.SqlServer.dll"
     "Microsoft.Office.Interop.Outlook.dll"
@@ -72,4 +73,4 @@ fi
 
 echo ""
 echo "=== デプロイ完了 ==="
-echo "実行: ${DEPLOY_DIR}/OutlookArchiver.exe"
+echo "実行: ${DEPLOY_DIR}/OutlookVault.exe"

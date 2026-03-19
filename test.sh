@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# OutlookArchiver テスト実行スクリプト
+# OutlookVault テスト実行スクリプト
 # 使い方:
 #   ./test.sh          # 全テスト実行
 #   ./test.sh Release  # Release ビルドのテスト実行
@@ -14,7 +14,8 @@ if [ -z "$VS_PATH" ]; then
     exit 1
 fi
 VSTEST="${VS_PATH}\\Common7\\IDE\\CommonExtensions\\Microsoft\\TestWindow\\vstest.console.exe"
-TEST_DLL="d:\\Development\\VisualStudioProjects\\OutlookArchiver\\OutlookArchiver.Tests\\bin\\${1:-Debug}\\OutlookArchiver.Tests.dll"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -W | sed 's|/|\\\\|g')"
+TEST_DLL="${SCRIPT_DIR}\\OutlookVault.Tests\\bin\\${1:-Debug}\\OutlookVault.Tests.dll"
 
 echo "=== テスト実行 ==="
 powershell.exe -NoProfile -Command "& '$VSTEST' '$TEST_DLL'"
