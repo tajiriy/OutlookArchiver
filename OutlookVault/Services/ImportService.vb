@@ -168,7 +168,7 @@ Namespace Services
             ' ── 高速インポート: synchronous OFF ──
             Dim perfConn As System.Data.SQLite.SQLiteConnection = _dbManager.GetConnection()
             Try
-                _dbManager.SetSynchronousMode(perfConn, "OFF")
+                _dbManager.SetSynchronousMode(perfConn, Data.SynchronousMode.Off)
             Catch
                 perfConn.Dispose()
                 Throw
@@ -285,7 +285,7 @@ Namespace Services
                 _threadingSvc.ClearCaches()
                 ' ── 高速インポート後処理: synchronous 復元 ──
                 Try
-                    _dbManager.SetSynchronousMode(perfConn, "NORMAL")
+                    _dbManager.SetSynchronousMode(perfConn, Data.SynchronousMode.Normal)
                 Finally
                     perfConn.Dispose()
                 End Try

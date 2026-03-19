@@ -7,6 +7,13 @@ Imports System.IO
 
 Namespace Data
 
+    ''' <summary>SQLite の synchronous プラグマ設定値。</summary>
+    Public Enum SynchronousMode
+        Off
+        Normal
+        Full
+    End Enum
+
     ''' <summary>
     ''' SQLite 接続の管理・スキーマ初期化を担当するクラス。
     ''' </summary>
@@ -134,10 +141,10 @@ CREATE INDEX IF NOT EXISTS idx_attachments_email_id      ON attachments(email_id
 
         ''' <summary>
         ''' synchronous プラグマを設定する。
-        ''' 取り込み中は "OFF" にして fsync を省略し高速化、終了後に "NORMAL" に戻す。
+        ''' 取り込み中は Off にして fsync を省略し高速化、終了後に Normal に戻す。
         ''' </summary>
-        Public Sub SetSynchronousMode(conn As SQLiteConnection, mode As String)
-            ExecuteNonQuery(conn, "PRAGMA synchronous=" & mode & ";")
+        Public Sub SetSynchronousMode(conn As SQLiteConnection, mode As SynchronousMode)
+            ExecuteNonQuery(conn, "PRAGMA synchronous=" & mode.ToString().ToUpperInvariant() & ";")
         End Sub
 
         ' ── テーブルデータ取得 ────────────────────────────────────

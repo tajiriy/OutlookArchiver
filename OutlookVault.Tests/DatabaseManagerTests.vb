@@ -140,7 +140,7 @@ Namespace Tests
             _dbManager.Initialize()
 
             Using conn As SQLiteConnection = _dbManager.GetConnection()
-                _dbManager.SetSynchronousMode(conn, "OFF")
+                _dbManager.SetSynchronousMode(conn, SynchronousMode.Off)
 
                 Using cmd As New SQLiteCommand("PRAGMA synchronous;", conn)
                     Dim mode As Integer = CInt(cmd.ExecuteScalar())
@@ -154,12 +154,26 @@ Namespace Tests
             _dbManager.Initialize()
 
             Using conn As SQLiteConnection = _dbManager.GetConnection()
-                _dbManager.SetSynchronousMode(conn, "OFF")
-                _dbManager.SetSynchronousMode(conn, "NORMAL")
+                _dbManager.SetSynchronousMode(conn, SynchronousMode.Off)
+                _dbManager.SetSynchronousMode(conn, SynchronousMode.Normal)
 
                 Using cmd As New SQLiteCommand("PRAGMA synchronous;", conn)
                     Dim mode As Integer = CInt(cmd.ExecuteScalar())
                     Assert.AreEqual(1, mode) ' 1 = NORMAL
+                End Using
+            End Using
+        End Sub
+
+        <Test>
+        Public Sub SetSynchronousMode_Full_SetsPragmaTo2()
+            _dbManager.Initialize()
+
+            Using conn As SQLiteConnection = _dbManager.GetConnection()
+                _dbManager.SetSynchronousMode(conn, SynchronousMode.Full)
+
+                Using cmd As New SQLiteCommand("PRAGMA synchronous;", conn)
+                    Dim mode As Integer = CInt(cmd.ExecuteScalar())
+                    Assert.AreEqual(2, mode) ' 2 = FULL
                 End Using
             End Using
         End Sub
