@@ -89,6 +89,12 @@ Public Class MainForm
         Dim contentHeight As Integer = Me.ClientSize.Height - menuStrip.Height - toolStrip.Height - statusStrip.Height
         splitRight.SplitterDistance = CInt(contentHeight * 0.4)
 
+        ' フォルダツリーの幅を復元
+        Dim savedTreeWidth As Integer = _settings.FolderTreeWidth
+        If savedTreeWidth > 0 AndAlso savedTreeWidth < splitMain.Width Then
+            splitMain.SplitterDistance = savedTreeWidth
+        End If
+
         Services.Logger.Info("アプリケーションを起動しました")
 
         InitializeServices()
@@ -1465,6 +1471,7 @@ Public Class MainForm
         End If
 
         SaveColumnSettings()
+        _settings.FolderTreeWidth = splitMain.SplitterDistance
         notifyIcon.Visible = False
 
         ' EmailRepository のバルクリソースを確実に解放

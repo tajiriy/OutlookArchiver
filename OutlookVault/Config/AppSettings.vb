@@ -283,6 +283,18 @@ Namespace Config
             End Set
         End Property
 
+        ' ── レイアウト ──────────────────────────────────────────────
+
+        ''' <summary>フォルダツリーの幅（SplitContainer の SplitterDistance）</summary>
+        Public Property FolderTreeWidth As Integer
+            Get
+                Return GetInt("FolderTreeWidth", defaultValue:=0)
+            End Get
+            Set(value As Integer)
+                SaveSetting("FolderTreeWidth", value.ToString())
+            End Set
+        End Property
+
         ' ── メール一覧表示設定 ────────────────────────────────────────
 
         ''' <summary>メール一覧の列幅（列インデックス順にピクセル値をカンマ区切りで格納）</summary>
