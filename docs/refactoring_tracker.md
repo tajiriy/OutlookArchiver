@@ -4,9 +4,9 @@
 
 | ステータス | 件数 |
 |-----------|------|
-| open      | 8    |
+| open      | 7    |
 | in-progress | 0  |
-| done      | 25   |
+| done      | 26   |
 | wontfix   | 4    |
 | deferred  | 2    |
 | invalid   | 1    |
@@ -668,7 +668,7 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Critical |
 | カテゴリ | resource-management |
 | ソース | review |
@@ -678,9 +678,9 @@
 
 **内容:** メインループで rawItem を取得後、MailItem 以外は `Continue Do` でスキップされるが rawItem が解放されない。MailItem の場合も mailItem の COM 解放がない。大量取り込み時にメモリリーク。
 
-**対策:** rawItem を `Try...Finally Marshal.ReleaseComObject(rawItem)` で囲む。
+**対策:** ループ本体全体を `Try...Finally Marshal.ReleaseComObject(rawItem) End Try` で囲み、Continue Do（MailItem 以外スキップ）でも Finally が実行されて確実に解放されるようにした。subject 変数を外側に移動。
 
-**メモ:** BUG-001
+**メモ:** BUG-001。修正日: 2026-03-19
 
 ---
 
@@ -856,3 +856,4 @@
 | 2026-03-19 | R-031 | wontfix: 開発者向けテーブルビューアで万件単位の利用は想定外 |
 | 2026-03-19 | R-024,R-026,R-028〜R-031 | ステータスを wontfix/deferred/invalid に再分類 |
 | 2026-03-19 | R-033〜R-040 | 3回目の code-reviewer レビューから 8 件を一括登録 |
+| 2026-03-19 | R-033 | done: ループ内 rawItem を Try...Finally ReleaseComObject で解放 |

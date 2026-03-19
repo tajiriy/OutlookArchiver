@@ -175,39 +175,44 @@ Namespace Services
                     cancellationToken.ThrowIfCancellationRequested()
                     Dim rawItem As Object = items.Item(i)
                     i += stepDir
-
-                    ' MailItem 以外（予定・タスク等）はスキップ
-                    If Not TypeOf rawItem Is Outlook.MailItem Then Continue Do
-
-                    Dim mailItem As Outlook.MailItem = CType(rawItem, Outlook.MailItem)
-                    Dim subject As String = mailItem.Subject
+                    Dim subject As String = Nothing
 
                     Try
-                        Dim skipReason As Integer = 0
-                        Dim imported As Boolean = ProcessMailItem(mailItem, attachBaseDir, existingIds, deletedIds, errorIds, result, folderName, skipReason)
-                        If imported Then
-                            result.ImportedCount += 1
-                            sinceLastCommit += 1
-                            ' N 件ごとに中間コミット（クラッシュ時のデータロスを軽減）
-                            If sinceLastCommit >= BulkCommitInterval Then
-                                _repo.CommitBulk()
-                                Try
-                                    _repo.BeginBulk()
-                                Catch exBulk As Exception
-                                    Logger.Error("中間コミット後の BeginBulk に失敗しました", exBulk)
-                                    Throw
-                                End Try
-                                sinceLastCommit = 0
-                            End If
-                        Else
-                            If skipReason = SkipReasonError Then
-                                result.ErrorSkipCount += 1
+                        ' MailItem 以外（予定・タスク等）はスキップ
+                        If Not TypeOf rawItem Is Outlook.MailItem Then Continue Do
+
+                        Dim mailItem As Outlook.MailItem = CType(rawItem, Outlook.MailItem)
+                        subject = mailItem.Subject
+
+                        Try
+                            Dim skipReason As Integer = 0
+                            Dim imported As Boolean = ProcessMailItem(mailItem, attachBaseDir, existingIds, deletedIds, errorIds, result, folderName, skipReason)
+                            If imported Then
+                                result.ImportedCount += 1
+                                sinceLastCommit += 1
+                                ' N 件ごとに中間コミット（クラッシュ時のデータロスを軽減）
+                                If sinceLastCommit >= BulkCommitInterval Then
+                                    _repo.CommitBulk()
+                                    Try
+                                        _repo.BeginBulk()
+                                    Catch exBulk As Exception
+                                        Logger.Error("中間コミット後の BeginBulk に失敗しました", exBulk)
+                                        Throw
+                                    End Try
+                                    sinceLastCommit = 0
+                                End If
                             Else
-                                result.SkippedCount += 1
+                                If skipReason = SkipReasonError Then
+                                    result.ErrorSkipCount += 1
+                                Else
+                                    result.SkippedCount += 1
+                                End If
                             End If
-                        End If
-                    Catch ex As Exception
-                        HandleMailItemError(mailItem, folderName, subject, ex, errorIds, result)
+                        Catch ex As Exception
+                            HandleMailItemError(mailItem, folderName, subject, ex, errorIds, result)
+                        End Try
+                    Finally
+                        Runtime.InteropServices.Marshal.ReleaseComObject(rawItem)
                     End Try
 
                     ' 進捗通知
