@@ -21,6 +21,9 @@ Namespace Controls
             "\{\s*""name""\s*:\s*""(?<name>[^""]*)""\s*,\s*""email""\s*:\s*""(?<email>[^""]*)""\s*\}",
             RegexOptions.IgnoreCase Or RegexOptions.Compiled)
 
+        ''' <summary>添付ファイル名ラベル用の小さいフォント（インスタンス共有）。</summary>
+        Private _attachSmallFont As Font
+
         Private _currentEmail As Models.Email
         Private _showHtml As Boolean
         Private _canToggle As Boolean
@@ -80,6 +83,7 @@ Namespace Controls
             lblToValue.Text = String.Empty
             webBrowser.DocumentText = "<html><body></body></html>"
             txtBodyText.Text = String.Empty
+            CleanupAttachmentControls()
             flowAttachments.Controls.Clear()
             pnlAttachments.Visible = False
             _canToggle = False
@@ -301,6 +305,8 @@ Namespace Controls
         End Function
 
         Private Sub LoadAttachments(attachments As List(Of Models.Attachment))
+            ' 旧コントロールのイベントハンドラを解除してから破棄
+            CleanupAttachmentControls()
             flowAttachments.Controls.Clear()
 
             If attachments Is Nothing OrElse attachments.Count = 0 Then
@@ -343,8 +349,10 @@ Namespace Controls
                 lbl.Tag = att
                 lbl.Cursor = System.Windows.Forms.Cursors.Hand
                 lbl.ContextMenuStrip = _attachContextMenu
-                Dim smallFont As New Font(Me.Font.FontFamily, 7.5F, FontStyle.Regular)
-                lbl.Font = smallFont
+                If _attachSmallFont Is Nothing Then
+                    _attachSmallFont = New Font(Me.Font.FontFamily, 7.5F, FontStyle.Regular)
+                End If
+                lbl.Font = _attachSmallFont
 
                 ' ToolTip にフルファイル名とサイズを表示
                 Dim tipText As String = att.FileName
@@ -374,6 +382,23 @@ Namespace Controls
                 hasVisible = True
             Next
             pnlAttachments.Visible = hasVisible
+        End Sub
+
+        ''' <summary>動的生成した添付パネルのイベントハンドラを解除し、コントロールを破棄する。</summary>
+        Private Sub CleanupAttachmentControls()
+            For Each ctrl As System.Windows.Forms.Control In flowAttachments.Controls
+                Dim pnl As System.Windows.Forms.Panel = TryCast(ctrl, System.Windows.Forms.Panel)
+                If pnl Is Nothing Then Continue For
+                RemoveHandler pnl.DoubleClick, AddressOf AttachmentPanel_DoubleClick
+                RemoveHandler pnl.MouseEnter, AddressOf AttachmentPanel_MouseEnter
+                RemoveHandler pnl.MouseLeave, AddressOf AttachmentPanel_MouseLeave
+                For Each child As System.Windows.Forms.Control In pnl.Controls
+                    RemoveHandler child.DoubleClick, AddressOf AttachmentPanel_DoubleClick
+                    RemoveHandler child.MouseEnter, AddressOf AttachmentChild_MouseEnter
+                    RemoveHandler child.MouseLeave, AddressOf AttachmentChild_MouseLeave
+                Next
+                pnl.Dispose()
+            Next
         End Sub
 
         ''' <summary>ファイルサイズを読みやすい形式に変換する。</summary>
