@@ -4,9 +4,9 @@
 
 | ステータス | 件数 |
 |-----------|------|
-| open      | 14   |
+| open      | 13   |
 | in-progress | 0  |
-| done      | 2    |
+| done      | 3    |
 | wontfix   | 0    |
 
 ## カテゴリ
@@ -88,17 +88,17 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | High |
 | カテゴリ | performance |
 | ソース | review |
 | 対象ファイル | OutlookVault/MainForm.vb |
 | 登録日 | 2026-03-19 |
-| 修正日 | - |
+| 修正日 | 2026-03-19 |
 
 **内容:** 選択メール削除時に各 `emailId` ごとに `GetAttachmentsByEmailId`（SELECT）と `DeleteEmail`（DELETE）を個別発行。100件選択で 300+ 回の DB ラウンドトリップ。既存の `DeleteEmailsByIds` 一括削除メソッドが使われていない。
 
-**対策:** `DeleteSelectedEmails` を `DeleteEmailsByIds(selectedIds)` に切り替える。添付ファイル物理削除パスは戻り値から取得。
+**対策:** `DeleteSelectedEmails` のループを `DeleteEmailsByIds(selectedIds)` 1回の呼び出しに置き換え。戻り値の添付ファイルパスリストで物理削除を実行。DB 操作が単一トランザクションに集約され、N+1 問題を解消。
 
 **メモ:** MainForm.vb 行 758〜773
 
@@ -350,3 +350,4 @@
 | 2026-03-19 | R-001〜R-016 | code-reviewer による初回全体レビューから 16 件を一括登録 |
 | 2026-03-19 | R-002 | done: String→Enum SynchronousMode に変更、テスト追加 |
 | 2026-03-19 | R-003 | done: IDisposable 実装、MainForm.Dispose で解放 |
+| 2026-03-19 | R-004 | done: DeleteSelectedEmails を DeleteEmailsByIds に置き換え |
