@@ -382,7 +382,9 @@ Namespace Services
             ' Outlook 側の全 MessageID を取得（軽量スキャン）
             Dim scanProgress As IProgress(Of Integer) = Nothing
             If progress IsNot Nothing Then
-                Dim totalItems As Integer = folder.Items.Count
+                Dim tmpItems As Outlook.Items = folder.Items
+                Dim totalItems As Integer = tmpItems.Count
+                Runtime.InteropServices.Marshal.ReleaseComObject(tmpItems)
                 Dim fname As String = folderName
                 scanProgress = New Progress(Of Integer)(
                     Sub(scanned As Integer)

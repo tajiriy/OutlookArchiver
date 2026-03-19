@@ -18,6 +18,56 @@ Namespace Services
             "object", "embed", "applet", "link", "meta"
         }
 
+        ' ── コンパイル済み正規表現（Shared ReadOnly でインスタンス共有） ──
+        ''' <summary>ブロックタグのペア除去パターン（タグ名ごとに生成）。</summary>
+        Private Shared ReadOnly BlockedTagPairPatterns As Dictionary(Of String, Regex) = BuildBlockedTagPairPatterns()
+        ''' <summary>ブロックタグの自己閉じ除去パターン（タグ名ごとに生成）。</summary>
+        Private Shared ReadOnly BlockedTagSelfPatterns As Dictionary(Of String, Regex) = BuildBlockedTagSelfPatterns()
+        ''' <summary>イベントハンドラ属性除去パターン。</summary>
+        Private Shared ReadOnly EventHandlerPattern As New Regex(
+            "\s+on\w+\s*=\s*(?:""[^""]*""|'[^']*'|[^\s>]+)",
+            RegexOptions.IgnoreCase Or RegexOptions.Compiled)
+        ''' <summary>javascript: スキーム除去パターン。</summary>
+        Private Shared ReadOnly JavascriptSchemePattern As New Regex(
+            "(href|src|action)\s*=\s*([""'])?\s*javascript\s*:[^""'>]*\2?",
+            RegexOptions.IgnoreCase Or RegexOptions.Compiled)
+        ''' <summary>vbscript: スキーム除去パターン。</summary>
+        Private Shared ReadOnly VbscriptSchemePattern As New Regex(
+            "(href|src|action)\s*=\s*([""'])?\s*vbscript\s*:[^""'>]*\2?",
+            RegexOptions.IgnoreCase Or RegexOptions.Compiled)
+        ''' <summary>data: スキーム除去パターン（data:image は許可）。</summary>
+        Private Shared ReadOnly DataSchemePattern As New Regex(
+            "(href|src|action)\s*=\s*([""'])\s*data\s*:(?!image/)[^""']*\2",
+            RegexOptions.IgnoreCase Or RegexOptions.Compiled)
+        ''' <summary>CSS expression() 除去パターン。</summary>
+        Private Shared ReadOnly CssExpressionPattern As New Regex(
+            "expression\s*\(",
+            RegexOptions.IgnoreCase Or RegexOptions.Compiled)
+        ''' <summary>CSS -moz-binding / behavior 除去パターン。</summary>
+        Private Shared ReadOnly CssBindingPattern As New Regex(
+            "(-moz-binding|behavior)\s*:\s*[^;""'}>]+",
+            RegexOptions.IgnoreCase Or RegexOptions.Compiled)
+
+        Private Shared Function BuildBlockedTagPairPatterns() As Dictionary(Of String, Regex)
+            Dim result As New Dictionary(Of String, Regex)()
+            For Each tag As String In BlockedTags
+                result(tag) = New Regex(
+                    "<" & tag & "\b[^>]*>.*?</" & tag & "\s*>",
+                    RegexOptions.Singleline Or RegexOptions.IgnoreCase Or RegexOptions.Compiled)
+            Next
+            Return result
+        End Function
+
+        Private Shared Function BuildBlockedTagSelfPatterns() As Dictionary(Of String, Regex)
+            Dim result As New Dictionary(Of String, Regex)()
+            For Each tag As String In BlockedTags
+                result(tag) = New Regex(
+                    "<" & tag & "\b[^>]*/?\s*>",
+                    RegexOptions.Singleline Or RegexOptions.IgnoreCase Or RegexOptions.Compiled)
+            Next
+            Return result
+        End Function
+
         ''' <summary>
         ''' 指定された HTML 文字列から危険な要素を除去して返す。
         ''' </summary>
@@ -28,62 +78,27 @@ Namespace Services
 
             ' 1. 危険なタグとその内容を除去（<script>...</script> 等）
             For Each tag As String In BlockedTags
-                ' 開始～終了タグのペア（内容含む）を除去
-                result = Regex.Replace(
-                    result,
-                    "<" & tag & "\b[^>]*>.*?</" & tag & "\s*>",
-                    String.Empty,
-                    RegexOptions.Singleline Or RegexOptions.IgnoreCase)
-                ' 自己閉じタグを除去（<embed ... /> や <meta ...>）
-                result = Regex.Replace(
-                    result,
-                    "<" & tag & "\b[^>]*/?\s*>",
-                    String.Empty,
-                    RegexOptions.Singleline Or RegexOptions.IgnoreCase)
+                result = BlockedTagPairPatterns(tag).Replace(result, String.Empty)
+                result = BlockedTagSelfPatterns(tag).Replace(result, String.Empty)
             Next
 
             ' 2. イベントハンドラ属性を除去（on*="..."）
-            '    on で始まる属性名を持つものを除去する（onclick, onerror, onload 等）
-            result = Regex.Replace(
-                result,
-                "\s+on\w+\s*=\s*(?:""[^""]*""|'[^']*'|[^\s>]+)",
-                String.Empty,
-                RegexOptions.IgnoreCase)
+            result = EventHandlerPattern.Replace(result, String.Empty)
 
-            ' 3. javascript: スキームを除去（href="javascript:..." や src="javascript:..."）
-            result = Regex.Replace(
-                result,
-                "(href|src|action)\s*=\s*([""'])?\s*javascript\s*:[^""'>]*\2?",
-                "$1=$2about:blank$2",
-                RegexOptions.IgnoreCase)
+            ' 3. javascript: スキームを除去
+            result = JavascriptSchemePattern.Replace(result, "$1=$2about:blank$2")
 
             ' 4. vbscript: スキームを除去
-            result = Regex.Replace(
-                result,
-                "(href|src|action)\s*=\s*([""'])?\s*vbscript\s*:[^""'>]*\2?",
-                "$1=$2about:blank$2",
-                RegexOptions.IgnoreCase)
+            result = VbscriptSchemePattern.Replace(result, "$1=$2about:blank$2")
 
-            ' 5. data: スキームを除去（画像以外。data:image は許可）
-            result = Regex.Replace(
-                result,
-                "(href|src|action)\s*=\s*([""'])\s*data\s*:(?!image/)[^""']*\2",
-                "$1=$2about:blank$2",
-                RegexOptions.IgnoreCase)
+            ' 5. data: スキームを除去（画像以外）
+            result = DataSchemePattern.Replace(result, "$1=$2about:blank$2")
 
             ' 6. expression() を除去（IE の CSS expression）
-            result = Regex.Replace(
-                result,
-                "expression\s*\(",
-                "blocked(",
-                RegexOptions.IgnoreCase)
+            result = CssExpressionPattern.Replace(result, "blocked(")
 
             ' 7. style 属性内の -moz-binding / behavior を除去
-            result = Regex.Replace(
-                result,
-                "(-moz-binding|behavior)\s*:\s*[^;""'}>]+",
-                String.Empty,
-                RegexOptions.IgnoreCase)
+            result = CssBindingPattern.Replace(result, String.Empty)
 
             Return result
         End Function
