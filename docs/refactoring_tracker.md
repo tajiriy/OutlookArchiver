@@ -7,7 +7,9 @@
 | open      | 0    |
 | in-progress | 0  |
 | done      | 25   |
-| wontfix   | 7    |
+| wontfix   | 4    |
+| deferred  | 2    |
+| invalid   | 1    |
 
 ## カテゴリ
 
@@ -486,7 +488,7 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | wontfix |
+| ステータス | deferred |
 | 優先度 | Medium |
 | カテゴリ | performance |
 | ソース | review |
@@ -526,7 +528,7 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | wontfix |
+| ステータス | invalid |
 | 優先度 | Medium |
 | カテゴリ | error-handling |
 | ソース | review |
@@ -606,7 +608,7 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | wontfix |
+| ステータス | deferred |
 | 優先度 | Low |
 | カテゴリ | winforms |
 | ソース | review |
@@ -692,3 +694,4 @@
 | 2026-03-19 | R-029 | wontfix: R-015 と同様、COM 依存が深く分離コスト高 |
 | 2026-03-19 | R-030 | wontfix: 終了処理のみで頻度低く、async化の影響範囲が大きい |
 | 2026-03-19 | R-031 | wontfix: 開発者向けテーブルビューアで万件単位の利用は想定外 |
+| 2026-03-19 | R-024,R-026,R-028〜R-031 | ステータスを wontfix/deferred/invalid に再分類 |
