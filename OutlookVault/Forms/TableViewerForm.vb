@@ -171,7 +171,7 @@ Namespace Forms
             For Each cell As DataGridViewCell In cells
                 rows.Add(cell.RowIndex)
                 cols.Add(cell.ColumnIndex)
-                Dim key As Long = CLng(cell.RowIndex) * 100000L + CLng(cell.ColumnIndex)
+                Dim key As Long = (CLng(cell.RowIndex) << 20) Or CLng(cell.ColumnIndex)
                 cellMap(key) = cell
             Next
 
@@ -189,7 +189,7 @@ Namespace Forms
                     For Each c As Integer In cols
                         If Not firstCol Then sb.Append(vbTab)
                         firstCol = False
-                        Dim key As Long = CLng(r) * 100000L + CLng(c)
+                        Dim key As Long = (CLng(r) << 20) Or CLng(c)
                         Dim cell As DataGridViewCell = Nothing
                         If cellMap.TryGetValue(key, cell) Then
                             sb.Append(If(cell.Value IsNot Nothing, cell.Value.ToString(), ""))
@@ -204,7 +204,7 @@ Namespace Forms
                 Dim first As Boolean = True
                 For Each r As Integer In rows
                     For Each c As Integer In cols
-                        Dim key As Long = CLng(r) * 100000L + CLng(c)
+                        Dim key As Long = (CLng(r) << 20) Or CLng(c)
                         Dim cell As DataGridViewCell = Nothing
                         If cellMap.TryGetValue(key, cell) Then
                             If Not first Then sb.Append(vbTab)

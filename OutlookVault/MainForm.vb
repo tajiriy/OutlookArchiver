@@ -162,11 +162,7 @@ Public Class MainForm
     ''' <summary>メールサイズをKB/MB単位の表示文字列に変換する。</summary>
     Private Shared Function FormatEmailSize(sizeBytes As Long) As String
         If sizeBytes <= 0 Then Return String.Empty
-        If sizeBytes >= 1024L * 1024L Then
-            Return String.Format("{0:F1} MB", sizeBytes / (1024.0 * 1024.0))
-        End If
-        Dim kb As Long = (sizeBytes + 1023L) \ 1024L
-        Return String.Format("{0} KB", Math.Max(1L, kb))
+        Return Services.FileHelper.FormatFileSize(sizeBytes)
     End Function
 
     ''' <summary>タイマーの間隔を設定から反映する。</summary>

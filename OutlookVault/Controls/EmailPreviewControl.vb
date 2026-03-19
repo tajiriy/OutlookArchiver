@@ -403,13 +403,7 @@ Namespace Controls
 
         ''' <summary>ファイルサイズを読みやすい形式に変換する。</summary>
         Private Shared Function FormatFileSize(bytes As Long) As String
-            If bytes < 1024L Then
-                Return bytes.ToString() & " B"
-            ElseIf bytes < 1024L * 1024L Then
-                Return (bytes / 1024.0).ToString("F1") & " KB"
-            Else
-                Return (bytes / (1024.0 * 1024.0)).ToString("F1") & " MB"
-            End If
+            Return Services.FileHelper.FormatFileSize(bytes)
         End Function
 
         ' ════════════════════════════════════════════════════════════
