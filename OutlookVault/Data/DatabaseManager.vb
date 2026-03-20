@@ -178,6 +178,8 @@ CREATE INDEX IF NOT EXISTS idx_emails_deleted_at         ON emails(deleted_at);"
                         If Not isUnique Then Continue While
 
                         ' このインデックスの列を確認
+                        ' PRAGMA はパラメータ化不可のため、インデックス名をホワイトリスト検証
+                        If Not System.Text.RegularExpressions.Regex.IsMatch(indexName, "^[a-zA-Z0-9_]+$") Then Continue While
                         Dim columns As New List(Of String)()
                         Using cmd2 As New SQLiteCommand(String.Format("PRAGMA index_info({0});", indexName), conn)
                             Using reader2 As SQLiteDataReader = cmd2.ExecuteReader()

@@ -25,7 +25,7 @@ Namespace Services
         Private Shared ReadOnly BlockedTagSelfPatterns As Dictionary(Of String, Regex) = BuildBlockedTagSelfPatterns()
         ''' <summary>イベントハンドラ属性除去パターン。</summary>
         Private Shared ReadOnly EventHandlerPattern As New Regex(
-            "\s+on\w+\s*=\s*(?:""[^""]*""|'[^']*'|[^\s>]+)",
+            "[\s/]+on\w+\s*=\s*(?:""[^""]*""|'[^']*'|[^\s>]+)",
             RegexOptions.IgnoreCase Or RegexOptions.Compiled)
         ''' <summary>javascript: スキーム除去パターン。</summary>
         Private Shared ReadOnly JavascriptSchemePattern As New Regex(

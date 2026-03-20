@@ -613,6 +613,7 @@ Namespace Services
                 Return mailItem.SenderEmailAddress
             End If
             Dim exAddr As String = mailItem.SenderEmailAddress
+            ' Lambda は呼び出しごとに新しい COM オブジェクトを返す。ResolveExchangeAddress 内で解放される。
             Return ResolveExchangeAddress(exAddr, Function() mailItem.Sender)
         End Function
 
