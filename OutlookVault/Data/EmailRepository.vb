@@ -550,7 +550,6 @@ SELECT last_insert_rowid();"
         '  削除・重複チェック
         ' ════════════════════════════════════════════════════════════
 
-        ''' <summary>全メールの MessageID を一括取得する（取り込み時の高速重複チェック用）。</summary>
         ''' <summary>全メールの MessageID+FolderName ペアを一括取得する（取り込み時の高速重複チェック用）。</summary>
         Public Function GetAllMessageIdFolderPairs() As HashSet(Of String)
             Const sql As String = "SELECT message_id, folder_name FROM emails WHERE message_id IS NOT NULL"

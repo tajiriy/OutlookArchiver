@@ -514,10 +514,6 @@ Namespace Services
         Private Const SkipReasonError As Integer = 1
 
         ''' <summary>
-        ''' 1件の MailItem を処理する。
-        ''' 重複・削除済み・エラー除外の場合は False を返す。新規保存した場合は True を返す。
-        ''' </summary>
-        ''' <summary>
         ''' 個別メールを処理し、取り込めた場合は DB 上の ID を insertedId に返す。
         ''' </summary>
         Private Function ProcessMailItem(mailItem As Outlook.MailItem,
