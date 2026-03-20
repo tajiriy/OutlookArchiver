@@ -308,6 +308,16 @@ Namespace Config
             End Set
         End Property
 
+        ''' <summary>メール一覧の高さ（splitRight の SplitterDistance）</summary>
+        Public Property MailListHeight As Integer
+            Get
+                Return GetInt("MailListHeight", defaultValue:=0)
+            End Get
+            Set(value As Integer)
+                SaveSetting("MailListHeight", value.ToString())
+            End Set
+        End Property
+
         ''' <summary>ウィンドウの幅</summary>
         Public Property WindowWidth As Integer
             Get

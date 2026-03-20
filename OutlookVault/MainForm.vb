@@ -86,7 +86,7 @@ Public Class MainForm
             Me.Icon = New Drawing.Icon(icoPath)
         End If
 
-        ' メール一覧高さ: コンテンツ領域の約 40%（splitMain はデザイナー値をそのまま使用）
+        ' メール一覧高さ: 保存値があれば復元、なければコンテンツ領域の約 40%
         Dim contentHeight As Integer = Me.ClientSize.Height - menuStrip.Height - toolStrip.Height - statusStrip.Height
         splitRight.SplitterDistance = CInt(contentHeight * 0.4)
 
@@ -101,6 +101,12 @@ Public Class MainForm
         Dim savedTreeWidth As Integer = _settings.FolderTreeWidth
         If savedTreeWidth > 0 AndAlso savedTreeWidth < splitMain.Width Then
             splitMain.SplitterDistance = savedTreeWidth
+        End If
+
+        ' メール一覧の高さを復元
+        Dim savedMailListHeight As Integer = _settings.MailListHeight
+        If savedMailListHeight > 0 AndAlso savedMailListHeight < splitRight.Height Then
+            splitRight.SplitterDistance = savedMailListHeight
         End If
         SetupAutoImportTimer()
         SetupNotifyIcon()
@@ -1643,6 +1649,7 @@ Public Class MainForm
         End If
 
         _settings.FolderTreeWidth = splitMain.SplitterDistance
+        _settings.MailListHeight = splitRight.SplitterDistance
         _settings.ConversationSplitterDistance = conversationView.SplitterDistance
     End Sub
 
