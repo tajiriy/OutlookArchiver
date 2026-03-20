@@ -100,27 +100,14 @@ Namespace Services
         ''' </summary>
         Private Function GetMatchingEmailIds(filterExpression As String,
                                               scopeIds As List(Of Integer)) As List(Of Integer)
-            ' フィルタ式で検索（未削除メールのみ対象）
-            Dim matchedEmails As List(Of Models.Email) = _emailRepo.SearchEmailsFiltered(filterExpression)
+            ' フィルタ式で検索（未削除メールのみ対象、scopeIds があれば DB 側で絞り込み）
+            Dim matchedEmails As List(Of Models.Email) = _emailRepo.SearchEmailsFiltered(filterExpression, Nothing, scopeIds)
 
-            If scopeIds Is Nothing Then
-                ' 全対象
-                Dim ids As New List(Of Integer)()
-                For Each email As Models.Email In matchedEmails
-                    ids.Add(email.Id)
-                Next
-                Return ids
-            Else
-                ' scopeIds に含まれるもののみ
-                Dim scopeSet As New HashSet(Of Integer)(scopeIds)
-                Dim ids As New List(Of Integer)()
-                For Each email As Models.Email In matchedEmails
-                    If scopeSet.Contains(email.Id) Then
-                        ids.Add(email.Id)
-                    End If
-                Next
-                Return ids
-            End If
+            Dim ids As New List(Of Integer)()
+            For Each email As Models.Email In matchedEmails
+                ids.Add(email.Id)
+            Next
+            Return ids
         End Function
 
     End Class

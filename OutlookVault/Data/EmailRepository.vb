@@ -478,7 +478,8 @@ SELECT last_insert_rowid();"
         ''' 列指定・AND/OR・添付有無などの高度なフィルタ構文に対応。
         ''' </summary>
         Public Function SearchEmailsFiltered(query As String,
-                                             Optional folderName As String = Nothing) As List(Of Models.Email)
+                                             Optional folderName As String = Nothing,
+                                             Optional scopeIds As List(Of Integer) = Nothing) As List(Of Models.Email)
             Dim filter As New Filters.EmailSearchFilter()
             Dim sq As Filters.EmailSearchFilter.SearchQuery = filter.Parse(query, folderName)
 
@@ -493,12 +494,30 @@ SELECT last_insert_rowid();"
             Else
                 sb.Append(" WHERE e.deleted_at IS NULL")
             End If
+
+            ' scopeIds が指定された場合は IN 句で絞り込み
+            Dim scopeParams As New List(Of SQLiteParameter)()
+            If scopeIds IsNot Nothing AndAlso scopeIds.Count > 0 Then
+                Dim placeholders As New List(Of String)()
+                For idx As Integer = 0 To scopeIds.Count - 1
+                    Dim paramName As String = "@scope" & idx.ToString()
+                    placeholders.Add(paramName)
+                    scopeParams.Add(New SQLiteParameter(paramName, scopeIds(idx)))
+                Next
+                sb.Append(" AND e.id IN (")
+                sb.Append(String.Join(",", placeholders))
+                sb.Append(")")
+            End If
+
             sb.Append(") matched ON e2.id = matched.id ORDER BY e2.received_at DESC")
 
             Dim result As New List(Of Models.Email)()
             Using conn As SQLiteConnection = _dbManager.GetConnection()
                 Using cmd As New SQLiteCommand(sb.ToString(), conn)
                     For Each p As SQLiteParameter In sq.Parameters
+                        cmd.Parameters.Add(p)
+                    Next
+                    For Each p As SQLiteParameter In scopeParams
                         cmd.Parameters.Add(p)
                     Next
                     Using reader As SQLiteDataReader = cmd.ExecuteReader()
