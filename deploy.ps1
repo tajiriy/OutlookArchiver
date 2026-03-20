@@ -2,9 +2,11 @@
 # 使い方:
 #   .\deploy.ps1                              # デフォルト: C:\Tools\OutlookVault にデプロイ
 #   .\deploy.ps1 -DeployDir "D:\MyApp\OA"     # デプロイ先を指定
+#   .\deploy.ps1 -ExcludeConfig               # config を除外（既存設定を保持）
 
 param(
-    [string]$DeployDir = "C:\Tools\OutlookVault"
+    [string]$DeployDir = "C:\Tools\OutlookVault",
+    [switch]$ExcludeConfig
 )
 
 $ErrorActionPreference = "Stop"
@@ -66,6 +68,15 @@ $files = @(
 )
 
 foreach ($file in $files) {
+    if ($ExcludeConfig -and $file -eq "OutlookVault.exe.config") {
+        $destConfig = Join-Path $DeployDir $file
+        if (Test-Path $destConfig) {
+            Write-Host "  スキップ: $file（-ExcludeConfig: 既存設定を保持）" -ForegroundColor Cyan
+        } else {
+            Write-Host "  警告: $file をスキップしましたが、デプロイ先に既存ファイルがありません" -ForegroundColor Yellow
+        }
+        continue
+    }
     $src = Join-Path $BuildDir $file
     if (Test-Path $src) {
         Copy-Item $src -Destination $DeployDir -Force
