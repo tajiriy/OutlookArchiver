@@ -4,15 +4,15 @@
 
 | ステータス | Critical | High | Medium | Low | 計 |
 |-----------|----------|------|--------|-----|-----|
-| open | - | 1 | 4 | 4 | 9 |
+| open | - | 1 | 3 | 3 | 7 |
 | in-progress | - | - | - | - | 0 |
-| done | 1 | 11 | 23 | 10 | 45 |
+| done | 1 | 11 | 24 | 11 | 47 |
 | wontfix | - | - | 3 | 1 | 4 |
 | deferred | - | - | 1 | 1 | 2 |
 | invalid | - | - | 1 | - | 1 |
 | **計** | **1** | **12** | **32** | **16** | **61** |
 
-<!-- open:9 done:45 wontfix:4 deferred:2 invalid:1 = 61 -->
+<!-- open:7 done:47 wontfix:4 deferred:2 invalid:1 = 61 -->
 
 ## カテゴリ
 
@@ -1129,18 +1129,19 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Medium |
 | カテゴリ | error-handling |
 | ソース | review |
 | 対象ファイル | OutlookVault/MainForm.vb |
 | 登録日 | 2026-03-20 |
+| 修正日 | 2026-03-20 |
 
 **内容:** `PurgeSelectedEmails`（行920〜931付近）と `EmptyTrash`（行964付近）内でファイル削除時に空の `Catch` ブロックを使用している。ファイル削除失敗の理由が記録されずデバッグ困難。
 
-**対策:** `Catch ex As Exception` で `Logger.Warn` に削除失敗のパスとメッセージを記録する。
+**対策:** `Catch ex As Exception` で `Logger.Warn` に削除失敗のパスとメッセージを記録する。実施: 2箇所の空 `Catch` を `Catch ex As Exception` に変更し、`Logger.Warn` でファイルパスとエラーメッセージを出力。
 
-**メモ:** R-008/R-009 は OutlookService/MainForm 非同期処理の空 Catch を対応済みだが、ファイル削除箇所は未対応。
+**メモ:** R-008/R-009 は OutlookService/MainForm 非同期処理の空 Catch を対応済みだが、ファイル削除箇所は未対応だった。本対応で解消。
 
 ---
 
@@ -1148,16 +1149,17 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | done |
 | 優先度 | Low |
 | カテゴリ | error-handling |
 | ソース | review |
 | 対象ファイル | OutlookVault/Services/Logger.vb |
 | 登録日 | 2026-03-20 |
+| 修正日 | 2026-03-20 |
 
 **内容:** `WriteLog`（行68〜70）の `Catch` ブロックが空で、ログ書き込み失敗がすべて無視される。ディスク容量不足や権限不足でログが消失しても気づけない。
 
-**対策:** `Catch` ブロックで `System.Diagnostics.Debug.WriteLine("Logger write failed: " & ex.Message)` にフォールバックし、デバッグ時に最低限の手がかりを残す。
+**対策:** `Catch ex As Exception` に変更し、`System.Diagnostics.Debug.WriteLine` でデバッグ出力ウィンドウにフォールバック記録する。
 
 **メモ:** なし
 
@@ -1282,3 +1284,4 @@
 | 2026-03-20 | R-051〜R-061 | 5回目の code-reviewer レビューから 11 件を一括登録 |
 | 2026-03-20 | R-052 | done: SummarizeErrors の Nothing 防御とコンストラクタガード追加、テスト2件追加 |
 | 2026-03-20 | R-051 | done: ImportFolder のバルクループを RunImportLoop に抽出、ネスト3段→2段に削減 |
+| 2026-03-20 | R-056, R-057 | done: MainForm ファイル削除と Logger.WriteLog の空 Catch にログ/Debug 出力を追加 |
