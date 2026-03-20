@@ -4,15 +4,15 @@
 
 | ステータス | Critical | High | Medium | Low | 計 |
 |-----------|----------|------|--------|-----|-----|
-| open | - | 1 | 0 | 0 | 1 |
+| open | - | 0 | 0 | 0 | 0 |
 | in-progress | - | - | - | - | 0 |
 | done | 1 | 11 | 26 | 14 | 52 |
 | wontfix | - | - | 4 | 1 | 5 |
-| deferred | - | - | 1 | 1 | 2 |
+| deferred | - | 1 | 1 | 1 | 3 |
 | invalid | - | - | 1 | - | 1 |
 | **計** | **1** | **12** | **32** | **16** | **61** |
 
-<!-- open:1 done:52 wontfix:5 deferred:2 invalid:1 = 61 -->
+<!-- open:0 done:52 wontfix:5 deferred:3 invalid:1 = 61 -->
 
 ## カテゴリ
 
@@ -1211,7 +1211,7 @@
 
 | 項目 | 値 |
 |------|-----|
-| ステータス | open |
+| ステータス | deferred |
 | 優先度 | High |
 | カテゴリ | test-coverage |
 | ソース | review |
@@ -1222,7 +1222,7 @@
 
 **対策:** `IOutlookService` インターフェースを定義し、`ImportService` のコンストラクタで受け取る。テスト用スタブを `OutlookVault.Tests` に追加して `ProcessMailItem` の重複判定・スレッド付与ロジックをカバーする。
 
-**メモ:** R-015（wontfix）の再検討。インターフェース導入で段階的にテスト可能範囲を広げるアプローチ。
+**メモ:** deferred: OutlookService は Public 10 メソッドのうち 8 メソッドが ImportService から呼ばれ、引数・戻り値に Outlook.MAPIFolder / Outlook.MailItem 等の COM 型が多数含まれる。インターフェース定義は可能だがテストスタブで COM 型を模倣するコストが高く、MainForm・SettingsForm からの直接参照も変更が必要。R-015/R-029 と同様の理由で現時点では保留し、テストフレームワーク刷新（COM-free な抽象層導入等）のタイミングで再検討する。
 
 ---
 
@@ -1294,3 +1294,4 @@
 | 2026-03-20 | R-054 | done: SearchEmailsFiltered に scopeIds パラメータ追加、DB 側で IN 句フィルタリング |
 | 2026-03-20 | R-055 | done: AppSettings の MessageBox.Show を ConfigSaveError イベントに分離 |
 | 2026-03-20 | R-058, R-059, R-061 | done: PRAGMA ホワイトリスト検証、Lambda COM コメント追加、EventHandler 正規表現拡張 |
+| 2026-03-20 | R-060 | deferred: COM 型密結合で分離コスト高、テストフレームワーク刷新時に再検討 |
