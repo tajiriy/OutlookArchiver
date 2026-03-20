@@ -133,10 +133,15 @@ Public Class MainForm
 
     Private Sub InitializeServices()
         _settings = Config.AppSettings.Instance
+        AddHandler _settings.ConfigSaveError, AddressOf OnConfigSaveError
         _dbManager = New Data.DatabaseManager(_settings.DbFilePath)
         _dbManager.Initialize()
         _repo = New Data.EmailRepository(_dbManager)
         _emailCache = New List(Of Models.Email)()
+    End Sub
+
+    Private Sub OnConfigSaveError(sender As Object, message As String)
+        MessageBox.Show(message, "設定保存エラー", MessageBoxButtons.OK, MessageBoxIcon.Warning)
     End Sub
 
     ''' <summary>メール一覧の列設定を復元し、添付アイコンを登録する。</summary>

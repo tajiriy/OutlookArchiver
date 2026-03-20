@@ -20,6 +20,9 @@ Namespace Config
             End Get
         End Property
 
+        ''' <summary>設定保存に失敗した場合に通知するイベント。引数はユーザー向けメッセージ。</summary>
+        Public Event ConfigSaveError As EventHandler(Of String)
+
         Private Sub New()
         End Sub
 
@@ -490,14 +493,11 @@ Namespace Config
                                              key & " = " & value & " — " & ex.Message)
                         If Not _configErrorShown Then
                             _configErrorShown = True
-                            System.Windows.Forms.MessageBox.Show(
+                            RaiseEvent ConfigSaveError(Me,
                                 "設定の保存に失敗しました。" & Environment.NewLine &
                                 "構成ファイルが別のプログラム（アンチウィルスソフト等）によって変更されています。" & Environment.NewLine &
                                 Environment.NewLine &
-                                "設定は次回起動時に反映されない場合があります。",
-                                "設定保存エラー",
-                                System.Windows.Forms.MessageBoxButtons.OK,
-                                System.Windows.Forms.MessageBoxIcon.Warning)
+                                "設定は次回起動時に反映されない場合があります。")
                         End If
                     End If
                 End Try
