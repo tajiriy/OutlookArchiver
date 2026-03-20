@@ -584,6 +584,14 @@ Public Class MainForm
                                              TypeOf ex.InnerException Is OperationCanceledException
             Services.Logger.Info("取り込みがユーザーにより中断されました")
             lblStatusCount.Text = "取り込みを中断しました"
+        Catch ex As System.Runtime.InteropServices.COMException
+            Services.Logger.Error("取り込み中に Outlook との接続が切断されました", ex)
+            MessageBox.Show(
+                "Outlook との接続が切断されました。" & vbCrLf & vbCrLf &
+                "取り込み中に Outlook が終了した可能性があります。" & vbCrLf &
+                "Outlook を起動した状態で再度取り込みを実行してください。",
+                "Outlook 接続エラー",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning)
         Catch ex As Exception
             Services.Logger.Error("取り込み中に予期しないエラーが発生しました", ex)
             MessageBox.Show("取り込みエラー:" & vbCrLf & ex.Message, "エラー",
