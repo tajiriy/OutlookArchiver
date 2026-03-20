@@ -12,6 +12,7 @@ Public Enum EmailListColumn As Integer
     Sender = 2
     ReceivedAt = 3
     Size = 4
+    Folder = 5
 End Enum
 
 Public Class MainForm
@@ -395,6 +396,10 @@ Public Class MainForm
         item.SubItems.Add(If(displaySender, String.Empty))               ' col 2: 差出人
         item.SubItems.Add(email.ReceivedAt.ToString("yyyy/MM/dd HH:mm")) ' col 3: 受信日時
         item.SubItems.Add(FormatEmailSize(email.EmailSize))              ' col 4: サイズ
+        ' 「すべて」表示時: フォルダ列
+        If Not _isTrashView AndAlso _currentFolder Is Nothing Then
+            item.SubItems.Add(If(email.FolderName, String.Empty))                            ' col 5: フォルダ
+        End If
         ' ゴミ箱表示時: 追加列
         If _isTrashView Then
             item.SubItems.Add(If(email.FolderName, String.Empty))                            ' col 5: フォルダ
@@ -992,6 +997,43 @@ Public Class MainForm
             listViewContextMenu.Items.Add(deleteMenuItem)
         End If
         UpdateTrashFolderColumn()
+        UpdateAllViewFolderColumn()
+    End Sub
+
+    ''' <summary>「すべて」表示時にフォルダ列を追加し、個別フォルダ表示時に除去する。</summary>
+    Private Sub UpdateAllViewFolderColumn()
+        Const AllFolderColName As String = "colAllFolder"
+        Dim isAllView As Boolean = (Not _isTrashView AndAlso _currentFolder Is Nothing)
+
+        If isAllView Then
+            ' 未追加の場合のみ追加
+            Dim found As Boolean = False
+            For Each col As ColumnHeader In listViewEmails.Columns
+                If col.Name = AllFolderColName Then
+                    found = True
+                    Exit For
+                End If
+            Next
+            If Not found Then
+                Dim col As New ColumnHeader()
+                col.Name = AllFolderColName
+                col.Text = "フォルダ"
+                col.Width = 140
+                listViewEmails.Columns.Add(col)
+            End If
+        Else
+            ' フォルダ列を除去
+            For i As Integer = listViewEmails.Columns.Count - 1 To 0 Step -1
+                If listViewEmails.Columns(i).Name = AllFolderColName Then
+                    listViewEmails.Columns.RemoveAt(i)
+                End If
+            Next
+            ' フォルダ列でソート中だった場合はデフォルトに戻す
+            If _sortColumn = EmailListColumn.Folder Then
+                _sortColumn = EmailListColumn.ReceivedAt
+                _sortAscending = False
+            End If
+        End If
     End Sub
 
     ''' <summary>ゴミ箱表示時に追加列（フォルダ・削除日時・削除予定日時）を追加し、通常表示時に除去する。</summary>
@@ -1332,6 +1374,14 @@ Public Class MainForm
                                      Dim cmp As Integer = a.EmailSize.CompareTo(b.EmailSize)
                                      Return If(asc, cmp, -cmp)
                                  End Function)
+            Case EmailListColumn.Folder
+                _emailCache.Sort(Function(a As Models.Email, b As Models.Email) As Integer
+                                     Dim cmp As Integer = String.Compare(
+                                         If(a.FolderName, String.Empty),
+                                         If(b.FolderName, String.Empty),
+                                         StringComparison.OrdinalIgnoreCase)
+                                     Return If(asc, cmp, -cmp)
+                                 End Function)
         End Select
     End Sub
 
@@ -1344,6 +1394,18 @@ Public Class MainForm
                                          String.Empty)
             listViewEmails.Columns(i).Text = _colBaseNames(i) & indicator
         Next
+        ' 「すべて」表示時のフォルダ列にもソートインジケータを反映
+        If Not _isTrashView AndAlso _currentFolder Is Nothing Then
+            For Each col As ColumnHeader In listViewEmails.Columns
+                If col.Name = "colAllFolder" Then
+                    Dim indicator As String = If(_sortColumn = EmailListColumn.Folder,
+                                                 If(_sortAscending, " ↑", " ↓"),
+                                                 String.Empty)
+                    col.Text = "フォルダ" & indicator
+                    Exit For
+                End If
+            Next
+        End If
     End Sub
 
     ''' <summary>AppSettings から列幅を復元する。</summary>
@@ -1447,7 +1509,7 @@ Public Class MainForm
             RestoreColumnWidthsFrom(_settings.LoadFolderColumnWidths(folderKey))
             RestoreColumnOrderFrom(_settings.LoadFolderColumnOrder(folderKey))
             Dim sortCol As Integer = _settings.LoadFolderSortColumn(folderKey)
-            If sortCol >= 0 AndAlso sortCol <= CInt(EmailListColumn.Size) Then
+            If sortCol >= 0 AndAlso sortCol <= CInt(EmailListColumn.Folder) Then
                 _sortColumn = CType(sortCol, EmailListColumn)
                 _sortAscending = _settings.LoadFolderSortAscending(folderKey)
             End If

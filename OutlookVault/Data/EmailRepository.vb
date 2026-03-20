@@ -244,7 +244,7 @@ SELECT last_insert_rowid();"
         ''' <summary>一覧表示用に軽量なカラムのみ取得する（本文を除外）。論理削除済みは除外。</summary>
         Public Function GetEmailsForList(Optional folderName As String = Nothing) As List(Of Models.Email)
             Dim sb As New StringBuilder(
-                "SELECT id, subject, sender_name, sender_email, received_at, has_attachments, email_size, thread_id FROM emails")
+                "SELECT id, subject, sender_name, sender_email, received_at, has_attachments, email_size, thread_id, folder_name FROM emails")
             sb.Append(" WHERE deleted_at IS NULL")
             If Not String.IsNullOrEmpty(folderName) Then
                 sb.Append(" AND folder_name = @folder_name")
