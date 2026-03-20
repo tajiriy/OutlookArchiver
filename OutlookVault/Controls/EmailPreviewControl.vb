@@ -55,9 +55,11 @@ Namespace Controls
             lblSubjectCaption.Font = boldFont
             lblToCaption.Font = boldFont
 
-            ' 添付ファイルアイコンを ImageList に登録
-            BuildAttachmentIcons(_attachImageList, 16)
-            BuildAttachmentIcons(_attachLargeImageList, 40)
+            ' ImageList の基本設定
+            _attachImageList.ColorDepth = ColorDepth.Depth32Bit
+            _attachImageList.ImageSize = New Drawing.Size(16, 16)
+            _attachLargeImageList.ColorDepth = ColorDepth.Depth32Bit
+            _attachLargeImageList.ImageSize = New Drawing.Size(32, 32)
         End Sub
 
         ' ════════════════════════════════════════════════════════════
@@ -326,15 +328,13 @@ Namespace Controls
                 pnl.Cursor = System.Windows.Forms.Cursors.Hand
                 pnl.ContextMenuStrip = _attachContextMenu
 
-                ' アイコン (40×40) を中央上部に配置
+                ' アイコン (32×32) を中央上部に配置
                 Dim pb As New System.Windows.Forms.PictureBox()
                 pb.Size = New Size(40, 40)
                 pb.Location = New Point(20, 4)
                 pb.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage
-                Dim iconKey As String = GetIconKey(Path.GetExtension(att.FileName))
-                If _attachLargeImageList.Images.ContainsKey(iconKey) Then
-                    pb.Image = _attachLargeImageList.Images(iconKey)
-                End If
+                Dim ext As String = Path.GetExtension(att.FileName)
+                pb.Image = Icons.ShellIconHelper.GetExtensionIconLarge(ext)
                 pb.Tag = att
                 pb.Cursor = System.Windows.Forms.Cursors.Hand
                 pb.ContextMenuStrip = _attachContextMenu
@@ -404,95 +404,6 @@ Namespace Controls
         ''' <summary>ファイルサイズを読みやすい形式に変換する。</summary>
         Private Shared Function FormatFileSize(bytes As Long) As String
             Return Services.FileHelper.FormatFileSize(bytes)
-        End Function
-
-        ' ════════════════════════════════════════════════════════════
-        '  添付ファイルアイコン
-        ' ════════════════════════════════════════════════════════════
-
-        ''' <summary>ファイル種類ごとのアイコンを ImageList に登録する。</summary>
-        Private Shared Sub BuildAttachmentIcons(imgList As System.Windows.Forms.ImageList, iconSize As Integer)
-            ' PDF (赤)
-            imgList.Images.Add("pdf", CreateFileIcon(Color.FromArgb(220, 50, 50), "P", iconSize))
-            ' Word (青)
-            imgList.Images.Add("doc", CreateFileIcon(Color.FromArgb(40, 90, 180), "W", iconSize))
-            ' Excel (緑)
-            imgList.Images.Add("xls", CreateFileIcon(Color.FromArgb(30, 130, 60), "X", iconSize))
-            ' PowerPoint (オレンジ)
-            imgList.Images.Add("ppt", CreateFileIcon(Color.FromArgb(210, 120, 20), "P", iconSize))
-            ' 画像 (紫)
-            imgList.Images.Add("img", CreateFileIcon(Color.FromArgb(120, 70, 170), "I", iconSize))
-            ' テキスト (グレー)
-            imgList.Images.Add("txt", CreateFileIcon(Color.FromArgb(100, 100, 100), "T", iconSize))
-            ' 圧縮 (黄)
-            imgList.Images.Add("zip", CreateFileIcon(Color.FromArgb(180, 150, 20), "Z", iconSize))
-            ' その他 (グレー)
-            imgList.Images.Add("other", CreateFileIcon(Color.FromArgb(140, 140, 140), "", iconSize))
-        End Sub
-
-        ''' <summary>指定サイズのファイルアイコンを生成する。</summary>
-        Private Shared Function CreateFileIcon(baseColor As Color, letter As String, iconSize As Integer) As Bitmap
-            Dim bmp As New Bitmap(iconSize, iconSize)
-            Using g As Graphics = Graphics.FromImage(bmp)
-                g.SmoothingMode = Drawing2D.SmoothingMode.AntiAlias
-                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias
-
-                ' 角丸矩形（ファイル形状）
-                Dim margin As Integer = CInt(Math.Max(1, iconSize * 0.06))
-                Dim bodyW As Integer = iconSize - margin * 2
-                Dim bodyH As Integer = iconSize - margin * 2
-                Using brush As New SolidBrush(baseColor)
-                    g.FillRectangle(brush, margin, margin, bodyW, bodyH)
-                End Using
-                ' 折り目（右上三角）
-                Dim foldSize As Integer = CInt(iconSize * 0.3)
-                Dim foldX As Integer = iconSize - margin - foldSize
-                Dim pts() As Point = {
-                    New Point(foldX, margin),
-                    New Point(iconSize - margin, margin + foldSize),
-                    New Point(iconSize - margin, margin)
-                }
-                Using brush As New SolidBrush(Color.FromArgb(60, Color.White))
-                    g.FillPolygon(brush, pts)
-                End Using
-
-                ' 中央の文字
-                If letter.Length > 0 Then
-                    Dim fontSize As Single = CSng(iconSize * 0.45)
-                    Using fnt As New Font("Segoe UI", fontSize, FontStyle.Bold)
-                        Using sf As New StringFormat()
-                            sf.Alignment = StringAlignment.Center
-                            sf.LineAlignment = StringAlignment.Center
-                            g.DrawString(letter, fnt, Brushes.White,
-                                         New RectangleF(0, CSng(margin), CSng(iconSize), CSng(bodyH)), sf)
-                        End Using
-                    End Using
-                End If
-            End Using
-            Return bmp
-        End Function
-
-        ''' <summary>拡張子からアイコンキーを返す。</summary>
-        Private Shared Function GetIconKey(ext As String) As String
-            If String.IsNullOrEmpty(ext) Then Return "other"
-            Select Case ext.ToLower()
-                Case ".pdf"
-                    Return "pdf"
-                Case ".doc", ".docx", ".docm", ".rtf"
-                    Return "doc"
-                Case ".xls", ".xlsx", ".xlsm", ".csv"
-                    Return "xls"
-                Case ".ppt", ".pptx", ".pptm"
-                    Return "ppt"
-                Case ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif", ".svg", ".webp"
-                    Return "img"
-                Case ".txt", ".log", ".xml", ".json", ".html", ".htm", ".css", ".js", ".vb", ".cs"
-                    Return "txt"
-                Case ".zip", ".rar", ".7z", ".tar", ".gz", ".lzh"
-                    Return "zip"
-                Case Else
-                    Return "other"
-            End Select
         End Function
 
         ' ════════════════════════════════════════════════════════════

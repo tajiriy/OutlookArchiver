@@ -31,6 +31,7 @@ Namespace Forms
             Me.lblSummary = New System.Windows.Forms.Label()
             Me.btnClose = New System.Windows.Forms.Button()
             Me.dgv = New System.Windows.Forms.DataGridView()
+            Me.colIcon = New System.Windows.Forms.DataGridViewImageColumn()
             Me.colExtension = New System.Windows.Forms.DataGridViewTextBoxColumn()
             Me.colCount = New System.Windows.Forms.DataGridViewTextBoxColumn()
             Me.colTotalSize = New System.Windows.Forms.DataGridViewTextBoxColumn()
@@ -76,7 +77,8 @@ Namespace Forms
             Me.dgv.AllowUserToDeleteRows = False
             Me.dgv.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill
             Me.dgv.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
-            Me.dgv.Columns.AddRange(New System.Windows.Forms.DataGridViewColumn() {Me.colExtension, Me.colCount, Me.colTotalSize, Me.colPercent})
+            Me.dgv.Columns.AddRange(New System.Windows.Forms.DataGridViewColumn() {Me.colIcon, Me.colExtension, Me.colCount, Me.colTotalSize, Me.colPercent})
+            Me.dgv.RowTemplate.Height = 24
             Me.dgv.Dock = System.Windows.Forms.DockStyle.Fill
             Me.dgv.Location = New System.Drawing.Point(0, 0)
             Me.dgv.Name = "dgv"
@@ -84,6 +86,17 @@ Namespace Forms
             Me.dgv.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
             Me.dgv.Size = New System.Drawing.Size(534, 371)
             Me.dgv.TabIndex = 0
+            '
+            'colIcon
+            '
+            Me.colIcon.HeaderText = ""
+            Me.colIcon.Name = "colIcon"
+            Me.colIcon.ReadOnly = True
+            Me.colIcon.Width = 28
+            Me.colIcon.FillWeight = 1.0!
+            Me.colIcon.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None
+            Me.colIcon.Resizable = System.Windows.Forms.DataGridViewTriState.False
+            Me.colIcon.ImageLayout = System.Windows.Forms.DataGridViewImageCellLayout.Zoom
             '
             'colExtension
             '
@@ -143,6 +156,7 @@ Namespace Forms
         Friend lblSummary As System.Windows.Forms.Label
         Friend WithEvents btnClose As System.Windows.Forms.Button
         Friend WithEvents dgv As System.Windows.Forms.DataGridView
+        Friend colIcon As System.Windows.Forms.DataGridViewImageColumn
         Friend colExtension As System.Windows.Forms.DataGridViewTextBoxColumn
         Friend colCount As System.Windows.Forms.DataGridViewTextBoxColumn
         Friend colTotalSize As System.Windows.Forms.DataGridViewTextBoxColumn

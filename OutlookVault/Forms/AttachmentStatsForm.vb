@@ -61,7 +61,8 @@ Namespace Forms
             dgv.Rows.Clear()
             For Each row As ExtensionRow In rows
                 Dim pct As Double = If(totalCount > 0, row.Count * 100.0 / CDbl(totalCount), 0.0)
-                dgv.Rows.Add(row.Extension, row.Count, row.TotalSize, pct)
+                Dim icon As System.Drawing.Bitmap = Icons.ShellIconHelper.GetExtensionIconSmall(row.Extension)
+                dgv.Rows.Add(icon, row.Extension, row.Count, row.TotalSize, pct)
             Next
 
             lblSummary.Text = String.Format("合計: {0:#,##0} 件 / {1}  ({2} 種類)",

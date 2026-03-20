@@ -72,11 +72,11 @@ Namespace Tests
             Using frm As New AttachmentStatsForm(_dbManager)
                 Dim dgv As System.Windows.Forms.DataGridView = DirectCast(frm.Controls.Find("dgv", True)(0), System.Windows.Forms.DataGridView)
                 Assert.AreEqual(2, dgv.Rows.Count)
-                ' 件数降順なので pdf が先
-                Assert.AreEqual(".pdf", dgv.Rows(0).Cells(0).Value.ToString())
-                Assert.AreEqual(2L, dgv.Rows(0).Cells(1).Value)
-                Assert.AreEqual(".png", dgv.Rows(1).Cells(0).Value.ToString())
-                Assert.AreEqual(1L, dgv.Rows(1).Cells(1).Value)
+                ' 件数降順なので pdf が先（列0はアイコン列）
+                Assert.AreEqual(".pdf", dgv.Rows(0).Cells(1).Value.ToString())
+                Assert.AreEqual(2L, dgv.Rows(0).Cells(2).Value)
+                Assert.AreEqual(".png", dgv.Rows(1).Cells(1).Value.ToString())
+                Assert.AreEqual(1L, dgv.Rows(1).Cells(2).Value)
             End Using
         End Sub
 
@@ -90,7 +90,7 @@ Namespace Tests
             Using frm As New AttachmentStatsForm(_dbManager)
                 Dim dgv As System.Windows.Forms.DataGridView = DirectCast(frm.Controls.Find("dgv", True)(0), System.Windows.Forms.DataGridView)
                 Assert.AreEqual(1, dgv.Rows.Count)
-                Assert.AreEqual("(なし)", dgv.Rows(0).Cells(0).Value.ToString())
+                Assert.AreEqual("(なし)", dgv.Rows(0).Cells(1).Value.ToString())
             End Using
         End Sub
 
