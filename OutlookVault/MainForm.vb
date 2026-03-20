@@ -1144,12 +1144,12 @@ Public Class MainForm
     End Sub
 
     Private Sub PositionToggleViewButton()
-        ' タブ行の右端に配置
+        ' 差出人行の右端に配置（右側に余白を設ける）
         btnToggleView.Top = 1
-        btnToggleView.Left = tabControl.Width - btnToggleView.Width - 4
+        btnToggleView.Left = tabPageNormal.ClientSize.Width - btnToggleView.Width - 1
     End Sub
 
-    Private Sub OnTabControlSizeChanged(sender As Object, e As EventArgs) Handles tabControl.SizeChanged
+    Private Sub OnTabPageNormalSizeChanged(sender As Object, e As EventArgs) Handles tabPageNormal.SizeChanged
         PositionToggleViewButton()
     End Sub
 

@@ -29,7 +29,6 @@ Namespace Controls
             Me.pnlMsgBody = New System.Windows.Forms.Panel()
             Me.webBrowserMsg = New System.Windows.Forms.WebBrowser()
             Me.txtBodyMsg = New System.Windows.Forms.RichTextBox()
-            Me.pnlMsgToolbar = New System.Windows.Forms.Panel()
             Me.btnToggleMsgView = New System.Windows.Forms.Button()
             Me.pnlMsgHeader = New System.Windows.Forms.Panel()
             Me.tlpMsgHeader = New System.Windows.Forms.TableLayoutPanel()
@@ -42,7 +41,6 @@ Namespace Controls
             Me.splitConversation.Panel2.SuspendLayout()
             Me.splitConversation.SuspendLayout()
             Me.pnlMsgBody.SuspendLayout()
-            Me.pnlMsgToolbar.SuspendLayout()
             Me.pnlMsgHeader.SuspendLayout()
             Me.tlpMsgHeader.SuspendLayout()
             Me.SuspendLayout()
@@ -61,7 +59,6 @@ Namespace Controls
             'splitConversation.Panel2
             '
             Me.splitConversation.Panel2.Controls.Add(Me.pnlMsgBody)
-            Me.splitConversation.Panel2.Controls.Add(Me.pnlMsgToolbar)
             Me.splitConversation.Panel2.Controls.Add(Me.pnlMsgHeader)
             Me.splitConversation.Size = New System.Drawing.Size(800, 600)
             Me.splitConversation.SplitterDistance = 150
@@ -130,21 +127,12 @@ Namespace Controls
             Me.txtBodyMsg.Text = ""
             Me.txtBodyMsg.Visible = False
             '
-            'pnlMsgToolbar
-            '
-            Me.pnlMsgToolbar.Controls.Add(Me.btnToggleMsgView)
-            Me.pnlMsgToolbar.Dock = System.Windows.Forms.DockStyle.Top
-            Me.pnlMsgToolbar.Location = New System.Drawing.Point(0, 50)
-            Me.pnlMsgToolbar.Name = "pnlMsgToolbar"
-            Me.pnlMsgToolbar.Padding = New System.Windows.Forms.Padding(4, 3, 4, 3)
-            Me.pnlMsgToolbar.Size = New System.Drawing.Size(800, 30)
-            Me.pnlMsgToolbar.TabIndex = 1
-            '
             'btnToggleMsgView
             '
+            Me.btnToggleMsgView.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
             Me.btnToggleMsgView.AutoSize = True
             Me.btnToggleMsgView.Enabled = False
-            Me.btnToggleMsgView.Location = New System.Drawing.Point(0, 0)
+            Me.btnToggleMsgView.Location = New System.Drawing.Point(720, 1)
             Me.btnToggleMsgView.Name = "btnToggleMsgView"
             Me.btnToggleMsgView.Size = New System.Drawing.Size(75, 23)
             Me.btnToggleMsgView.TabIndex = 0
@@ -153,7 +141,9 @@ Namespace Controls
             'pnlMsgHeader
             '
             Me.pnlMsgHeader.BackColor = System.Drawing.SystemColors.Info
+            Me.pnlMsgHeader.Controls.Add(Me.btnToggleMsgView)
             Me.pnlMsgHeader.Controls.Add(Me.tlpMsgHeader)
+            Me.btnToggleMsgView.BringToFront()
             Me.pnlMsgHeader.Dock = System.Windows.Forms.DockStyle.Top
             Me.pnlMsgHeader.Location = New System.Drawing.Point(0, 0)
             Me.pnlMsgHeader.Name = "pnlMsgHeader"
@@ -228,8 +218,6 @@ Namespace Controls
             CType(Me.splitConversation, System.ComponentModel.ISupportInitialize).EndInit()
             Me.splitConversation.ResumeLayout(False)
             Me.pnlMsgBody.ResumeLayout(False)
-            Me.pnlMsgToolbar.ResumeLayout(False)
-            Me.pnlMsgToolbar.PerformLayout()
             Me.pnlMsgHeader.ResumeLayout(False)
             Me.tlpMsgHeader.ResumeLayout(False)
             Me.ResumeLayout(False)
@@ -248,7 +236,6 @@ Namespace Controls
         Friend WithEvents lblMsgFrom As System.Windows.Forms.Label
         Friend WithEvents lblMsgDateCaption As System.Windows.Forms.Label
         Friend WithEvents lblMsgDate As System.Windows.Forms.Label
-        Friend WithEvents pnlMsgToolbar As System.Windows.Forms.Panel
         Friend WithEvents btnToggleMsgView As System.Windows.Forms.Button
         Friend WithEvents pnlMsgBody As System.Windows.Forms.Panel
         Friend WithEvents webBrowserMsg As System.Windows.Forms.WebBrowser

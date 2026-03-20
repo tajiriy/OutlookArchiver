@@ -63,10 +63,8 @@ Partial Class MainForm
         Me.emailImageList = New System.Windows.Forms.ImageList(Me.components)
         Me.tabControl = New System.Windows.Forms.TabControl()
         Me.tabPageNormal = New System.Windows.Forms.TabPage()
-        Me.emailPreview = New OutlookVault.Controls.EmailPreviewControl()
-        Me.tabPageThread = New System.Windows.Forms.TabPage()
-        Me.conversationView = New OutlookVault.Controls.ConversationViewControl()
         Me.btnToggleView = New System.Windows.Forms.Button()
+        Me.tabPageThread = New System.Windows.Forms.TabPage()
         Me.restoreMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.purgeMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.folderContextMenu = New System.Windows.Forms.ContextMenuStrip(Me.components)
@@ -83,6 +81,8 @@ Partial Class MainForm
         Me.trayMenuExit = New System.Windows.Forms.ToolStripMenuItem()
         Me._autoImportTimer = New System.Windows.Forms.Timer(Me.components)
         Me._scheduledImportTimer = New System.Windows.Forms.Timer(Me.components)
+        Me.emailPreview = New OutlookVault.Controls.EmailPreviewControl()
+        Me.conversationView = New OutlookVault.Controls.ConversationViewControl()
         Me.menuStrip.SuspendLayout()
         Me.toolStrip.SuspendLayout()
         CType(Me.splitMain, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -317,7 +317,6 @@ Partial Class MainForm
         'splitRight.Panel2
         '
         Me.splitRight.Panel2.Controls.Add(Me.tabControl)
-        Me.splitRight.Panel2.Controls.Add(Me.btnToggleView)
         Me.splitRight.Size = New System.Drawing.Size(1160, 723)
         Me.splitRight.SplitterDistance = 280
         Me.splitRight.TabIndex = 0
@@ -397,6 +396,7 @@ Partial Class MainForm
         'tabPageNormal
         '
         Me.tabPageNormal.Controls.Add(Me.emailPreview)
+        Me.tabPageNormal.Controls.Add(Me.btnToggleView)
         Me.tabPageNormal.Location = New System.Drawing.Point(4, 24)
         Me.tabPageNormal.Name = "tabPageNormal"
         Me.tabPageNormal.Size = New System.Drawing.Size(1152, 411)
@@ -404,13 +404,16 @@ Partial Class MainForm
         Me.tabPageNormal.Text = "通常表示"
         Me.tabPageNormal.UseVisualStyleBackColor = True
         '
-        'emailPreview
+        'btnToggleView
         '
-        Me.emailPreview.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.emailPreview.Location = New System.Drawing.Point(0, 0)
-        Me.emailPreview.Name = "emailPreview"
-        Me.emailPreview.Size = New System.Drawing.Size(1152, 411)
-        Me.emailPreview.TabIndex = 0
+        Me.btnToggleView.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.btnToggleView.AutoSize = True
+        Me.btnToggleView.Enabled = False
+        Me.btnToggleView.Location = New System.Drawing.Point(1030, 1)
+        Me.btnToggleView.Name = "btnToggleView"
+        Me.btnToggleView.Size = New System.Drawing.Size(77, 25)
+        Me.btnToggleView.TabIndex = 1
+        Me.btnToggleView.Text = "テキスト表示"
         '
         'tabPageThread
         '
@@ -421,25 +424,6 @@ Partial Class MainForm
         Me.tabPageThread.TabIndex = 1
         Me.tabPageThread.Text = "会話ビュー"
         Me.tabPageThread.UseVisualStyleBackColor = True
-        '
-        'conversationView
-        '
-        Me.conversationView.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.conversationView.Location = New System.Drawing.Point(0, 0)
-        Me.conversationView.Name = "conversationView"
-        Me.conversationView.Size = New System.Drawing.Size(1152, 411)
-        Me.conversationView.TabIndex = 0
-        '
-        'btnToggleView
-        '
-        Me.btnToggleView.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.btnToggleView.AutoSize = True
-        Me.btnToggleView.Enabled = False
-        Me.btnToggleView.Location = New System.Drawing.Point(41, 0)
-        Me.btnToggleView.Name = "btnToggleView"
-        Me.btnToggleView.Size = New System.Drawing.Size(77, 25)
-        Me.btnToggleView.TabIndex = 1
-        Me.btnToggleView.Text = "テキスト表示"
         '
         'restoreMenuItem
         '
@@ -534,6 +518,23 @@ Partial Class MainForm
         '
         Me._scheduledImportTimer.Interval = 60000
         '
+        'emailPreview
+        '
+        Me.emailPreview.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.emailPreview.Location = New System.Drawing.Point(0, 0)
+        Me.emailPreview.Name = "emailPreview"
+        Me.emailPreview.Size = New System.Drawing.Size(1152, 411)
+        Me.emailPreview.TabIndex = 0
+        '
+        'conversationView
+        '
+        Me.conversationView.Dock = System.Windows.Forms.DockStyle.Fill
+        Me.conversationView.Location = New System.Drawing.Point(0, 0)
+        Me.conversationView.Name = "conversationView"
+        Me.conversationView.Size = New System.Drawing.Size(1152, 411)
+        Me.conversationView.SplitterDistance = 102
+        Me.conversationView.TabIndex = 0
+        '
         'MainForm
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 15.0!)
@@ -558,12 +559,12 @@ Partial Class MainForm
         Me.splitMain.ResumeLayout(False)
         Me.splitRight.Panel1.ResumeLayout(False)
         Me.splitRight.Panel2.ResumeLayout(False)
-        Me.splitRight.Panel2.PerformLayout()
         CType(Me.splitRight, System.ComponentModel.ISupportInitialize).EndInit()
         Me.splitRight.ResumeLayout(False)
         Me.listViewContextMenu.ResumeLayout(False)
         Me.tabControl.ResumeLayout(False)
         Me.tabPageNormal.ResumeLayout(False)
+        Me.tabPageNormal.PerformLayout()
         Me.tabPageThread.ResumeLayout(False)
         Me.folderContextMenu.ResumeLayout(False)
         Me.statusStrip.ResumeLayout(False)

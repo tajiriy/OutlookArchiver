@@ -154,6 +154,11 @@ Namespace Controls
             ShowMessage(email)
         End Sub
 
+        Private Sub pnlMsgHeader_SizeChanged(sender As Object, e As EventArgs) Handles pnlMsgHeader.SizeChanged
+            btnToggleMsgView.Top = 1
+            btnToggleMsgView.Left = pnlMsgHeader.ClientSize.Width - btnToggleMsgView.Width - 1
+        End Sub
+
         Private Sub btnToggleMsgView_Click(sender As Object, e As EventArgs) Handles btnToggleMsgView.Click
             Dim email As Models.Email = FindSelectedEmail()
             If email Is Nothing Then Return
